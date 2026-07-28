@@ -18,7 +18,7 @@ body{
 code,.mono,.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-variant-numeric:tabular-nums}
 
-/* ── el vacío con vida: SOLO capa raíz, jamás tras el texto ── */
+/* -- the void with life: ROOT layer only, never behind the text -- */
 #vacio{position:fixed;inset:0;z-index:0}
 
 .marco{position:relative;z-index:10;display:flex;height:100vh}
@@ -100,7 +100,7 @@ code,.mono,.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
 .campo.solucion b{color:var(--ok)}
 .campo.leccion b{color:var(--orbit)}
 
-/* ── listas genéricas (actos, salud, búsqueda) ── */
+/* -- generic lists (acts, health, search) -- */
 .linea{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
 .linea:last-child{border-bottom:0}
 .linea .sub{color:var(--muted);font-size:12px;margin-top:2px}
@@ -125,7 +125,7 @@ pre.consola{background:var(--surface);border:1px solid var(--border);
   #menu button{justify-content:center}
 }
 
-/* ══ EL CAJÓN — ficha de detalle deslizante ══════════════════════════════ */
+/* == THE DRAWER - sliding detail card ================================== */
 .cajon{position:fixed;top:0;right:0;width:min(560px,92vw);height:100vh;z-index:100;
   background:var(--surface);border-left:1px solid var(--border);
   display:flex;flex-direction:column;transform:translateX(100%);
@@ -160,7 +160,7 @@ pre.consola{background:var(--surface);border:1px solid var(--border);
 #g-lienzo:active{cursor:grabbing}
 #g-ayuda{font-size:11px;color:var(--muted)}
 
-/* ══ LÍNEA TEMPORAL ══════════════════════════════════════════════════════ */
+/* == TIMELINE ========================================================== */
 .linea-temporal{position:relative;padding-left:8px}
 .dia{position:relative;margin-bottom:6px}
 .dia-cab{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
@@ -202,7 +202,7 @@ pre.consola{background:var(--surface);border:1px solid var(--border);
 .zoom-par .btn-fantasma:last-child{border-radius:0 var(--r-s) var(--r-s) 0;border-left:0}
 #g-lienzo:focus-visible{outline:2px solid var(--star);outline-offset:2px}
 
-/* ══ SALUD — diagnóstico con desglose ════════════════════════════════════ */
+/* == HEALTH - diagnosis with a breakdown =============================== */
 .salud-cab{display:flex;gap:26px;align-items:center;flex-wrap:wrap;
   background:var(--card);border:1px solid var(--border);border-radius:var(--r-m);
   padding:18px 22px;margin-bottom:18px}

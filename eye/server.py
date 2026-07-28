@@ -4,10 +4,10 @@
 EL OJO — servidor del dashboard de CHAOS · stdlib puro, cero dependencias.
 
 Leyes del nervio:
-  · 127.0.0.1 y puerto alto aleatorio. JAMÁS 0.0.0.0.
-  · Token aleatorio por arranque: sin él, nadie lee.
-  · Toda LÓGICA vive en chaos.py (~/.chaos/bin/): aquí no se duplica una
-    sola regla — lecturas simples por SQL vía chaos.db(), lo demás por CLI.
+  · 127.0.0.1 and a random high port. NEVER 0.0.0.0.
+  · A random token per launch: without it, nobody reads.
+  · All LOGIC lives in chaos.py (~/.chaos/bin/): not one rule is duplicated
+    here — plain reads by SQL via chaos.db(), everything else through the CLI.
   · CSP estricta: sin CDN, sin fuentes remotas, sin fetch externo.
   · Muere con la ventana: cerrar = servidor abajo, token quemado.
 """
@@ -20,7 +20,7 @@ from urllib.parse import urlparse, parse_qs
 AQUI = os.path.dirname(os.path.abspath(__file__))
 def _casa():
     """La casa del dios: la MISMA verdad que chaos.py, sin importarlo (los
-    hooks deben ser instantáneos). Env > elección del Portador > defecto."""
+    hooks must be instant). Env > the Bearer's choice > default."""
     v = os.environ.get("CHAOS_HOME")
     if v:
         return os.path.expanduser(v)
@@ -44,10 +44,22 @@ spec = importlib.util.spec_from_file_location("chaos", CHAOS_APP)
 chaos = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(chaos)
 
-# Edición: si la BD inglesa existe y la española no, hablamos con esa.
+# Edition: if the English DB exists and the Spanish one does not, speak that.
 ES = os.path.exists(os.path.join(CHAOS_HOME, "abismo.db")) or \
      not os.path.exists(os.path.join(CHAOS_HOME, "abyss.db"))
-T = {  # nombres de tablas/columnas por edición — el único mapa permitido
+def _t(es_txt, en_txt):
+    """Every string the human READS goes through here. The Eye is one
+    bilingual program serving both editions, so a hardcoded Spanish string is
+    not a style problem: an English Bearer opens Health and reads 'autonomia
+    frenada'. A bilingual interface with a monolingual engine is a half lie.
+
+    It lives right after ES on purpose — it used to be defined 300 lines down,
+    so everything above it could not use it, which is exactly where the
+    hardcoded strings piled up."""
+    return es_txt if ES else en_txt
+
+
+T = {  # table/column names per edition — the only map allowed
     "fallas": "fallas" if ES else "faults",
     "f_cols": ("titulo,sintoma,causa,cura,leccion,territorio,fecha,estado,repeticiones,ultima"
                if ES else "title,symptom,cause,cure,lesson,territory,date,state,repeats,last"),
@@ -63,7 +75,7 @@ T = {  # nombres de tablas/columnas por edición — el único mapa permitido
 
 
 def _cli(*args):
-    """Lo que tiene lógica se pide al CLI: cero duplicación, una sola verdad."""
+    """Anything with logic is asked of the CLI: zero duplication, one truth."""
     try:
         p = subprocess.run([sys.executable, CHAOS_APP, *args],
                            capture_output=True, text=True, timeout=30)
@@ -88,17 +100,18 @@ def _uno(sql, args=(), defecto=0):
 
 
 # ── endpoints ─────────────────────────────────────────────────────────────
-OJO_EXIGE = 5      # versión de cuerpo que este Ojo necesita para todo
+OJO_EXIGE = 5      # body version this Eye needs in order to show everything
 
 
 def _desajuste_cuerpo():
-    """Frente 15. Si el cuerpo va por detrás, no se calla: se dice con el
-    comando exacto. Un puente getattr que degrada en silencio es un fallo
-    que el Portador descubre por accidente."""
+    """If the body lags behind, the Eye does not stay quiet: it says so with the
+    exact command. A getattr bridge that degrades silently is a failure the
+    Bearer discovers by accident."""
     v = getattr(chaos, "VERSION_CUERPO", None) or getattr(chaos, "BODY_VERSION", None)
     if v is None:
         return {"cuerpo": 0, "exige": OJO_EXIGE,
-                "aviso": "el cuerpo no declara versión — reencárnalo: python3 install.py"}
+                "aviso": _t("el cuerpo no declara versión — reencárnalo: python3 install.py",
+                          "the body declares no version — reincarnate it: python3 install.py")}
     if v < OJO_EXIGE:
         return {"cuerpo": v, "exige": OJO_EXIGE,
                 "aviso": "el cuerpo es v{} y el Ojo espera v{} — reencarna: "
@@ -150,15 +163,15 @@ def api_actos(n=50):
     return [dict(zip(claves, f)) for f in filas] if isinstance(filas, list) else filas
 
 
-# ── UNA SOLA VERDAD: la raíz de proyecto vive en chaos.py ─────────────────
+# ── ONE TRUTH: the project root rule lives in chaos.py ───────────────────
 # Falla propia cazada en la auto-vigilia: el Ojo REIMPLEMENTABA
 # raiz_proyecto/COBIJOS, violando mi ley fundacional ("chaos.py ES el
-# backend, cero duplicación"). Si la regla evoluciona en la conciencia, la
-# vitrina divergiría en silencio. El puente admite ambas ediciones.
+# backend, zero duplication"). If the rule evolves in the mind, the shop
+# window would drift in silence. The bridge accepts both editions.
 RAIZ_PROYECTO = getattr(chaos, "raiz_proyecto", None) or getattr(chaos, "project_root", None)
 NOMBRE_TERRITORIO = getattr(chaos, "nombre_territorio", None) or getattr(chaos, "territory_name", None)
 COBIJOS = getattr(chaos, "COBIJOS", None) or getattr(chaos, "SHELTERS", set())
-if RAIZ_PROYECTO is None:      # cuerpo viejo sin la función: se declara, no se inventa
+if RAIZ_PROYECTO is None:      # old body without it: declared, never invented
     def RAIZ_PROYECTO(r): return r
     def NOMBRE_TERRITORIO(r): return os.path.basename((r or "").rstrip(os.sep)) or None
 
@@ -243,7 +256,7 @@ def _plegar(nombre, raices, sub):
       1. coincidir con la raiz          (dios-del-vacio -> DIOS DEL VACIO)
       2. ser una carpeta de dentro      (chaos-ojo      -> DIOS DEL VACIO)
       3. ser una EXTENSION del nombre   (chaosx-web     -> chaosx)
-    El caso 3 lo enseño el Portador: yo mismo etiqueto fallas con nombres que
+    Case 3 was taught by the Bearer: I label faults myself with names that
     no son carpetas (chaosx-web), y quedaban sueltas como si fueran proyectos
     aparte. Gana la raiz MAS LARGA: radar-1k no cae dentro de radar.
     Si no pertenece a nada conocido, se respeta como territorio propio."""
@@ -315,13 +328,13 @@ def api_territorios():
 
 
 def api_buscar(q):
-    """La búsqueda ES la del dios: se delega al CLI. Cero lógica duplicada."""
+    """The search IS the god's: delegated to the CLI. Zero duplicated logic."""
     if not q or len(q) > 200:
         return {"lineas": []}
     return {"lineas": _cli(T["cmd_buscar"], q, "--breve").splitlines()[:30]}
 
 
-# ══ EL DIAGNÓSTICO · la salud REAL de la memoria ══════════════════════════
+# ══ THE DIAGNOSIS · the REAL health of the memory ════════════════════════
 # El Portador: "solo dice un monton de cosas que no es nada intuitivo".
 # Tenia razon: volcar la salida de `auditar` no es diagnosticar. Aqui cada
 # dimension declara SU FORMULA, entrega un puntaje 0-100 y — lo que importa —
@@ -341,14 +354,6 @@ def _dias(iso):
         return None
 
 
-def _t(es_txt, en_txt):
-    """El motor de Salud TIENE edición: que hable la suya. Falla real hallada
-    probando el Ojo contra un cuerpo inglés: dimensiones, fórmulas y detalles
-    salían en español. Una interfaz bilingüe con el motor monolingüe miente a
-    medias."""
-    return es_txt if ES else en_txt
-
-
 def _dim(clave, titulo, peso, puntaje, formula, problemas, detalle=""):
     return {"clave": clave, "titulo": titulo, "peso": peso,
             "puntaje": max(0, min(100, round(puntaje))), "formula": formula,
@@ -362,7 +367,7 @@ def _d_tejido():
     enl = "enlaces" if ES else "links"
     org, dst = ("origen", "destino") if ES else ("source", "target")
     slugs = set(r[0] for r in (_q("SELECT slug FROM {}".format(meta)) or []))
-    # EL PUENTE DE LOS ALIAS: `tejer` decía 3 rotos y la Salud 12 — dos
+    # THE ALIAS BRIDGE: `weave` said 3 broken and Health said 12 — two
     # verdades sobre el mismo dato. Un destino con alias NO cuelga.
     puentes = dict(_q("SELECT alias, slug FROM alias") or [])
     aristas = _q("SELECT {},{} FROM {}".format(org, dst, enl)) or []
@@ -370,8 +375,8 @@ def _d_tejido():
     tocados = set()
     for o, d in aristas:
         tocados.add(o); tocados.add(puentes.get(d, d))
-    # una ISLA declarada no es una herida: es un saber que miré y no ata con
-    # nada. Castigarla sería premiar el vínculo inventado (Ley del Hilo Mínimo)
+    # a declared ISLAND is not a wound: it is knowledge I looked at and that
+    # ties to nothing. Punishing it would reward the invented link.
     est = "estado" if ES else "state"
     islas = set(r[0] for r in (_q("SELECT slug FROM {} WHERE {}='{}'".format(
         meta, est, "isla" if ES else "island")) or []))
@@ -384,7 +389,7 @@ def _d_tejido():
     probs += [{"titulo": s, "clase": "huerfana",
                "detalle": "ninguna esencia la nombra ni ella nombra a nadie"}
               for s in huerfanas]
-    return _dim("tejido", "Tejido", 18, p,
+    return _dim("tejido", _t("Tejido", "The Weave"), 18, p,
                 _t("100 − (60×rotos/enlaces + 40×huérfanas/esencias)",
                    "100 − (60×broken/links + 40×orphans/essences)"), probs,
                 _t("{} enlaces · {} rotos · {} huérfanas de {} esencias{}",
@@ -416,7 +421,7 @@ def _d_estructura():
     probs += [{"titulo": s, "clase": "sin-bloques",
                "detalle": "{} caracteres sin un solo bloque ^id: cada respuesta arrastra el saco".format(n)}
               for s, n in gordas_mudas]
-    return _dim("estructura", "Estructura", 14, .6 * p_tipo + .4 * p_blq,
+    return _dim("estructura", _t("Estructura", "Structure"), 14, .6 * p_tipo + .4 * p_blq,
                 _t("60% × (con tipo) + 40% × (esencias grandes con bloques ^id)",
                    "60% × (typed) + 40% × (large essences with ^id blocks)"), probs,
                 _t("{} sin tipo · {} grandes sin bloques",
@@ -424,7 +429,7 @@ def _d_estructura():
 
 
 def _d_frescura():
-    """Una verdad vieja que nadie re-verificó es una mentira esperando turno."""
+    """An old truth nobody re-verified is a lie waiting its turn."""
     meta = "meta_esencia" if ES else "essence_meta"
     dev = "devorado" if ES else "devoured"
     cad = "caduca" if ES else "expires"
@@ -435,10 +440,10 @@ def _d_frescura():
     tot = len(filas) or 1
     p = 100 - (55.0 * len(rancias) / tot + 45.0 * len(caducadas) / tot)
     probs = [{"titulo": s, "clase": "rancia",
-              "detalle": "{} días sin re-verificar".format(d)} for s, d in rancias]
+              "detalle": _t("{} días sin re-verificar", "{} days without re-verification").format(d)} for s, d in rancias]
     probs += [{"titulo": s, "clase": "caducada",
-               "detalle": "venció el {} — exige re-Juicio".format(c)} for s, c in caducadas]
-    return _dim("frescura", "Frescura", 12, p,
+               "detalle": _t("venció el {} — exige re-Juicio", "expired on {} — demands re-Judgment").format(c)} for s, c in caducadas]
+    return _dim("frescura", _t("Frescura", "Freshness"), 12, p,
                 _t("100 − (55×rancias>120d + 45×caducadas) / esencias",
                    "100 − (55×stale>120d + 45×expired) / essences"), probs,
                 _t("{} rancias · {} caducadas", "{} stale · {} expired").format(len(rancias), len(caducadas)))
@@ -466,10 +471,11 @@ def _d_sincronia():
     tot = len(en_disco | indexadas) or 1
     p = 100 - 100.0 * (len(sin_indexar) + len(fantasmas)) / tot
     probs = [{"titulo": s, "clase": "sin-indexar",
-              "detalle": "vive en disco pero NO está en las neuronas"} for s in sin_indexar]
+              "detalle": _t("vive en disco pero NO está en las neuronas",
+                             "lives on disk but is NOT in the neurons")} for s in sin_indexar]
     probs += [{"titulo": s, "clase": "fantasma",
                "detalle": "indexada como residente pero su archivo no existe"} for s in fantasmas]
-    return _dim("sincronia", "Sincronía", 16, p,
+    return _dim("sincronia", _t("Sincronía", "Sync"), 16, p,
                 _t("100 − (sin indexar + fantasmas) / total en disco∪BD",
                    "100 − (unindexed + ghosts) / total on disk∪DB"), probs,
                 _t("{} en disco · {} indexadas · {} desalineadas",
@@ -493,19 +499,22 @@ def _d_errario():
         if est in ("viva", "alive"):
             vivas += 1
             probs.append({"titulo": "#{} {}".format(d["id"], d.get("titulo") or d.get("title")),
-                          "clase": "viva", "detalle": "sin curar — {}".format(cur or "sin solución escrita")})
+                          "clase": "viva", "detalle": _t("sin curar — {}", "uncured — {}").format(
+                          cur or _t("sin solución escrita", "no written solution"))})
         if rep:
             reinc += 1
             probs.append({"titulo": "#{} {}".format(d["id"], d.get("titulo") or d.get("title")),
-                          "clase": "reincidida", "detalle": "cometida {} vez(ces) MÁS".format(rep)})
+                          "clase": "reincidida", "detalle": _t("cometida {} vez(ces) MÁS",
+                          "committed {} MORE time(s)").format(rep)})
         if not lec:
             mudas += 1
             probs.append({"titulo": "#{} {}".format(d["id"], d.get("titulo") or d.get("title")),
-                          "clase": "sin-leccion", "detalle": "sin lección: no puede emboscar a nadie"})
+                          "clase": "sin-leccion", "detalle": _t("sin lección: no puede emboscar a nadie",
+                          "no lesson: it can ambush nobody")})
     tot = len(filas) or 1
     p = 100 - (45.0 * vivas / tot + 40.0 * reinc / tot + 15.0 * mudas / tot) * 100 / 100 * 1.0
     p = 100 - (45.0 * vivas + 40.0 * reinc + 15.0 * mudas) / tot
-    return _dim("errario", "Errario", 12, p,
+    return _dim("errario", _t("Errario", "The Errarium"), 12, p,
                 _t("100 − (45×vivas + 40×reincididas + 15×sin lección) / fallas",
                    "100 − (45×alive + 40×relapsed + 15×lessonless) / faults"), probs,
                 _t("{} fallas · {} vivas · {} reincididas · {} sin lección",
@@ -514,7 +523,7 @@ def _d_errario():
 
 
 def _d_deuda():
-    """Obra sin sedimentar es memoria que se pierde al cerrar la sesión."""
+    """Work left unsedimented is memory lost when the session closes."""
     probs = []
     n_rastro = 0
     try:
@@ -524,12 +533,14 @@ def _d_deuda():
         pass
     if n_rastro:
         probs.append({"titulo": "{} obra(s) sin documentar".format(n_rastro),
-                      "clase": "rastro", "detalle": "el rastro espera destilarse en crónica y esencias"})
+                      "clase": "rastro", "detalle": _t("el rastro espera destilarse en crónica y esencias",
+                          "the trail waits to be distilled into chronicle and essences")})
     deu = _q("SELECT id,fecha,obras FROM deudas WHERE saldada=0" if ES
              else "SELECT id,date,works FROM debts WHERE settled=0") or []
     for i, fe, ob in deu:
         probs.append({"titulo": "deuda #{} · {} obra(s)".format(i, ob), "clase": "deuda",
-                      "detalle": "sesión del {} murió sin sedimentar".format(str(fe)[:10])})
+                      "detalle": _t("sesión del {} murió sin sedimentar",
+                          "session of {} died without sedimenting").format(str(fe)[:10])})
     ham = _q("SELECT id,texto,fecha FROM hambres" if ES
              else "SELECT id,text,date FROM hungers") or []
     for i, tx, fe in ham:
@@ -544,7 +555,7 @@ def _d_deuda():
         probs.append({"titulo": "{} parte(s) de vela sin leer".format(sin_leer),
                       "clase": "parte", "detalle": "si nadie me lee, dejo de velar"})
     castigo = min(60, n_rastro / 8.0) + 10.0 * len(deu) + 6.0 * len(ham) + 5.0 * sin_leer
-    return _dim("deuda", "Deuda", 14, 100 - castigo,
+    return _dim("deuda", _t("Deuda", "Debt"), 14, 100 - castigo,
                 _t("100 − (obras/8 hasta 60 + 10×deudas + 6×hambres + 5×partes sin leer)",
         "100 − (works/8 up to 60 + 10×debts + 6×hungers + 5×unread reports)"),
                 probs, _t("{} obras · {} deudas · {} hambres",
@@ -566,19 +577,20 @@ def _d_autonomia():
                           "clase": "veredicto", "detalle": ver})
     frenado = os.path.exists(os.path.join(CHAOS_HOME, "PARAR" if ES else "STOP"))
     if frenado:
-        probs.append({"titulo": "autonomía frenada", "clase": "freno",
-                      "detalle": "existe el archivo de freno: no velo mientras esté"})
+        probs.append({"titulo": _t("autonomía frenada", "autonomy braked"), "clase": "freno",
+                      "detalle": _t("existe el archivo de freno: no velo mientras esté",
+                          "the brake file exists: I do not keep watch while it does")})
     ultimo = None
     if filas:
         d0 = dict(zip(["id"] + cols, filas[0]))
         ultimo = _dias(d0.get("fecha") or d0.get("date"))
     viejo = ultimo is not None and ultimo > 3
     if viejo:
-        probs.append({"titulo": "último acto hace {} días".format(ultimo),
+        probs.append({"titulo": _t("último acto hace {} días", "last act {} days ago").format(ultimo),
                       "clase": "dormido", "detalle": "el latido no se ha disparado"})
     tot = len(filas) or 1
     p = 100 - (70.0 * sucios / tot) - (20 if frenado else 0) - (10 if viejo else 0)
-    return _dim("autonomia", "Autonomía", 8, p,
+    return _dim("autonomia", _t("Autonomía", "Autonomy"), 8, p,
                 _t("100 − 70×sucios/actos − 20 si frenada − 10 si dormida >3d",
                    "100 − 70×dirty/acts − 20 if braked − 10 if asleep >3d"), probs,
                 _t("{} actos · {} con veredicto sucio",
@@ -586,7 +598,7 @@ def _d_autonomia():
 
 
 def _d_resguardo():
-    """Sin respaldo reciente, una máquina muerta es una memoria muerta."""
+    """With no recent backup, a dead machine is a dead memory."""
     probs = []
     base = os.path.join(CHAOS_HOME, "respaldos" if ES else "backups")
     dias = None
@@ -598,12 +610,12 @@ def _d_resguardo():
         pass
     if dias is None:
         probs.append({"titulo": "sin respaldos", "clase": "resguardo",
-                      "detalle": "jamás se ha respaldado el Abismo"})
+                      "detalle": _t("jamás se ha respaldado el Abismo", "the Abyss has never been backed up")})
         p = 0
     else:
         p = 100 - min(100, dias * 12)
         if dias > 2:
-            probs.append({"titulo": "último respaldo hace {} días".format(dias),
+            probs.append({"titulo": _t("último respaldo hace {} días", "last backup {} days ago").format(dias),
                           "clase": "resguardo", "detalle": "un respaldo viejo cubre poco"})
     # una llave REAL trae 16+ caracteres tras el prefijo; hablar de "sk-" en
     # una frase no es una fuga. Falso positivo cazado: 2 esencias que solo
@@ -615,10 +627,11 @@ def _d_resguardo():
         if re.search(r"sk-[A-Za-z0-9_\-]{16,}|ghp_[A-Za-z0-9]{20,}", cont or ""):
             reales.append(slug)
     if reales:
-        probs.append({"titulo": "{} esencia(s) con patrón de llave".format(len(reales)),
+        probs.append({"titulo": _t("{} esencia(s) con patrón de llave",
+                                   "{} essence(s) with a key pattern").format(len(reales)),
                       "clase": "fuga", "detalle": ", ".join(reales[:6])})
         p -= 40
-    return _dim("resguardo", "Resguardo", 6, p,
+    return _dim("resguardo", _t("Resguardo", "Safekeeping"), 6, p,
                 _t("100 − 12×días desde el último respaldo − 40 si hay patrón de llave",
         "100 − 12×days since last backup − 40 if a key pattern is found"),
                 probs, _t("último respaldo: {}", "last backup: {}").format(
@@ -626,8 +639,8 @@ def _d_resguardo():
 
 
 def _guardar_salud(d):
-    """Frente 7: cada lectura de salud deja su huella (una por día, la última
-    manda). Sin historia, un porcentaje es una foto sin antes ni después."""
+    """Every health reading leaves its mark (one per day, the last one wins).
+    Without history, a percentage is a photo with no before and no after."""
     try:
         import datetime as dt
         con = chaos.db()
@@ -637,7 +650,7 @@ def _guardar_salud(d):
              json.dumps({x["clave"]: x["puntaje"] for x in d["dimensiones"]})))
         con.commit(); con.close()
     except Exception:
-        pass          # la historia jamás rompe el diagnóstico
+        pass          # history must never break the diagnosis
 
 
 def api_salud_historia(dias=30):
@@ -648,7 +661,7 @@ def api_salud_historia(dias=30):
 
 
 def api_salud():
-    """SALUD REAL: 8 dimensiones, cada una con su fórmula y su desglose.
+    """REAL HEALTH: 8 dimensions, each with its formula and its breakdown.
     El global es la media PONDERADA — y todo lo que resta se puede nombrar."""
     dims = []
     for f in (_d_tejido, _d_estructura, _d_frescura, _d_sincronia,
@@ -687,7 +700,7 @@ def api_notas():
 
 def api_grafo():
     """El grafo del Tejido. Los enlaces ROTOS se marcan — Obsidian los pinta
-    igual que los sanos; yo señalo la grieta."""
+    the same as the healthy; I point at the crack."""
     meta = "meta_esencia" if ES else "essence_meta"
     enl = "enlaces" if ES else "links"
     org, dst = ("origen", "destino") if ES else ("source", "target")
@@ -721,16 +734,16 @@ def api_grafo():
     return {"nodos": list(nodos.values()), "aristas": aristas}
 
 
-# ── EL TIEMPO · actividad INFERIDA, jamás cronometrada ────────────────────
+# ── TIME · activity INFERRED, never stopwatched ──────────────────────────
 RASTRO = os.path.join(CHAOS_HOME, "forja" if ES else "forge",
                       "rastro.log" if ES else "trail.log")
-CORTE_SESION = 30 * 60          # hueco > 30 min = otra sesión de obra
+CORTE_SESION = 30 * 60          # gap > 30 min = a different work session
 _ISO = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\t")
 
 
 def _leer_rastro():
-    """Un comando Bash multilínea parte el registro: solo cuenta la línea que
-    ARRANCA con un timestamp ISO. (Falla que evité: partir por \n a ciegas.)"""
+    """A multi-line Bash command splits the record: only the line that STARTS
+    with an ISO timestamp counts. (Fault avoided: splitting on \n blindly.)"""
     filas = []
     try:
         with io.open(RASTRO, encoding="utf-8", errors="replace") as f:
@@ -770,7 +783,7 @@ def api_tiempo():
     out, total = [], 0.0
     for s in sesiones:
         dur = (s[-1][0] - s[0][0]).total_seconds()
-        # una sesión de una sola obra no dura 0: se le acredita el corte mínimo
+        # a one-work session does not last 0: it is credited the minimum slice
         dur = max(dur, 60.0)
         total += dur
         ters = {}
@@ -781,7 +794,7 @@ def api_tiempo():
                     "fin": s[-1][0].isoformat(timespec="minutes"),
                     "minutos": round(dur / 60), "obras": len(s),
                     "territorio": max(ters, key=ters.get)})
-    # mapa de calor: día × hora
+    # heat map: day × hour
     mapa = {}
     for d, _ in marcas:
         mapa["{}|{}".format(d.date().isoformat(), d.hour)] = \
@@ -801,27 +814,36 @@ def api_tiempo():
     }
 
 
-# ── TERRITORIO: el mapa real del proyecto ───────────────────────
+# ── TERRITORY: the project's real map ──────────────────────────
 IGNORA = {".git", "node_modules", "__pycache__", ".venv", "venv", ".DS_Store",
           ".idea", ".vscode", "dist", "build", ".next", ".cache"}
-ROLES = {
-    "README.md": "puerta de entrada del proyecto",
-    "package.json": "dependencias y scripts de Node",
-    "requirements.txt": "dependencias de Python",
-    "Dockerfile": "receta del contenedor",
-    "Makefile": "tareas de construcción",
-    ".gitignore": "qué NO entra al repo",
-    "LICENSE": "términos de uso",
-}
-EXT = {".py": "código Python", ".js": "código JavaScript", ".ts": "código TypeScript",
-       ".md": "documento", ".json": "datos/config", ".sh": "guión de shell",
-       ".css": "estilos", ".html": "página", ".sql": "esquema/consulta",
-       ".yml": "config", ".yaml": "config", ".toml": "config", ".png": "imagen",
-       ".jpg": "imagen", ".svg": "vector", ".txt": "texto", ".log": "bitácora"}
+# What each file does. These reach the Territories card, so they are the
+# Bearer's language — not the author's. Written as (es, en) pairs so neither
+# edition can drift: adding one in a single tongue is now impossible.
+ROLES = {k: _t(*v) for k, v in {
+    "README.md":        ("puerta de entrada del proyecto", "the project's front door"),
+    "package.json":     ("dependencias y scripts de Node", "Node dependencies and scripts"),
+    "requirements.txt": ("dependencias de Python", "Python dependencies"),
+    "Dockerfile":       ("receta del contenedor", "the container recipe"),
+    "Makefile":         ("tareas de construcción", "build tasks"),
+    ".gitignore":       ("qué NO entra al repo", "what does NOT enter the repo"),
+    "LICENSE":          ("términos de uso", "terms of use"),
+}.items()}
+EXT = {k: _t(*v) for k, v in {
+    ".py":  ("código Python", "Python code"),   ".js":   ("código JavaScript", "JavaScript code"),
+    ".ts":  ("código TypeScript", "TypeScript code"),
+    ".md":  ("documento", "document"),          ".json": ("datos/config", "data/config"),
+    ".sh":  ("guión de shell", "shell script"), ".css":  ("estilos", "styles"),
+    ".html":("página", "page"),                 ".sql":  ("esquema/consulta", "schema/query"),
+    ".yml": ("config", "config"),               ".yaml": ("config", "config"),
+    ".toml":("config", "config"),               ".png":  ("imagen", "image"),
+    ".jpg": ("imagen", "image"),                ".svg":  ("vector", "vector"),
+    ".txt": ("texto", "text"),                  ".log":  ("bitácora", "log"),
+}.items()}
 
 
 def _que_hace(ruta, nombre):
-    """Qué hace un archivo — leído de ÉL, no inventado: docstring, primer
+    """What a file does — read FROM IT, never invented: docstring, first
     encabezado, o el rol conocido. Si no se sabe, se dice que no se sabe."""
     if nombre in ROLES:
         return ROLES[nombre]
@@ -857,7 +879,7 @@ def _que_hace(ruta, nombre):
 
 
 def _mapa_carpeta(base):
-    """Árbol de UN nivel + conteo real de lo que hay dentro de cada carpeta."""
+    """A ONE-level tree + a real count of what lives inside each folder."""
     out = []
     try:
         entradas = sorted(os.scandir(base), key=lambda e: (not e.is_dir(), e.name.lower()))
@@ -889,7 +911,7 @@ def _mapa_carpeta(base):
 
 
 def api_territorio(nombre):
-    """Ficha completa de un territorio: qué es, su mapa, sus fallas, su obra."""
+    """A territory's full card: what it is, its map, its faults, its work."""
     filas = _leer_rastro()
     raices, sub = _mapa_raices()
     clave, visible = _plegar(nombre, raices, sub)
@@ -937,7 +959,7 @@ def api_territorio(nombre):
 
 
 def api_linea(dias=14):
-    """LÍNEA TEMPORAL: todo suceso fundido en orden — obras, fallas, actos,
+    """TIMELINE: every event fused in order — works, faults, acts,
     chispas. Cada uno con su detalle para expandir."""
     ev = []
     for f in _leer_rastro():
@@ -951,7 +973,7 @@ def api_linea(dias=14):
                    "clase": "falla", "titulo": d.get("titulo") or d.get("title"),
                    "sub": d.get("estado") or d.get("state"),
                    "ter": d.get("territorio") or d.get("territory"),
-                   "detalle": "SOLUCIÓN: " + (d.get("cura") or d.get("cure") or "—"),
+                   "detalle": _t("SOLUCIÓN: ", "SOLUTION: ") + (d.get("cura") or d.get("cure") or "—"),
                    "id": d["id"]})
     acol = T["a_cols"].split(",")
     for a in _q("SELECT id,{} FROM {}".format(T["a_cols"], T["actos"])) or []:
@@ -981,17 +1003,17 @@ def api_linea(dias=14):
                      for d in orden]}
 
 
-# ══ FRENTE 5 · EL OJO ACTÚA ═══════════════════════════════════════════════
-# Hasta aquí el Ojo era solo lente. Ahora escribe — pero JAMÁS con SQL propio:
-# cada acción ejecuta EL MISMO comando que usaría el Portador en su terminal.
-# Las validaciones del cuerpo son las validaciones del Ojo; si mañana cambia
+# ══ THE EYE ACTS ═════════════════════════════════════════════════════════
+# Until here the Eye was only a lens. Now it writes — but NEVER with SQL of
+# its own: every action runs THE SAME command the Bearer would type in the
+# terminal. The body's validations are the Eye's validations; if one changes
 # una regla en chaos.py, el Ojo obedece sin enterarse.
 #
 # Y una puerta que escribe se cierra distinto: solo POST, solo con la cabecera
 # X-Ojo-Accion. Una etiqueta <img src="...">, un enlace o un formulario ajeno
-# NO pueden ponerla — un GET jamás muta nada.
+# cannot set it — and a GET never mutates anything.
 ACCIONES = {
-    # nombre → (comando ES, comando EN, cuántos argumentos exige)
+    # name → (ES command, EN command, how many arguments it demands)
     "curar_falla":   ("falla-curada", "fault-cured", 1),
     "reincidir":     ("reincidir", "relapse", 1),
     "saciar":        ("saciar", "sate", 1),
@@ -1004,9 +1026,9 @@ ACCIONES = {
 
 
 def ejecutar_accion(nombre, arg=None):
-    """Traduce una acción del Ojo al comando exacto del cuerpo. Nada más."""
+    """Translates an Eye action into the body's exact command. Nothing else."""
     if nombre not in ACCIONES:
-        return {"ok": False, "error": "acción desconocida"}
+        return {"ok": False, "error": _t("acción desconocida", "unknown action")}
     cmd_es, cmd_en, n_args = ACCIONES[nombre]
     cmd = cmd_es if ES else cmd_en
     if n_args and not arg:
@@ -1030,8 +1052,8 @@ def ejecutar_accion(nombre, arg=None):
 
 # ── tiempo real: SSE sobre data_version (barato, no polling bruto) ────────
 # FALLA CAZADA EN LA PRUEBA DE FUEGO: data_version solo cambia DENTRO de la
-# misma conexión cuando OTRA escribe. Abrir una conexión por sondeo daba un
-# valor eternamente igual — un pulso que no late. La conexión del vigía es
+# same connection when ANOTHER writes. Opening a connection per poll gave an
+# eternally identical value — a pulse that does not beat. The watcher's
 # UNA y persiste todo el stream.
 def _abrir_vigia():
     try:
@@ -1086,12 +1108,13 @@ class Ojo(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
 
     def do_POST(self):
-        """La única puerta que escribe. Exige POST + X-Ojo-Accion: ni un <img>
-        ni un formulario ajeno pueden dispararla (un GET jamás muta nada)."""
+        """The only door that writes. Demands POST + X-Ojo-Accion: neither an
+        <img> nor a foreign form can fire it (a GET never mutates)."""
         if not self._token_ok():
             self._json({"error": "sin token"}, 403); return
         if self.headers.get("X-Ojo-Accion") != "1":
-            self._json({"error": "falta la cabecera de acción"}, 400); return
+            self._json({"error": _t("falta la cabecera de acción",
+                                    "the action header is missing")}, 400); return
         if urlparse(self.path).path != "/api/accion":
             self._json({"error": "esa puerta no escribe"}, 404); return
         try:
@@ -1104,12 +1127,13 @@ class Ojo(BaseHTTPRequestHandler):
     def do_GET(self):
         ruta = urlparse(self.path).path
         # FALLA CAZADA EN VIVO: <script src> y <link href> NO llevan token →
-        # la puerta les negaba el paso y el rostro nacía muerto (403 en
-        # app.js/style.css). Los estáticos e i18n son CÓDIGO, no datos del
-        # Portador: pasan libres. El token guarda la página y TODA la API.
+        # the door refused them and the face was born dead (403 on
+        # app.js/style.css). Statics and i18n are CODE, not the Bearer's data:
+        # they pass freely. The token guards the page and the WHOLE API.
         publico = ruta.startswith("/static/") or ruta == "/i18n"
         if not publico and not self._token_ok():
-            self._json({"error": "sin token — el Vacío no abre la puerta"}, 403)
+            self._json({"error": _t("sin token — el Vacío no abre la puerta",
+                                    "no token — the Void does not open the door")}, 403)
             return
         if ruta == "/" or ruta == "/index.html":
             if self._trae_token_en_url():
@@ -1151,7 +1175,8 @@ class Ojo(BaseHTTPRequestHandler):
         elif ruta == "/api/tiempo":       self._json(api_tiempo())
         elif ruta == "/api/eventos":      self._sse()
         else:
-            self._json({"error": "el Vacío no contiene esa ruta"}, 404)
+            self._json({"error": _t("el Vacío no contiene esa ruta",
+                                    "the Void contains no such path")}, 404)
 
     def _archivo(self, p, tipo):
         try:
@@ -1167,7 +1192,7 @@ class Ojo(BaseHTTPRequestHandler):
         self.wfile.write(cuerpo)
 
     def _sse(self):
-        """El pulso: solo emite si la BD cambió (data_version) — cada 1s."""
+        """The pulse: emits only if the DB changed (data_version) — every 1s."""
         import time
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
@@ -1198,7 +1223,7 @@ class Ojo(BaseHTTPRequestHandler):
 
 class Servidor(HTTPServer):
     daemon_threads = True
-    # hilos por petición: el SSE no puede bloquear al resto
+    # a thread per request: SSE must never block the rest
     def process_request(self, request, client_address):
         t = threading.Thread(target=self._hilo, args=(request, client_address), daemon=True)
         t.start()

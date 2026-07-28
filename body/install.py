@@ -306,7 +306,7 @@ def main():
             copy_tree(eye_src, eye_dst, exclude=(".git", ".venv", "__pycache__"))
             print("  > The Eye (organ 16) installed: {}".format(eye_dst))
             subprocess.call([sys.executable, app, "eye", "venv"])
-            launcher = os.path.join(eye_dst, "instalar-app.py")
+            launcher = os.path.join(eye_dst, "install-app.py")
             if os.path.exists(launcher):
                 subprocess.call([sys.executable, launcher])
         except Exception as e:

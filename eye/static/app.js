@@ -2,16 +2,16 @@
 
    LEY DEL REFRESCO SIN PARPADEO (defecto real del Portador: "parpadeos, eso es
    mal visto"): una vista se MONTA una sola vez y luego se PARCHEA. Nunca se
-   reescribe innerHTML por un dato nuevo. Si el valor no cambió, el DOM no se
-   toca — así no hay repintado, ni salto, ni destello. */
+   rewrites innerHTML for one new datum. If the value did not change, the DOM
+   is not touched — so no repaint, no jump, no flicker. */
 "use strict";
 
 const TOKEN = new URLSearchParams(location.search).get("t") || "";
 const api = (r) => fetch(r + (r.includes("?") ? "&" : "?") + "t=" + TOKEN)
   .then(x => { if (!x.ok) throw new Error(x.status); return x.json(); });
 
-/* EL PUÑO — la única vía por la que el Ojo escribe. POST + cabecera propia:
-   ningún <img>, enlace o formulario ajeno puede disparar una acción. */
+/* THE FIST — the only way the Eye writes. POST + a header of its own: no
+   <img>, link or foreign form can fire an action. */
 const actuar = (accion, arg) => fetch("/api/accion", {
   method: "POST",
   headers: { "X-Ojo-Accion": "1", "Content-Type": "application/json" },
@@ -30,11 +30,11 @@ const t = (k) => I18N[k] || k;
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g,
   c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* PARCHE QUIRÚRGICO: solo escribe si difiere. Cero repintados gratuitos. */
+/* SURGICAL PATCH: writes only if it differs. Zero free repaints. */
 const setTxt = (el, v) => { if (el && el.textContent !== String(v)) el.textContent = v; };
 const setCls = (el, c, on) => { if (el && el.classList.contains(c) !== !!on) el.classList.toggle(c, !!on); };
 
-/* estado del pulso SSE: variable propia, JAMÁS reseteada por el i18n
+/* SSE pulse state: its own variable, NEVER reset by the i18n
    (falla real: recargar idioma dejaba "conectando…" para siempre) */
 let PULSO_VIVO = false;
 function pintarPulso() {
@@ -42,7 +42,7 @@ function pintarPulso() {
   setTxt(document.getElementById("estado-sse"), PULSO_VIVO ? t("en_vivo") : t("reconectando"));
 }
 
-/* ── el vacío con vida (capa raíz; nunca detrás del texto) ── */
+/* ── the void with life (root layer; never behind the text) ── */
 (function vacio() {
   const cv = document.getElementById("vacio"), ctx = cv.getContext("2d");
   const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -71,7 +71,7 @@ function pintarPulso() {
   medir(); pintar();
 })();
 
-/* ── EL CAJÓN: detalle de cualquier cosa, sin salir de la vista ── */
+/* ── THE DRAWER: detail of anything, without leaving the view ── */
 const cajon = {
   abrir(titulo, html) {
     let c = document.getElementById("cajon");
@@ -87,9 +87,9 @@ const cajon = {
     }
     c.querySelector("#cajon-tit").textContent = titulo;
     c.querySelector("#cajon-cuerpo").innerHTML = html;
-    void c.offsetWidth;          /* reflujo forzado: la transición arranca bien */
+    void c.offsetWidth;          /* forced reflow: the transition starts cleanly */
     c.classList.add("abierto");  /* NO requestAnimationFrame: no corre en
-                                    pestaña de fondo y el cajón nunca abría */
+                                    background tab and the drawer never opened */
     c.querySelector("#cajon-x").focus();
   },
   cerrar() { document.getElementById("cajon")?.classList.remove("abierto"); },
@@ -133,7 +133,7 @@ function armarMenu(pulso) {
   }
 }
 
-/* ═══ CONSTELACIÓN ═══ */
+/* === THE CONSTELLATION === */
 const KPIS = [
   ["esencias", "esencias"], ["residentes", "residentes", "orbita"],
   ["enlaces", "enlaces", "", "grafo"], ["rotos", "rotos", "malo", "grafo"],
@@ -234,7 +234,7 @@ const vErrario = {
       setCls(c, "viva", viva); setCls(c, "curada", !viva);
       const r = d.querySelector(".chip.reinc");
       r.hidden = !rep; if (rep) setTxt(r, `↻ ${t("reincidida")} ×${rep}`);
-      /* la falla viva se cura DESDE AQUÍ — por el CLI, jamás por SQL */
+      /* a living fault is cured FROM HERE - through the CLI, never through SQL */
       let acc = d.querySelector(".falla-acc");
       if (viva && !acc) {
         acc = document.createElement("button");
@@ -321,17 +321,17 @@ async function fichaTerritorio(nombre) {
         <div class="sub">${esc(f.cura || f.cure || "")}</div></div>`).join("") + `</div>` : ""}`);
 }
 
-/* ═══ EL GRAFO — jerarquía, no hormiguero ═══════════════════════════════════
+/* === THE GRAPH - a hierarchy, not an anthill ===============================
 
-   El Portador lo llamó «mamarracho» y tenía razón: una nube de fuerzas es
-   ruido con estética. Ahora hay ORDEN declarado:
+   The Bearer called it a mess and he was right: a force cloud is noise with
+   aesthetics. Now there is declared ORDER:
 
-        CHAOS  →  cúmulos (por tipo)  →  esencias
+        CHAOS  ->  clusters (by type)  ->  essences
 
-   Layout DETERMINISTA (mismo dato = misma forma, siempre): los cúmulos se
-   reparten en un anillo alrededor del dios, y dentro de cada cúmulo las
-   esencias se ordenan por grado en anillos concéntricos. Sin física, sin
-   temblor, sin azar. Zoom con la rueda, mundo movible arrastrando el vacío.
+   DETERMINISTIC layout (same data = same shape, always): clusters spread on a
+   ring around the god, and inside each cluster the essences are ordered by
+   degree in concentric rings. No physics, no tremor, no chance. Wheel to
+   zoom, drag the void to move the world.
 */
 const vGrafo = {
   g: null, N: [], A: [], cumulos: [], cv: null, ctx: null, W: 0, H: 0,
@@ -361,15 +361,15 @@ const vGrafo = {
       if (!oculto) this.medirYTrazar();
     };
     el.querySelector("#g-centrar").onclick = () => { this.encuadrar(); this.pintar(); };
-    /* limpiar: los cúmulos vuelven a plegarse y el mundo se reencuadra —
+    /* clear: clusters fold again and the world reframes -
        el grafo queda exactamente como nace. Solo aparece si hay algo abierto:
-       un botón que no hace nada visible es ruido en la barra. */
+       a button that does nothing visible is noise on the bar. */
     el.querySelector("#g-limpiar").onclick = () => {
       this.expandidos.clear(); this.encuadrar(); this.pintar(); this.botones();
     };
     el.querySelector("#g-mas").onclick = () => this.escalar(1.3);
     el.querySelector("#g-menos").onclick = () => this.escalar(1 / 1.3);
-    this.cv.tabIndex = 0;                    /* el grafo también se maneja con teclado */
+    this.cv.tabIndex = 0;                    /* the graph is keyboard-driven too */
     this.cv.onkeydown = (ev) => {
       const paso = 60;
       if (ev.key === "+" || ev.key === "=") this.escalar(1.3);
@@ -389,9 +389,9 @@ const vGrafo = {
     this.cv.onwheel = e => this.rueda(e);
     this.cv.ondblclick = () => { this.encuadrar(); this.pintar(); };
 
-    /* ResizeObserver: el lienzo nace con 0 px de alto y el trazado salía en
-       BLANCO hasta pulsar un botón (defecto real). Ahora se dibuja solo en
-       cuanto el navegador le da tamaño — y también al redimensionar. */
+    /* ResizeObserver: the canvas is born 0 px tall and the drawing came out
+       BLANK until a button was pressed (a real defect). Now it paints itself
+       the moment the browser gives it a size - and on resize too. */
     if (this.ro) this.ro.disconnect();
     this.ro = new ResizeObserver(() => this.medirYTrazar());
     this.ro.observe(this.cv);
@@ -432,7 +432,7 @@ const vGrafo = {
     if (cambio) this.trazar();
   },
 
-  /* ── el orden: CHAOS → cúmulos → esencias ── */
+  /* -- the order: CHAOS -> clusters -> essences -- */
   trazar() {
     const g = this.g;
     if (!g || !this.W) return;
@@ -443,11 +443,11 @@ const vGrafo = {
     const idx = {};
     this.N = [];
     this.cumulos = [];
-    /* el dios en el centro: todo cuelga de él */
+    /* the god at the centre: everything hangs from him */
     const CX = 0, CY = 0;
 
-    /* EMPAQUETADO: primero mido cuánto ocupa cada cúmulo, después calculo el
-       anillo MÍNIMO que los acomoda sin tocarse. Antes usaba un radio fijo y
+    /* PACKING: first I measure how much room each cluster takes, then compute
+       the MINIMUM ring that fits them without touching. A fixed radius used to
        todo quedaba disperso y diminuto (encuadre a 0.29). */
     const medida = {};
     for (const clave of claves) {
@@ -460,11 +460,11 @@ const vGrafo = {
       }
       medida[clave] = rr + 34;
     }
-    /* la circunferencia debe caber la suma de diámetros, con holgura */
+    /* the circumference must hold the sum of diameters, with slack */
     const perim = claves.reduce((s2, c) => s2 + medida[c] * 2, 0) * 1.22;
     const R = Math.max(150, perim / (Math.PI * 2));
 
-    /* ángulo proporcional al tamaño: los gordos reciben más arco */
+    /* angle proportional to size: the fat ones get more arc */
     let acum = 0;
     const angulos = {};
     for (const c of claves) {
@@ -477,7 +477,7 @@ const vGrafo = {
       const miembros = grupos[clave].slice().sort((a, b) => b.grado - a.grado);
       const ang = angulos[clave];
       const cx = CX + Math.cos(ang) * R, cy = CY + Math.sin(ang) * R;
-      /* anillos concéntricos dentro del cúmulo: los más conectados al núcleo */
+      /* concentric rings inside the cluster: the best connected at the core */
       let i = 0, anillo = 0, radioC = 0;
       while (i < miembros.length) {
         const cupo = anillo === 0 ? 1 : Math.max(5, Math.floor(anillo * 6.2));
@@ -552,12 +552,12 @@ const vGrafo = {
     ctx.save();
     ctx.translate(this.panX, this.panY); ctx.scale(this.zoom, this.zoom);
 
-    /* FRENTE 8 · ZOOM SEMÁNTICO: de lejos, un cúmulo es UN cuerpo con su
+    /* SEMANTIC ZOOM: from afar a cluster is ONE body with its
        conteo; al acercarte se abre en sus esencias. Con 200+ nodos la vista
-       general volvería a ser un hormiguero si dibujara todo siempre. */
+       overview would be an anthill again if everything were always drawn. */
     const abierto = (c) => this.zoom >= .85 || this.expandidos.has(c.clave);
 
-    /* halos de cúmulo: las moléculas se ven como moléculas */
+    /* cluster halos: molecules look like molecules */
     for (const c of this.cumulos) {
       const malo = c.clave === "roto";
       ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, 7);
@@ -568,12 +568,12 @@ const vGrafo = {
       ctx.lineWidth = 1 / this.zoom;
       ctx.stroke();
       ctx.setLineDash([]);
-      /* radio del dios al cúmulo: la jerarquía visible */
+      /* spoke from god to cluster: the hierarchy made visible */
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(c.x, c.y);
       ctx.strokeStyle = "rgba(138,124,247,.10)"; ctx.stroke();
     }
 
-    /* enlaces: los de fuera del cúmulo más tenues; los rotos, discontinuos */
+    /* links: those outside the cluster fainter; the broken ones dashed */
     const visible = (n) => abierto(this.cumulos.find(c => c.clave === n.cumulo) || {});
     for (const a of this.A) {
       const o = this.N[a.o], d = this.N[a.d];
@@ -589,7 +589,7 @@ const vGrafo = {
 
     /* nodos */
     for (const n of this.N) {
-      if (!visible(n)) continue;                  /* el cúmulo habla por él */
+      if (!visible(n)) continue;                  /* the cluster speaks for it */
       const r = 4 + Math.min(10, n.grado * .8);
       if (n === this.foco) {
         ctx.beginPath(); ctx.arc(n.x, n.y, r + 6 / this.zoom, 0, 7);
@@ -605,8 +605,8 @@ const vGrafo = {
         ctx.fillText("⚠", n.x + r + 1, n.y - r);
       }
       /* ETIQUETAS POR NIVEL (el Portador: "las etiquetas se pisan").
-         Vista general = solo cúmulos. Al acercarte aparecen los nombres:
-         primero los concentradores, luego todos. Y siempre el que señalas. */
+         Overview = clusters only. Zoom in and the names appear: hubs first,
+         then all of them. And always the one you point at. */
       const verNombre = n === this.foco ||
         (this.zoom >= 2.0) ||
         (this.zoom >= 1.15 && n.grado >= 3) ||
@@ -618,7 +618,7 @@ const vGrafo = {
       }
     }
 
-    /* el dios y los nombres de sus cúmulos, por encima de todo */
+    /* the god and his cluster names, above everything */
     for (const c of this.cumulos) {
       if (!abierto(c)) {                          /* plegado: un solo cuerpo */
         ctx.beginPath(); ctx.arc(c.x, c.y, Math.min(c.r * .42, 46), 0, 7);
@@ -692,7 +692,7 @@ const vGrafo = {
   },
 
   tomar(e) {
-    /* clic sobre un cúmulo plegado = abrirlo (el zoom semántico, a mano) */
+    /* click a folded cluster = open it (semantic zoom, by hand) */
     const p0 = this.aMundo(e);
     for (const c of this.cumulos) {
       const dentro = Math.hypot(c.x - p0.x, c.y - p0.y) < Math.min(c.r * .42, 46);
@@ -755,7 +755,7 @@ const vGrafo = {
   },
 };
 
-/* ═══ EL TIEMPO — línea temporal real, expandible y clicable ═══ */
+/* === TIME - a real timeline, expandable and clickable === */
 const CLASE_ICO = { obra: "✎", falla: "⚠", acto: "◉", chispa: "✦" };
 const vTiempo = {
   async montar(el) { el.innerHTML = `<div id="lt"></div>`; await this.refrescar(el); },
@@ -790,7 +790,7 @@ const vTiempo = {
               ${e.ter ? `<span class="chip ter">${esc(e.ter)}</span>` : ""}
             </div>`).join("")}</div>
         </section>`).join("")}</div>`;
-    if (cont.innerHTML === html) return;           /* nada cambió → no se toca */
+    if (cont.innerHTML === html) return;           /* nothing changed -> do not touch */
     cont.innerHTML = html;
     cont.querySelectorAll(".dia-cab").forEach(b => b.onclick = () => {
       const s = b.closest(".dia");
@@ -863,7 +863,7 @@ const vActos = {
   },
 };
 
-/* ═══ BÚSQUEDA ═══ */
+/* === SEARCH === */
 const vBuscar = {
   async montar(el) {
     el.innerHTML = `<div class="filtros"><input id="b-q" type="search"
@@ -881,12 +881,12 @@ const vBuscar = {
     };
     i.focus();
   },
-  async refrescar() { /* no se auto-refresca: molestaría al escribir */ },
+  async refrescar() { /* no auto-refresh: it would get in the way of typing */ },
 };
 
-/* ═══ SALUD — el diagnóstico, no el volcado ════════════════════════════════
-   Antes esta vista escupía la salida cruda de `auditar`: un montón de líneas
-   sin jerarquía. Ahora cada dimensión declara SU FÓRMULA, aporta su peso al
+/* === HEALTH - the diagnosis, not the dump ================================
+   This view used to spit the raw output of `audit`: a pile of lines with no
+   hierarchy. Now each dimension declares ITS FORMULA, contributes its weight
    global, y TODO lo que resta para 100 se puede desglosar por nombre. Un
    porcentaje que no se puede explicar es un adorno. */
 const COLOR_SALUD = (p) => p >= 85 ? "var(--ok)" : p >= 65 ? "var(--orbit)"
@@ -946,7 +946,7 @@ const vSalud = {
         cont.appendChild(f);
       }
       // el motor entrega la CLAVE; el idioma lo pone el rostro (frente 11:
-      // contra un cuerpo inglés las dimensiones salían en español)
+      // against an English body the dimensions came out in Spanish)
       setTxt(f.querySelector(".dim-tit"), t("dim_" + x.clave));
       setTxt(f.querySelector(".peso"), t("peso") + " " + x.peso);
       const pct = f.querySelector(".dim-pct");
@@ -978,7 +978,7 @@ const vSalud = {
         Object.entries(porClase).map(([cl, ps]) =>
           `<h3>${esc(t("cl_" + cl))} · ${ps.length}</h3><div class="caja">` +
           ps.map(p => {
-            /* lo resoluble trae su propio botón: un diagnóstico que no se
+            /* what is fixable brings its own button: a diagnosis that cannot be
                puede accionar es una queja con formato */
             const m = /#?(\d+)/.exec(p.titulo || "");
             const acc = cl === "hambre" ? ["saciar", m && m[1], "🍽 " + t("saciar")]
@@ -1095,7 +1095,7 @@ async function montar() {
   catch (e) { el.innerHTML = `<p class="vacio-msg">✗ ${esc(e.message)}</p>`; }
 }
 
-/* refresco QUIRÚRGICO: parchea la vista viva, jamás la reconstruye */
+/* SURGICAL refresh: patches the live view, never rebuilds it */
 let refrescando = false;
 async function refrescar() {
   if (refrescando) return;
@@ -1106,7 +1106,7 @@ async function refrescar() {
   finally { refrescando = false; }
 }
 
-/* ── SSE: agrupa 500 ms y parchea. Nunca recarga la página. ── */
+/* -- SSE: batches 500 ms and patches. Never reloads the page. -- */
 function pulso() {
   const es = new EventSource("/api/eventos?t=" + TOKEN);
   let tm;
@@ -1123,7 +1123,7 @@ async function cargarIdioma() {
   document.documentElement.lang = IDIOMA;
   setTxt(document.getElementById("idioma"), IDIOMA === "es" ? "EN" : "ES");
   document.querySelectorAll("[data-i18n]").forEach(x => setTxt(x, t(x.dataset.i18n)));
-  pintarPulso();          /* el pulso recupera SU estado, no el texto genérico */
+  pintarPulso();          /* the pulse recovers ITS state, not the generic text */
 }
 
 document.getElementById("idioma").onclick = async () => {

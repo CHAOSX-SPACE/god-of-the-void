@@ -964,7 +964,7 @@ class ChaosTest(unittest.TestCase):
         """The native launcher points at whatever interpreter it finds: if the
         venv is born later, the app stays bound to the system Python."""
         src = _leer_seguro(APP)
-        i, j = src.find("_eye_venv()"), src.find('instalar-app.py"')
+        i, j = src.find("_eye_venv()"), src.find('install-app.py"')
         self.assertTrue(0 < i < j, "the venv is NOT created before the launcher")
 
     def test_r4_incarnation_forges_the_eye(self):

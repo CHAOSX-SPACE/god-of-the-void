@@ -3,12 +3,12 @@
 """
 EL OJO EN TUS APLICACIONES — macOS / Windows / Linux.
 
-Si el Portador cierra el icono de la barra, tiene que poder volver a abrirlo
+Si el Bearer cierra el icon de la barra, tiene que poder volver a abrirlo
 como cualquier programa. Esto crea el lanzador nativo de cada sistema:
 
   macOS   : ~/Applications/CHAOS El Ojo.app   (bundle real + .icns)
-  Windows : Menú Inicio → CHAOS El Ojo.lnk    (+ acceso en el Escritorio)
-  Linux   : ~/.local/share/applications/chaos-ojo.desktop  (+ icono hicolor)
+  Windows : Start Menu -> CHAOS The Eye.lnk   (+ a Desktop shortcut)
+  Linux   : ~/.local/share/applications/chaos-ojo.desktop  (+ icon hicolor)
 
 Se ejecuta solo al `chaos ojo instalar`. `--quitar` lo borra sin residuos.
 """
@@ -17,8 +17,8 @@ import os, sys, io, shutil, subprocess, plistlib
 AQUI = os.path.dirname(os.path.abspath(__file__))
 HOME = os.path.expanduser("~")
 def _casa():
-    """La casa del dios: la MISMA verdad que chaos.py. El mortal la eligió al
-    encarnarme; aquí solo se lee."""
+    """The god's home: the SAME truth as chaos.py. The mortal chose it when
+    incarnating me; here it is only read."""
     v = os.environ.get("CHAOS_HOME")
     if v:
         return os.path.expanduser(v)
@@ -35,7 +35,7 @@ def _casa():
 CHAOS_HOME = _casa()
 def _nombre():
     """El nombre que ve el humano: el del DIOS, no el del organo.
-    Sigue la edicion instalada, igual que la bandeja."""
+    Sigue la edicion instalada, igual que la tray."""
     pref = os.path.join(CHAOS_HOME, "ojo-idioma.json")
     try:
         import json
@@ -49,15 +49,15 @@ def _nombre():
 
 
 NOMBRE = None            # se resuelve en main(): depende del idioma vivo
-ICONO_PNG = os.path.join(AQUI, "static", "icono-blanco.png")
-FUENTE = os.path.join(AQUI, "static", "icono-fuente.png")   # SIEMPRE del repo
-LANZA = os.path.join(AQUI, "bandeja.py")
+ICONO_PNG = os.path.join(AQUI, "static", "icon-blanco.png")
+FUENTE = os.path.join(AQUI, "static", "icon-fuente.png")   # SIEMPRE del repo
+LANZA = os.path.join(AQUI, "tray.py")
 
 
 def _py():
-    """El intérprete que abrirá el Ojo. Ruta absoluta: el lanzador no hereda
-    PATH. FRENTE 14: si el Ojo tiene venv propio, ESE manda — así las
-    librerías de la bandeja no dependen del Python del Portador."""
+    """The interpreter that will open the Eye. Absolute path: the launcher
+    does not inherit PATH. If the Eye has a venv of its own, THAT one wins —
+    so the tray libraries never depend on the Bearer's Python."""
     propio = os.path.join(AQUI, ".venv", "bin", "python3")
     if os.name == "nt":
         propio = os.path.join(AQUI, ".venv", "Scripts", "python.exe")
@@ -68,7 +68,7 @@ def _py():
 
 # ══ macOS ═════════════════════════════════════════════════════════════════
 def _icns(destino):
-    """PNG → .icns por iconutil (viene con macOS). Sin él, el .app va sin icono."""
+    """PNG -> .icns via iconutil (ships with macOS). Without it, the .app has no icon."""
     tmp = os.path.join(destino, "chaos.iconset")
     os.makedirs(tmp, exist_ok=True)
     try:
@@ -88,7 +88,7 @@ def _icns(destino):
                            stderr=subprocess.DEVNULL) == 0:
             return icns
     except Exception as e:
-        print("  ! icono sin forjar ({}) — el .app funciona igual".format(e))
+        print("  ! icon sin forjar ({}) — el .app funciona igual".format(e))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return None
@@ -121,7 +121,7 @@ def macos(quitar=False):
         # LaunchServices retiene el proceso como "la app" con MI bundle
         # (LSUIElement) mientras el NSApplication pertenece a Python.app: dos
         # identidades peleando por el mismo proceso. Si el .app LANZA y SALE,
-        # el Ojo corre libre y el icono aparece. Probado: exec=no, suelto=si.
+        # el Ojo corre libre y el icon aparece. Probado: exec=no, suelto=si.
         #
         # arch -$(uname -m): Python.framework es universal y desde un bundle
         # macOS elegia x86_64 bajo Rosetta -> PIL (arm64) reventaba.
@@ -146,7 +146,7 @@ def macos(quitar=False):
         "CFBundleIdentifier": "lat.chaos.ojo", "CFBundleVersion": "1.0",
         "CFBundleShortVersionString": "1.0", "CFBundlePackageType": "APPL",
         "CFBundleExecutable": "chaos-ojo",
-        # LSUIElement: vive en la barra superior, sin icono en el Dock
+        # LSUIElement: vive en la barra superior, sin icon en el Dock
         "LSUIElement": True, "NSHighResolutionCapable": True,
         # el bundle declara su preferencia; el script la refuerza
         "LSArchitecturePriority": ["arm64", "x86_64"],
@@ -161,8 +161,8 @@ def macos(quitar=False):
              "LaunchServices.framework/Support/lsregister")
     if os.path.exists(lsreg):
         subprocess.call([lsreg, "-f", app], stderr=subprocess.DEVNULL)
-    print("  > Aplicación creada: {}".format(app))
-    print("    (búscala en Launchpad o Spotlight como «{}»)".format(NOMBRE))
+    print("  > Application created: {}".format(app))
+    print("    (find it in Launchpad or Spotlight as \"{}\")".format(NOMBRE))
 
 
 # ══ Windows ═══════════════════════════════════════════════════════════════
@@ -198,8 +198,8 @@ def windows(quitar=False):
     ).format(lnk=lnk, py=pyw, app=LANZA, wd=AQUI,
              ico='$s.IconLocation="{}";'.format(ico) if ico else "")
     r = subprocess.call(["powershell", "-NoProfile", "-Command", ps])
-    print("  > Acceso directo en el Menú Inicio: {}".format(lnk) if r == 0
-          else "  ! PowerShell rechazó el acceso directo")
+    print("  > Start Menu shortcut: {}".format(lnk) if r == 0
+          else "  ! PowerShell refused the shortcut")
 
 
 # ══ Linux ═════════════════════════════════════════════════════════════════

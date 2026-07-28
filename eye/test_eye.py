@@ -3,7 +3,7 @@
 """Red de pruebas del OJO — stdlib puro. Levanta el servidor real contra el
 cuerpo vivo y verifica la puerta, las acciones y los endpoints.
 
-    python3 probar.py
+    python3 test_eye.py
 """
 import os, sys, json, time, subprocess, urllib.request, urllib.error, unittest
 
@@ -34,7 +34,7 @@ class OjoTest(unittest.TestCase):
                 cls.url = linea.split()[-1]
                 break
             time.sleep(.1)
-        assert cls.url, "el Ojo no anunció su URL"
+        assert cls.url, "the Eye never announced its URL"
         cls.base = cls.url.split("/?")[0]
         cls.token = cls.url.split("t=")[-1].strip()
         cls.galleta = {"Cookie": "ojo=" + cls.token}
@@ -100,7 +100,7 @@ class OjoTest(unittest.TestCase):
         for dim in d["dimensiones"]:
             if dim["puntaje"] < 100:
                 self.assertGreater(dim["n_problemas"], 0,
-                                   dim["titulo"] + " descuenta sin nombrar por qué")
+                                   dim["titulo"] + " discounts without naming why")
 
 
 if __name__ == "__main__":
