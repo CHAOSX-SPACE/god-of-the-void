@@ -107,8 +107,8 @@ SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
 
 # Shining keys — the Purge also lives in the Forge.
 POISON = re.compile(
-    # Cada patrón exige longitud real: mencionar "sk-" en prosa no es una
-    # llave. Ampliado tras el Crisol, que probó que un JWT entraba entero.
+    # Every pattern demands real length: mentioning "sk-" in prose is not a
+    # key. Widened after the Crucible proved a JWT walked in whole.
     r"(sk-[A-Za-z0-9_\-]{16,}"                       # OpenAI / Anthropic
     r"|sk_(?:live|test)_[A-Za-z0-9]{16,}"            # Stripe
     r"|gh[opusr]_[A-Za-z0-9]{20,}"                   # GitHub (los 5 prefijos)
@@ -142,7 +142,7 @@ def db():
         con.execute("PRAGMA synchronous=NORMAL")    # safe with WAL, faster
     except sqlite3.Error:
         pass  # a failing pragma never jams the body
-    # The Sense: tokenizer that folds accents ("quadratic" finds "quadrática").
+    # The Sense: tokenizer that folds accents ("cuadratica" finds the accented form).
     TOK = "tokenize='unicode61 remove_diacritics 2'"
     # Auto-migration: if an old FTS table does not fold accents, it is reforged.
     for table, cols in (("essences", "slug, title, content, origin UNINDEXED, date UNINDEXED"),
@@ -183,12 +183,12 @@ def db():
     # A god does not forget. Every autonomous act lands here: what I did,
     # when, what I touched, how long it took, and if anything left the cage.
     # C4 · las deudas viven en el esquema, no dentro de su comando:
-    # crearlas solo al listarlas hacía reventar a `debts settle` en cuerpo virgen
+    # creating them only on listing blew up `debts settle` on a virgin body
     con.execute("CREATE TABLE IF NOT EXISTS debts("
                 "id INTEGER PRIMARY KEY, session TEXT, date TEXT,"
                 " works INTEGER, sample TEXT, settled INTEGER DEFAULT 0)")
     # Frente 7: la salud es un instante; sin historia no se ve si mejoro
-    # o me pudro. El Ojo pinta la tendencia; aquí vive el dato.
+    # or I rot. The Eye paints the trend; the datum lives here.
     con.execute("CREATE TABLE IF NOT EXISTS health_history("
                 "fecha TEXT PRIMARY KEY, global REAL, dimensiones TEXT)")
     con.execute("CREATE TABLE IF NOT EXISTS autonomous_acts("
@@ -264,7 +264,7 @@ _THESAURUS_SEED = {
     "create": ["forge", "build", "generate", "make"],
     "search": ["find", "seek", "query", "lookup"],
     # bilingual domain bonds (the Pantheon crosses EN<->ES)
-    "design": ["diseno", "diseño", "ui", "ux", "interface"],
+    "design": ["diseno", "dise\u00f1o", "ui", "ux", "interface"],
     "law": ["derecho", "legal", "juridico"],
     "accounting": ["contabilidad", "contable", "finance", "finanzas"],
     "brand": ["marca", "branding", "identity"],
@@ -1791,14 +1791,14 @@ def eye(action=None, source=None):
         # bound to the system Python and the venv was pointless (measured).
         _eye_venv()
         # native launcher: if you close the tray icon, open it like any app
-        app = os.path.join(EYE_DIR, "instalar-app.py")
+        app = os.path.join(EYE_DIR, "install-app.py")
         if os.path.exists(app):
             subprocess.call([sys.executable, app])
         print("[CHAOS] The Eye installed at {}. Open it: chaos eye open".format(EYE_DIR))
         return
     if action == "uninstall":
         if os.path.isdir(EYE_DIR):
-            app = os.path.join(EYE_DIR, "instalar-app.py")
+            app = os.path.join(EYE_DIR, "install-app.py")
             if os.path.exists(app):
                 subprocess.call([sys.executable, app, "--quitar"])
             shutil.rmtree(EYE_DIR)
@@ -1818,7 +1818,7 @@ def eye(action=None, source=None):
             print("The Eye is not installed. Forge it: chaos eye install <source>")
             sys.exit(1)
         # with tray if alive; without it, the browser suffices (pystray is a shortcut)
-        tray = os.path.join(EYE_DIR, "bandeja.py")
+        tray = os.path.join(EYE_DIR, "tray.py")
         launch = tray if os.path.exists(tray) else srv
         own = os.path.join(EYE_DIR, ".venv", "bin", "python3")
         if os.name == "nt":
@@ -2906,9 +2906,9 @@ def main():
     elif cmd == "forget" and rest:       forget(rest[0])
     else:
         print(__doc__.strip())
-        # Un comando inexistente NO puede salir con éxito: un script que
-        # encadena `cmd_a || cmd_b` nunca vería el fallo (hallado en la
-        # verificación aislada).
+        # A non-existent command must NOT exit successfully: a script that
+        # chains `cmd_a || cmd_b` would never see the failure (found in the
+        # isolated verification).
         sys.exit(1)
 
 

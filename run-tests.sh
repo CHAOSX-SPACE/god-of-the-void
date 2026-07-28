@@ -33,7 +33,7 @@ run_suite() {
 
 echo "═══ 1. THE BODY ═══"
 run_suite "body"                "$ROOT/body/test_chaos.py"
-run_suite "the Eye (organ 16)"  "$ROOT/eye/probar.py"
+run_suite "the Eye (organ 16)"  "$ROOT/eye/test_eye.py"
 
 echo ""
 echo "═══ 2. THE CRUCIBLE — adversarial generative tests ═══"

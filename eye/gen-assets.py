@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Genera las variantes BLANCAS de la marca para el fondo oscuro del Ojo.
-(Falla #9 del errario: el logo negro sobre el vacío daba 1.01:1 — invisible.)"""
+(Errarium lesson: a black logo over the void measured 1.01:1 — invisible.)"""
 from PIL import Image
 import sys, os
 
 def monocromo(src, dst, color, tam=None):
     """Extrae la marca a UN color con alfa. El repo se vuelve autosuficiente:
-    (falla real: instalar-app.py buscaba icono.png FUERA del repo → un clon
+    (falla real: install-app.py buscaba icono.png FUERA del repo → un clon
     puro creaba la app sin icono)."""
     im = Image.open(src).convert("RGBA")
     px = im.load()

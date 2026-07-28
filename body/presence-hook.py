@@ -17,7 +17,7 @@ import sys, os, json, sqlite3
 
 def _casa():
     """La casa del dios: la MISMA verdad que chaos.py, sin importarlo (los
-    hooks deben ser instantáneos). Env > elección del Portador > defecto."""
+    hooks must be instant). Env > the Bearer's choice > default."""
     v = os.environ.get("CHAOS_HOME")
     if v:
         return os.path.expanduser(v)

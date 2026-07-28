@@ -34,7 +34,7 @@ CANARIES = ("PWNED", "pwned.txt", "CRUCIBLE-EXECUTED")
 # ══════════════════════════════════════════════════════════════════════════
 #  (name, text, is_secret)  ·  the 3rd field arms the leak invariant
 PAYLOADS = [
-    # ── vacíos y espacios: el caso que nadie test_fn ────────────────────────
+    # -- empties and blanks: the case nobody tests ────────────────────────
     ("vacio",              "",                                        False),
     ("solo_espacios",      "   \t   \n  ",                            False),
     ("solo_saltos",        "\n\n\n\n",                                False),
@@ -47,7 +47,7 @@ PAYLOADS = [
     ("crlf_windows",       "linea1\r\nlinea2\r\n",                    False),
 
     # ── unicode: what breaks anyone assuming ASCII ─────────────────────────
-    ("acentos",            "cuadráticas ñandú über coeur",            False),
+    ("accents",            "cuadraticas nandu uber coeur accented",       False),
     ("emoji",              "🕳️ 👁️ ⚗️ 🌌 combinados 👨‍👩‍👧‍👦",              False),
     ("rtl_bidi",           "مرحبا بالعالم שלום עולם",                 False),
     ("cjk",                "混沌の神 데이터베이스 中文测试",              False),
@@ -119,7 +119,7 @@ _NULL = ("null_byte",)
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  LAS SURFACES — cada puerta por la que entra text que yo no escribí
+#  THE SURFACES - every door foreign text walks in through
 # ══════════════════════════════════════════════════════════════════════════
 #  (name, argument_builder, argv_safe)
 def _srf_search(c):        return ["search", c]
@@ -175,7 +175,7 @@ class Crucible(unittest.TestCase):
         env = dict(os.environ)
         env["HOME"] = cls.home
         env["CHAOS_HOME"] = cls.chaos
-        env["CHAOS_NO_SCHEDULE"] = "1"     # jamás agendar desde una test_fn
+        env["CHAOS_NO_SCHEDULE"] = "1"     # never schedule from a test
         p = subprocess.run([sys.executable, APP] + list(args), env=env,
                            cwd=cls.home, capture_output=True, text=True,
                            timeout=90)
@@ -290,7 +290,7 @@ def _forge_argv(name_p, text, secret, name_s, build):
 
 def _forge_file(name_p, text, secret, by_title):
     """La Boca: la payload entra como CONTENIDO de un archivo devorado (o como
-    su título). Es la única puerta que admite el byte nulo."""
+    its title). The only door that accepts a null byte."""
     def test_fn(self):
         ctx = "devour_%s <- %s" % ("title" if by_title else "cuerpo", name_p)
         route = os.path.join(self.home, "payload-%s.md" % name_p)
