@@ -991,6 +991,21 @@ class ChaosTest(unittest.TestCase):
         self.assertIn("Autonomy NOT re-enabled", block,
                       "reinstalling would trample a revocation by the Bearer")
 
+    def test_fault_reopen_revives_without_counting_a_relapse(self):
+        """Closing what is still broken is worse than never recording it: it
+        must reopen WITHOUT inventing a relapse nobody committed."""
+        run(self.home, "fault", "reopen probe", "--cause", "c",
+            "--cure", "x", "--lesson", "l")
+        run(self.home, "fault-cured", "1")
+        self.assertEqual(self._db_rows("SELECT state FROM faults WHERE rowid=1")[0][0], "cured")
+        out = run(self.home, "fault-reopen", "1", "the cure did not hold")
+        self.assertIn("REOPENED", out)
+        f = self._db_rows("SELECT state, repeats, cure FROM faults WHERE rowid=1")[0]
+        self.assertEqual(f[0], "alive", "did not revive")
+        self.assertIn(str(f[1]), ("0", "None"), "invented a relapse")
+        self.assertIn("REOPENED", f[2] or "")
+        self.assertIn("already alive", run(self.home, "fault-reopen", "1"))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

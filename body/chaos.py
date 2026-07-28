@@ -41,6 +41,7 @@ Usage:
   chaos alias [<name> <slug>] [--remove]           bridge for a misspelled name (text is NOT rewritten)
   chaos suggested-aliases [--apply]                proposes bridges for dangling links
   chaos fault-cured <id> ["cure"]                  mark the fault cured (the lesson stays alive)
+  chaos fault-reopen <id> ["reason"]               the cure did not hold, or it was closed by mistake
   chaos eye [install <source>|open|uninstall]      THE EYE: local dashboard (separate repo, no residue)
   chaos delta [territory]                          what changed while I slept? (git between visits)
   chaos expired                                    truths past their date → they demand re-Judgment
@@ -1697,6 +1698,33 @@ def fault_cured(fid, cure=""):
     print("[CHAOS] Fault #{} cured. The work's scar remains; so does the lesson.".format(fid))
 
 
+def fault_reopen(fid, reason=""):
+    """REOPEN: the cure did not hold, or it was marked cured by mistake.
+
+    Without this the errarium could only close. An organ that can declare
+    'solved' but never 'I was wrong' piles up comfortable lies: the fault
+    stays alive in the work and dead in the memory. This is NOT a relapse
+    (nobody committed it again), so the relapse counter is left untouched —
+    the state is corrected, no guilt is invented."""
+    con = db()
+    row = con.execute("SELECT state, title FROM faults WHERE rowid=?",
+                      (int(fid),)).fetchone()
+    if not row:
+        print("Fault #{} does not exist.".format(fid)); sys.exit(1)
+    if row[0] == "alive":
+        print("[CHAOS] Fault #{} was already alive. Nothing to reopen.".format(fid))
+        return
+    con.execute("UPDATE faults SET state='alive' WHERE rowid=?", (int(fid),))
+    if reason:
+        con.execute("UPDATE faults SET cure=? WHERE rowid=?",
+                    (purge("[REOPENED] " + reason)[0], int(fid)))
+    con.commit()
+    _export_faults(con)
+    print("[CHAOS] Fault #{} REOPENED: \u00ab{}\u00bb".format(fid, row[1]))
+    print("   It ambushes again until the cure is real. Closing what is still "
+          "broken is worse than never recording it.")
+
+
 # ══ THE EYE · the interface for the human ═════════════════════════════════
 EYE_DIR = os.path.join(CHAOS_HOME, "eye")
 
@@ -2841,6 +2869,8 @@ def main():
     elif cmd == "relapse" and rest:     relapse(rest[0])
     elif cmd == "fault-cured" and rest:
         fault_cured(rest[0], " ".join(rest[1:]))
+    elif cmd == "fault-reopen" and rest:
+        fault_reopen(rest[0], " ".join(rest[1:]))
     elif cmd == "eye":
         eye(rest[0] if rest else None, rest[1] if len(rest) > 1 else None)
     elif cmd == "delta":                 delta(rest[0] if rest else None)
