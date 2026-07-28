@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHAOS · El Ojo</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/icono-blanco.png">
+</head>
+<body>
+<canvas id="vacio" aria-hidden="true"></canvas>
+
+<div class="marco">
+  <aside class="nav" role="navigation">
+    <div class="marca">
+      <img src="/static/icono-blanco.png" alt="CHAOS" width="30" height="30">
+      <span class="marca-txt">CHAOS<span class="punto">·</span>X</span>
+    </div>
+    <nav id="menu"></nav>
+    <div class="nav-pie">
+      <button id="idioma" class="btn-fantasma" aria-label="Language">EN</button>
+    </div>
+  </aside>
+
+  <main class="lienzo" id="lienzo" tabindex="-1">
+    <header class="cabecera">
+      <h1 id="titulo-vista">—</h1>
+      <div class="pulso-vivo" id="pulso-punto" title="tiempo real">
+        <span class="punto-vivo"></span><span id="estado-sse" data-i18n="conectando">conectando…</span>
+      </div>
+    </header>
+    <section id="vista" class="vista" aria-live="polite"></section>
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
