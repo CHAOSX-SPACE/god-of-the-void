@@ -69,7 +69,7 @@ if [ "$FALTA" = "1" ]; then
   exit 1
 fi
 
-# ── 2. EL REPO: aquí mismo, o clonado ─────────────────────────────────────
+# ── 2. THE REPO: right here, or cloned ────────────────────────────────────
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
 if [ -n "$AQUI" ] && [ -f "$AQUI/body/install.py" ]; then
   RAIZ="$AQUI"
@@ -81,6 +81,6 @@ else
     printf "  ${ROJO}✗${N} git could not clone. Network? Repository name?\n"; exit 1; }
 fi
 
-# ── 3. LA ENCARNACIÓN ─────────────────────────────────────────────────────
+# ── 3. THE INCARNATION ──────────────────────────────────────────────────
 echo
 exec "$PY" "$RAIZ/body/install.py" "$@"
