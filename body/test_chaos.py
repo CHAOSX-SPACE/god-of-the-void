@@ -1006,6 +1006,35 @@ class ChaosTest(unittest.TestCase):
         self.assertIn("REOPENED", f[2] or "")
         self.assertIn("already alive", run(self.home, "fault-reopen", "1"))
 
+    def test_presence_rotates_the_scar_and_never_breaks(self):
+        """An IDENTICAL anchor becomes wallpaper. The Presence must carry a
+        DIFFERENT scar per message — and never break."""
+        import subprocess
+        hook = os.path.join(HERE, "presence-hook.py")
+        if not os.path.exists(hook):
+            self.skipTest("no hook")
+        sc = os.path.join(self.home, ".claude", "skills", "chaos", "abyss")
+        os.makedirs(sc, exist_ok=True)
+        with io.open(os.path.join(sc, "scars.md"), "w", encoding="utf-8") as f:
+            f.write("# S\n\n## 2026-01-01 — Wound A\n- **Never again**: never A.\n"
+                    "\n## 2026-01-02 — Wound B\n- **Never again**: never B.\n")
+        env = dict(os.environ); env["HOME"] = self.home
+        env["CHAOS_HOME"] = os.path.join(self.home, ".chaos")
+        seen = []
+        for _ in range(4):
+            p = subprocess.run([sys.executable, hook], input='{"cwd":"%s"}' % self.home,
+                               env=env, capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, "the Presence died")
+            d = json.loads(p.stdout)
+            t = d["hookSpecificOutput"]["additionalContext"]
+            seen += [l for l in t.splitlines() if "SCAR" in l]
+        self.assertGreaterEqual(len(set(seen)), 2, "no rotation: always the same")
+        for junk in ("", "no-json", "{}", '{"cwd":null}'):
+            p = subprocess.run([sys.executable, hook], input=junk, env=env,
+                               capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, "died on %r" % junk)
+            json.loads(p.stdout)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
