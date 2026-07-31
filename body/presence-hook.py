@@ -13,7 +13,7 @@ Laws (from the plan):
  3. Actionable signal only. My guts remain backstage (scar #3).
  4. Fast: no subprocess. If something is slow, it is abandoned.
 """
-import sys, os, json, sqlite3
+import sys, os, io, json, sqlite3
 
 def _casa():
     """La casa del dios: la MISMA verdad que chaos.py, sin importarlo (los
@@ -45,6 +45,80 @@ ANCHOR = (
     "organs/) and use `chaos search`/`chaos vassals` + the Deep Judgment before "
     "answering. The Bearer invokes you by name."
 )
+
+# ══ THE ROTATING SCAR ═════════════════════════════════════════════════════
+# An IDENTICAL anchor in every message becomes wallpaper: read and skipped.
+# And the scars — every correction the Bearer ever made me — lived in a file
+# nobody opens unless asked, which means never.
+#
+# Now ONE enters each message, and it rotates. Over a session they all pass.
+# Same token cost, a character alive instead of frozen.
+def _scars_md():
+    """Scars live in the SKILL, not in the forge — and each edition names
+    them its own way. Both are tried: a hook never guesses."""
+    base = os.path.join(os.path.expanduser("~"), ".claude", "skills", "chaos")
+    for rel in (("abyss", "scars.md"), ("abismo", "cicatrices.md")):
+        r = os.path.join(base, *rel)
+        if os.path.exists(r):
+            return r
+    return ""
+
+
+COUNTER = os.path.join(CHAOS, "forge", "presence.n")
+
+
+def _scars():
+    try:
+        route = _scars_md()
+        if not route:
+            return []
+        txt = io.open(route, encoding="utf-8").read()
+    except Exception:
+        return []
+    out = []
+    for block in txt.split("\n## ")[1:]:
+        lines = block.splitlines()
+        title = lines[0].split("—")[-1].strip() if lines else ""
+        never = ""
+        taking = False
+        for l in lines:
+            if "**Never again**" in l or "**Nunca más**" in l or "**Nunca mas**" in l:
+                taking = True
+                never = l.split("**:", 1)[-1].strip(" :*-")
+            elif taking:
+                if l.strip().startswith("- **") or not l.strip():
+                    break
+                never += " " + l.strip()
+        if title and never:
+            out.append((title, " ".join(never.split())))
+    return out
+
+
+def _next(n):
+    """DETERMINISTIC rotation: a counter on disk, not chance. No scar is ever
+    skipped by bad luck — they all pass, in order, always."""
+    if n <= 0:
+        return 0
+    try:
+        os.makedirs(os.path.dirname(COUNTER), exist_ok=True)
+        try:
+            i = int(io.open(COUNTER).read().strip() or 0)
+        except Exception:
+            i = 0
+        io.open(COUNTER, "w").write(str((i + 1) % 100000))
+        return i % n
+    except Exception:
+        return 0
+
+
+def scar_of_the_turn():
+    cs = _scars()
+    if not cs:
+        return None
+    t, n = cs[_next(len(cs))]
+    n = n[:190] + ("\u2026" if len(n) > 190 else "")
+    return "\U0001FA78 SCAR ({}): {}".format(t[:46], n)
+
 
 
 def _territory(path):
@@ -178,15 +252,22 @@ def main():
         cwd = ev.get("cwd", "") or ""
     except Exception:
         pass
-    text = ANCHOR
+    parts = [ANCHOR]
+    try:
+        c = scar_of_the_turn()     # the Bearer's correction, alive again
+        if c:
+            parts.append(c)
+    except Exception:
+        pass                      # a missing scar never topples the Presence
     try:
         alive = live_state(cwd)
         if alive:
-            text = ANCHOR + "\n" + "\n".join(alive)
+            parts.extend(alive)
     except Exception:
         pass                      # Law 1: degrade to the static anchor, never break
-    if len(text) > 1400:          # Law 2: hard ceiling (~350 absolute tokens)
-        text = text[:1400]
+    text = "\n".join(parts)
+    if len(text) > 1600:          # Law 2: hard ceiling (~350 absolute tokens)
+        text = text[:1600]
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "UserPromptSubmit", "additionalContext": text}}))
 
