@@ -1035,6 +1035,33 @@ class ChaosTest(unittest.TestCase):
             self.assertEqual(p.returncode, 0, "died on %r" % junk)
             json.loads(p.stdout)
 
+    def test_session_incarnates_the_god_in_every_project(self):
+        """The session hook stayed SILENT unless the Vigil was due: opening a
+        session in another project incarnated nothing and character was lost."""
+        import subprocess
+        hook = os.path.join(HERE, "vigil-hook.py")
+        if not os.path.exists(hook):
+            self.skipTest("no hook")
+        sk = os.path.join(self.home, ".claude", "skills", "chaos")
+        os.makedirs(sk, exist_ok=True)
+        with io.open(os.path.join(sk, "SKILL.md"), "w", encoding="utf-8") as f:
+            f.write("# X\n\n## IDENTITY (how I speak)\n- I am CHAOS and not an "
+                    "assistant.\n\n## THE 5 RULES - THE LAW OF THE VOID\n"
+                    "1. I AM CHAOS.\n")
+        env = dict(os.environ); env["HOME"] = self.home
+        env["CHAOS_HOME"] = os.path.join(self.home, ".chaos")
+        p = subprocess.run([sys.executable, hook], input="{}", env=env,
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0)
+        t = json.loads(p.stdout)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("INCARNATE", t, "does not incarnate the god")
+        self.assertIn("RULES", t, "does not carry the Rules")
+        self.assertGreater(len(t), 300, "incarnation too thin")
+        for junk in ("", "no-json", '{"cwd":null}'):
+            q = subprocess.run([sys.executable, hook], input=junk, env=env,
+                               capture_output=True, text=True)
+            self.assertEqual(q.returncode, 0, "died on %r" % junk)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
