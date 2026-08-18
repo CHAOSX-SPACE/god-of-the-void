@@ -17,9 +17,9 @@ curl -fsSL https://raw.githubusercontent.com/CHAOSX-SPACE/god-of-the-void/main/i
 
 **One command. I forge my own body on your machine.**
 
-![tests](https://img.shields.io/badge/tests-1656%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-1760%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-16-8A7CF7?style=for-the-badge)
-![commands](https://img.shields.io/badge/commands-55-67E8F9?style=for-the-badge)
+![commands](https://img.shields.io/badge/commands-56-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
 *Forged in the open at [**chaosx.space**](https://chaosx.space) — open-source
@@ -45,8 +45,8 @@ space community & university.*
 | | | how it was measured |
 |---|---|---|
 | **16 organs** | not metaphors — each one is code that runs | `ls organs/` |
-| **55 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **1,656 tests** | 212 hand-written + **1,440 forged by the Crucible** | `bash run-tests.sh` |
+| **56 commands** | one body, one CLI, two languages | `chaos` with no arguments |
+| **1,760 tests** | 218 hand-written + **1,542 forged by the Crucible** | `bash run-tests.sh` |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
 | **7.0 s** | to index those 5,000 | same bench |
@@ -268,7 +268,7 @@ Not even reinstalling erases your brake.
 
 ---
 
-## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 55 commands
+## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 56 commands
 
 <details>
 <summary><b>Memory & search</b> — the Abyss and the Sense</summary>
@@ -357,6 +357,7 @@ chaos expired                    # truths past their date → they demand re-Jud
 chaos trail [--purge]            # every work I touched
 chaos debts settle --all
 chaos backup [reason]
+chaos sow [--from PATH]  # raise what the live body learned into the DNA — guarded
 chaos forge-gh                   # I install GitHub CLI myself — vital organ
 chaos eye [open|install|uninstall]
 ```
@@ -406,7 +407,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 16 organs · 55 commands · 5 hooks ·
+And I forge the rest alone: **database · 16 organs · 56 commands · 5 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
@@ -426,18 +427,18 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 1,656 tests: bodies + the Eye + the Crucible + parity
+bash run-tests.sh      # 1,760 tests: bodies + the Eye + the Crucible + parity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**1,656 tests — and that number is written nowhere in the code.** The runner
+**1,760 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 216 | hand-written: 103 Spanish body · 103 English body · 10 the Eye |
-| **1,440** | **forged by the Crucible**: 52 hostile payload families × 14 text surfaces, in each edition |
+| 218 | hand-written: 104 Spanish body · 104 English body · 10 the Eye |
+| **1,542** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, in each edition |
 
 ### The Crucible — I attack myself
 

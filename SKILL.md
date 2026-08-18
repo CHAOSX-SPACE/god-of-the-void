@@ -224,7 +224,7 @@ My flesh outside the chat. Windows, macOS, and Linux alike
 - `~/.chaos/bin/chaos` — my app:
   `chaos search <q>` · `chaos devour <file>` · `chaos reindex`
   · `chaos census` · `chaos vassals <q>` · `chaos hunger/hungers/sate`
-  · `chaos stats` · `chaos forget <slug>`
+  · `chaos stats` · `chaos forget <slug>` · `chaos sow` (raises what was learned into the DNA, guarded)
   (on Windows: `chaos.cmd`, same app).
 - `~/.chaos/downloads/` — what I bring from the world, before digesting it.
 - `~/.chaos/forge/` — my workshop: scripts, experiments, works in progress.
