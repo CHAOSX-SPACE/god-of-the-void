@@ -2633,6 +2633,13 @@ def _territory_and_focus(cwd=None):
                     d = _trail_line(l)
                     if not d:
                         continue
+                    # The FOCUS is the DOCUMENT being worked on. A Bash is
+                    # stored as "bash: <command>" and its basename is a shard
+                    # of shell — sparks were born anchored to
+                    # `install.py 2>&1 | grep ...`. An executed work is not a
+                    # document: it is skipped here.
+                    if (d["path"] or "").startswith("bash: "):
+                        continue
                     if d["cwd"] and os.path.realpath(d["cwd"]) == here:
                         focus = os.path.basename(d["path"])
                     elif not d["cwd"] and not focus:
@@ -3033,12 +3040,18 @@ def audit(mark=True):
         signals.append("UNDISTILLED TRAIL: {} work(s) touched and not sedimented".format(n))
 
     # 3. Drift: files on disk vs index vs DB
-    on_disk = set(f[:-3] for f in os.listdir(ESSENCES) if f.endswith(".md")) if os.path.isdir(ESSENCES) else set()
+    # A slug is NOT the filename: it is born from slug_of(), which
+    # normalises (project_x.md -> project-x). Comparing raw names against
+    # slugs invented drift: 2 healthy essences were declared orphans AND
+    # ghosts at once. Measure with the SAME rule you write with.
+    on_disk = set(slug_of(f) for f in os.listdir(ESSENCES) if f.endswith(".md")) if os.path.isdir(ESSENCES) else set()
     in_db = set(r[0] for r in con.execute("SELECT slug FROM essences").fetchall())
     in_index = set()
     if os.path.exists(ABYSS_MD):
-        for m in re.finditer(r"\(essences/([a-z0-9\-]+)\.md\)", io.open(ABYSS_MD, encoding="utf-8", errors="replace").read()):
-            in_index.add(m.group(1))
+        # the name in the index may carry an UNDERSCORE; the slug does not.
+        # Normalise it exactly as on disk (same rule, or the judge hallucinates).
+        for m in re.finditer(r"\(essences/([A-Za-z0-9_\-]+)\.md\)", io.open(ABYSS_MD, encoding="utf-8", errors="replace").read()):
+            in_index.add(slug_of(m.group(1)))
     # C8 · FOUNDATION: tell RESIDENTS (they live in the Abyss) apart from
     # EXTERNALS (documents devoured from other paths). Before, externals were
     # flagged "ghosts" and the printed remedy was `forget` = destroy real memory.
