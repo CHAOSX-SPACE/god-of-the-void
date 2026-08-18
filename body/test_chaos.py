@@ -1062,6 +1062,27 @@ class ChaosTest(unittest.TestCase):
                                capture_output=True, text=True)
             self.assertEqual(q.returncode, 0, "died on %r" % junk)
 
+    def test_single_guard_and_sow_refuse_to_amputate(self):
+        """PLAN-ADN: the guard detects what would be lost; sow refuses fake
+        paths WITHOUT showing guts, and demands a merge instead of amputating
+        a richer DNA."""
+        import importlib.util
+        g_path = os.path.join(HERE, "dna-guard.py")
+        if not os.path.exists(g_path):
+            self.skipTest("no guard")
+        spec = importlib.util.spec_from_file_location("g", g_path)
+        g = importlib.util.module_from_spec(spec); spec.loader.exec_module(g)
+        a = os.path.join(self.home, "a.py"); b = os.path.join(self.home, "b.py")
+        io.open(a, "w", encoding="utf-8").write("def common():\n    pass\n")
+        io.open(b, "w", encoding="utf-8").write(
+            "def common():\n    pass\n\ndef extra():\n    pass\n")
+        p = g.would_lose(a, b)
+        self.assertIn("functions", p); self.assertIn("extra", p["functions"])
+        self.assertEqual(g.would_lose(b, a), {}, "reverse direction must be safe")
+        out = run(self.home, "sow", "--from", "/no/such/dna")
+        self.assertNotIn("Traceback", out)
+        self.assertIn("does not exist", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

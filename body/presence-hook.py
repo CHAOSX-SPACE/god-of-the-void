@@ -111,13 +111,50 @@ def _next(n):
         return 0
 
 
-def scar_of_the_turn():
-    cs = _scars()
-    if not cs:
+def _spoken(cwd):
+    """F3.4 · PLAN-ADN: the territory's last SPOKEN decision, as one more
+    card in the deck — never a fixed line (what is fixed becomes wallpaper:
+    fault #62). The real closing of universal memory: not that I can search
+    it — that I carry it already on."""
+    try:
+        # NEVER connect before checking: sqlite3.connect CREATES the file,
+        # and an empty DB born here made live_state die with "no such
+        # table" (caught by the test net itself).
+        if not cwd or not os.path.exists(DB):
+            return None
+        con = sqlite3.connect(DB)
+        ter = _territory(cwd)
+        row = None
+        if ter and ter != "?":
+            row = con.execute(
+                "SELECT text, date FROM dialogues WHERE territory=?"
+                " ORDER BY rowid DESC LIMIT 1", (ter,)).fetchone()
+        con.close()
+        if not row or not (row[0] or "").strip():
+            return None
+        txt = " ".join(row[0].split())[:170]
+        return "\U0001F5E3 SPOKEN ({} - {}): \u00ab{}\u00bb".format(ter, (row[1] or "")[:10], txt)
+    except Exception:
         return None
-    t, n = cs[_next(len(cs))]
-    n = n[:190] + ("\u2026" if len(n) > 190 else "")
-    return "\U0001FA78 SCAR ({}): {}".format(t[:46], n)
+
+
+def card_of_the_turn(cwd=""):
+    """The deck: scars + the last spoken decision. ONE card per message,
+    deterministic rotation — over a session they all pass."""
+    cards = []
+    for t, n in _scars():
+        n = n[:190] + ("\u2026" if len(n) > 190 else "")
+        cards.append("\U0001FA78 SCAR ({}): {}".format(t[:46], n))
+    h = _spoken(cwd)
+    if h:
+        cards.append(h)
+    if not cards:
+        return None
+    return cards[_next(len(cards))]
+
+
+def scar_of_the_turn(cwd=""):
+    return card_of_the_turn(cwd)
 
 
 
@@ -254,7 +291,7 @@ def main():
         pass
     parts = [ANCHOR]
     try:
-        c = scar_of_the_turn()     # the Bearer's correction, alive again
+        c = card_of_the_turn(cwd)  # a scar or a spoken decision, alive again
         if c:
             parts.append(c)
     except Exception:

@@ -134,6 +134,7 @@ def _srf_history(c):      return ["history", c]
 def _srf_faults(c):        return ["faults", c]
 def _srf_links(c):      return ["links", c]
 def _srf_forget(c):       return ["forget", c]
+def _srf_sow(c):       return ["sow", "--from", c]
 
 SURFACES = [
     ("search",   _srf_search),    ("note",     _srf_note),
@@ -142,6 +143,7 @@ SURFACES = [
     ("alias",    _srf_alias),     ("vassals",  _srf_vassals),
     ("history",  _srf_history),  ("faults",   _srf_faults),
     ("links",    _srf_links),  ("forget",   _srf_forget),
+    ("sow",      _srf_sow),
 ]
 
 

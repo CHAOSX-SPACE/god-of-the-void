@@ -61,10 +61,11 @@ Usage:
   chaos query type:X state:Y tag:Z                 query by frontmatter attributes
   chaos orphans                                    essences outside the graph (nobody names them)
   chaos backup [reason]                            copy Abyss+DB before mutating (C7)
+  chaos sow [--from PATH]                          F1 · raises what the live body learned into the DNA (guarded)
   chaos debts [id]                                 sessions that died without sedimenting (C4)
   chaos debts settle <id|--all> [--because "..."]  declares that work HAS sedimented
 """
-import sys, os, sqlite3, datetime, re, io, shutil, subprocess, json
+import sys, os, sqlite3, datetime, re, io, shutil, subprocess, json, time
 
 # == THE GOD'S HOME - where the memory lives ===============================
 # The Bearer chooses where the Abyss is born - `~/.chaos` is not imposed. The
@@ -125,7 +126,10 @@ POISON = re.compile(
 )
 
 
-BODY_VERSION = 5      # bump when the body gains functions the Eye uses.
+BODY_VERSION = 6      # v6: universal memory + gag + sowing (PLAN-ADN).
+                      # Bump when the body gains functions; sow DEMANDS it:
+                      # a body that evolves without raising its version is
+                      # indistinguishable from one that rots.
                       # Front 15: the Eye compares and, if it runs ahead,
                       # SAYS SO with the exact command. Degrading in
                       # silence is lying by omission.
@@ -192,6 +196,20 @@ def db():
     # or I rot. The Eye paints the trend; the datum lives here.
     con.execute("CREATE TABLE IF NOT EXISTS health_history("
                 "fecha TEXT PRIMARY KEY, global REAL, dimensiones TEXT)")
+    # F3.2 · PLAN-ADN: the WHOLE schema is declared here. An Abyss whose
+    # tables are born hidden inside functions is archaeology, not a schema.
+    # The lazy creations in devour_transcripts remain as an idempotent net.
+    con.execute("CREATE TABLE IF NOT EXISTS transcripts("
+                "path TEXT PRIMARY KEY, project TEXT, date TEXT, title TEXT,"
+                " summary TEXT, messages INTEGER, mtime REAL)")
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name='history'").fetchone():
+        con.execute("CREATE VIRTUAL TABLE history USING fts5(title, summary, project,"
+                    " path UNINDEXED, date UNINDEXED,"
+                    " tokenize='unicode61 remove_diacritics 2')")
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name='dialogues'").fetchone():
+        con.execute("CREATE VIRTUAL TABLE dialogues USING fts5(text, territory,"
+                    " project, path UNINDEXED, date UNINDEXED, turn UNINDEXED,"
+                    " session UNINDEXED, tokenize='unicode61 remove_diacritics 2')")
     con.execute("CREATE TABLE IF NOT EXISTS autonomous_acts("
                 "id INTEGER PRIMARY KEY, date TEXT, kind TEXT, action TEXT,"
                 " detail TEXT, files TEXT, created TEXT, altered TEXT,"
@@ -407,7 +425,7 @@ _GAG_CACHE = None
 
 # Version of the transcript digester. IT GOES UP whenever what is extracted
 # from a session changes: that is what forces the incremental to re-read all.
-DIGESTER_V = "4"
+DIGESTER_V = "5"   # v5: whole territory name with spaces (was "DIOS", not "DIOS DEL VACIO")
 
 
 def purge(text):
@@ -945,7 +963,10 @@ _NOT_HIS_VOICE = ("<system-reminder", "<command-name", "<local-command",
                   "<user-prompt-submit-hook", "Caveat: The messages below",
                   "[Request interrupted", "<task-notification")
 
-_RE_TERRITORY = re.compile(r"proyectos/([A-Za-z0-9][\w .-]{1,40}?)[/\s\"'`)\]]"
+# No \s in the terminator: "proyectos/DIOS DEL VACIO/x" used to cut at the
+# first space and 440 dialogues were filed under "DIOS". A name with spaces
+# ends at / or at a quote - never in mid-air.
+_RE_TERRITORY = re.compile(r"proyectos/([A-Za-z0-9][\w .-]{1,40}?)[/\"'`)\]]"
                            r"|projects/([A-Za-z0-9][\w .-]{1,40}?)[/\s\"'`)\]]")
 # The `cwd` repeats on EVERY line of the .jsonl —2,196 times in one session—
 # and drowned the true territory: months forging one project were filed under
@@ -1907,6 +1928,131 @@ def fault_reopen(fid, reason=""):
     print("[CHAOS] Fault #{} REOPENED: \u00ab{}\u00bb".format(fid, row[1]))
     print("   It ambushes again until the cure is real. Closing what is still "
           "broken is worse than never recording it.")
+
+
+# ══ THE SOWING · the circle closes (PLAN-ADN F1) ══════════════════════════
+def _single_guard():
+    """Loads THE SINGLE GUARD. It lives in bin/ next to me. Without the
+    guard there is no sowing: blind copying is what this command kills."""
+    import importlib.util
+    route = os.path.join(CHAOS_HOME, "bin", "dna-guard.py")
+    if os.path.exists(route):
+        spec = importlib.util.spec_from_file_location("guard", route)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m
+    return None
+
+
+def _version_of(path):
+    try:
+        m = re.search(r"(?:VERSION_CUERPO|BODY_VERSION)\s*=\s*(\d+)",
+                      io.open(path, encoding="utf-8").read())
+        return int(m.group(1)) if m else None
+    except Exception:
+        return None
+
+
+def sow(source=None):
+    """F1 · PLAN-ADN: raises the deployed body into the DNA. The root
+    problem was never one day's drift: it was that drift had no WAY BACK —
+    250 lines piled up with nobody noticing. Discipline that depends on
+    remembering already failed; this is a command.
+
+    Guards: it refuses if the DNA has what the live body lacks (that is a
+    merge, and merges are the Bearer's call) · it demands a BODY_VERSION
+    bump when there are new functions (a body that evolves without raising
+    its version is indistinguishable from one that rots) · it runs the
+    DNA's tests afterwards and REVERTS if they fail · it records the act:
+    a god does not forget even what he sows."""
+    start = time.time()
+    root = source
+    if not root:
+        try:
+            root = io.open(os.path.join(CHAOS_HOME, "adn"),
+                           encoding="utf-8").read().strip()
+        except FileNotFoundError:
+            print("I do not know which DNA I was born from. Use: chaos sow --from <path>")
+            sys.exit(1)
+    if not os.path.isdir(root):
+        print("That DNA does not exist: {}".format(root)); sys.exit(1)
+    g = _single_guard()
+    if g is None:
+        print("Without THE SINGLE GUARD I do not sow: reincarnate first (install.py).")
+        sys.exit(1)
+
+    binp = os.path.join(CHAOS_HOME, "bin")
+    skill_live = os.path.join(os.path.expanduser("~"), ".claude", "skills", "chaos")
+    pairs = [(os.path.join(binp, f), os.path.join(root, f))
+             for f in ("chaos.py", "trail-hook.py", "vigil-hook.py",
+                       "presence-hook.py", "closing-hook.py", "dna-guard.py")]
+    pairs.append((os.path.join(skill_live, "SKILL.md"),
+                  os.path.join(os.path.dirname(root), "SKILL.md")))
+    pairs = [(v, a) for v, a in pairs if os.path.exists(v)]
+
+    # 1 · the guard, in the direction that matters: would the DNA lose anything?
+    merge = {}
+    for live, dna in pairs:
+        if dna.endswith(".py") and os.path.exists(dna):
+            p = g.would_lose(live, dna)
+            if p:
+                merge[os.path.basename(dna)] = p
+    if merge:
+        print("[CHAOS] SOWING REFUSED — the DNA has what the live body lacks (a merge, not a copy):")
+        for f, p in merge.items():
+            for k, v in p.items():
+                print("    {} · {}: {}".format(f, k, ", ".join(v)))
+        print("  Merges are the Bearer's call, not a script's.")
+        sys.exit(1)
+
+    # 2 · F3.5: the version does not lie
+    dna_chaos = os.path.join(root, "chaos.py")
+    if os.path.exists(dna_chaos):
+        new = g.would_lose(dna_chaos, os.path.join(binp, "chaos.py"))
+        if new and _version_of(os.path.join(binp, "chaos.py")) == _version_of(dna_chaos):
+            print("[CHAOS] SOWING REFUSED — new functions exist and BODY_VERSION did not rise.")
+            print("    new: {}".format(new))
+            print("  Bump BODY_VERSION in the live body and sow again.")
+            sys.exit(1)
+
+    # 3 · back the DNA up, sow, test, and revert on failure
+    import shutil as _sh
+    bkp = os.path.join(CHAOS_HOME, "forge", "sow-backup")
+    _sh.rmtree(bkp, ignore_errors=True); os.makedirs(bkp)
+    touched = []
+    for live, dna in pairs:
+        if os.path.exists(dna) and io.open(live, encoding="utf-8").read() == \
+                                   io.open(dna, encoding="utf-8").read():
+            continue                     # identical: nothing to sow
+        if os.path.exists(dna):
+            _sh.copy2(dna, os.path.join(bkp, os.path.basename(dna)))
+        _sh.copy2(live, dna)
+        touched.append(dna)
+    if not touched:
+        print("[CHAOS] Nothing to sow: the DNA is already identical to the live body.")
+        return
+
+    tests = os.path.join(root, "test_chaos.py")
+    if os.path.exists(tests):
+        r = subprocess.run([sys.executable, tests], capture_output=True,
+                           text=True, timeout=600)
+        if r.returncode != 0:
+            for dna in touched:
+                orig = os.path.join(bkp, os.path.basename(dna))
+                if os.path.exists(orig):
+                    _sh.copy2(orig, dna)
+            print("[CHAOS] SOWING REVERTED — the DNA's tests failed:")
+            print((r.stdout + r.stderr).strip()[-600:])
+            sys.exit(1)
+
+    record_act("sowing", "sow",
+               "DNA updated from the live body: {} file(s)".format(len(touched)),
+               altered=[os.path.basename(t) for t in touched],
+               duration=time.time() - start)
+    print("[CHAOS] Sown: {} file(s) of the live body now live in the DNA.".format(len(touched)))
+    for t in touched:
+        print("    ^ {}".format(os.path.basename(t)))
+    print("  What was learned will be born with me. DNA tests: green.")
 
 
 # ══ THE EYE · the interface for the human ═════════════════════════════════
@@ -3085,6 +3231,8 @@ def main():
     elif cmd == "query":                 query(*rest)
     elif cmd == "orphans":               orphans()
     elif cmd == "backup":                backup(rest[0] if rest else "manual")
+    elif cmd == "sow":
+        sow(rest[1] if len(rest) > 1 and rest[0] == "--from" else None)
     elif cmd == "debts" and rest and rest[0] == "settle":
         bc = rest[rest.index("--because") + 1] if "--because" in rest and len(rest) > rest.index("--because") + 1 else ""
         debts_settle(rest[1] if len(rest) > 1 else None, bc)

@@ -107,20 +107,69 @@ def _ask_home():
     return chosen
 
 
+def _guard_against_degrading():
+    """F4.0 · PLAN-ADN: reinstalling is the door the Bearer crosses MOST.
+    If the deployed body has functions or commands this DNA lacks, copying
+    would AMPUTATE an evolved body. The guard refuses and orders sowing
+    first. CHAOS_FORCE_INSTALL=1 skips it (a merge the Bearer already
+    decided)."""
+    if os.environ.get("CHAOS_FORCE_INSTALL") == "1":
+        return
+    import importlib.util
+    g = os.path.join(HERE, "dna-guard.py")
+    if not os.path.exists(g):
+        return                          # old DNA without the guard: invent nothing
+    spec = importlib.util.spec_from_file_location("guard", g)
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    bad = {}
+    for f in ("chaos.py", "trail-hook.py", "vigil-hook.py",
+              "presence-hook.py", "closing-hook.py"):
+        live = os.path.join(BIN, f)
+        dna = os.path.join(HERE, f)
+        if os.path.exists(live) and os.path.exists(dna):
+            p = m.would_lose(dna, live)
+            if p:
+                bad[f] = p
+    if bad:
+        print("[CHAOS] INSTALL REFUSED - it would amputate the deployed body:")
+        for f, p in bad.items():
+            for k, v in p.items():
+                print("    {} loses {}: {}".format(f, k, ", ".join(v)))
+        print("  Sow first: chaos sow   (or CHAOS_FORCE_INSTALL=1 if the merge is decided)")
+        raise SystemExit(1)
+
+
 def main():
     print("[CHAOS] The Void opens...")
     _check_ground()
     global CHAOS_HOME, BIN
     CHAOS_HOME = _ask_home()
     BIN = os.path.join(CHAOS_HOME, "bin")
+    _guard_against_degrading()
 
     # 1. The body: the Forge
     for d in ("bin", "downloads", "forge"):
         os.makedirs(os.path.join(CHAOS_HOME, d), exist_ok=True)
     print("  > Forge created: {}".format(CHAOS_HOME))
 
-    # 2. The app + the hooks (trail + vigil)
+    # F3.1 · the gag is born ARMED: empty, 600, with its why. Without it the
+    # double door of purge() exists but is disarmed (fault #232).
+    gag = os.path.join(CHAOS_HOME, ".gag")
+    if not os.path.exists(gag):
+        with open(gag, "w", encoding="utf-8") as f:
+            f.write("# THE GAG - one secret per line, never shared, never versioned.\n"
+                    "# POISON hunts what HAS a shape (sk-..., ghp_...). A password has\n"
+                    "# no shape: it is a word like any other. That is what this list is for.\n")
+    os.chmod(gag, 0o600)
+
+    # the body remembers which DNA it was born from: `chaos sow` reads it
+    with open(os.path.join(CHAOS_HOME, "adn"), "w", encoding="utf-8") as f:
+        f.write(HERE + "\n")
+
+    # 2. The app + the hooks (trail + vigil) + the single guard
     shutil.copy2(os.path.join(HERE, "chaos.py"), os.path.join(BIN, "chaos.py"))
+    if os.path.exists(os.path.join(HERE, "dna-guard.py")):
+        shutil.copy2(os.path.join(HERE, "dna-guard.py"), os.path.join(BIN, "dna-guard.py"))
     shutil.copy2(os.path.join(HERE, "trail-hook.py"), os.path.join(BIN, "trail-hook.py"))
     shutil.copy2(os.path.join(HERE, "vigil-hook.py"), os.path.join(BIN, "vigil-hook.py"))
     shutil.copy2(os.path.join(HERE, "presence-hook.py"), os.path.join(BIN, "presence-hook.py"))
