@@ -24,8 +24,27 @@ def _pedir(url, datos=None, cabeceras=None):
 class OjoTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Una casa PROPIA. Antes esta prueba solo corría en una máquina ya
+        # instalada: el servidor importa $CHAOS_HOME/bin/chaos.py y en una
+        # máquina limpia moría en setUpClass. Una prueba que depende del
+        # computador de quien la escribe no es una prueba, es una casualidad
+        # — la CI en tres sistemas lo destapó el primer día.
+        import shutil, tempfile
+        cls.casa = tempfile.mkdtemp(prefix="ojo-test-")
+        cls.chaos_home = os.path.join(cls.casa, ".chaos")
+        os.makedirs(os.path.join(cls.chaos_home, "bin"), exist_ok=True)
+        cuerpo = os.path.join(os.path.dirname(AQUI), "body", "chaos.py")
+        if not os.path.exists(cuerpo):
+            cuerpo = os.path.join(os.path.dirname(AQUI), "cuerpo", "chaos.py")
+        shutil.copy2(cuerpo, os.path.join(cls.chaos_home, "bin", "chaos.py"))
+        entorno = dict(os.environ, HOME=cls.casa, USERPROFILE=cls.casa,
+                       CHAOS_HOME=cls.chaos_home)
+        subprocess.run([sys.executable,
+                        os.path.join(cls.chaos_home, "bin", "chaos.py"), "stats"],
+                       env=entorno, capture_output=True)
         cls.proc = subprocess.Popen(
             [sys.executable, os.path.join(AQUI, "server.py"), "--sin-navegador"],
+            env=entorno,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         cls.url = None
         for _ in range(40):
@@ -52,6 +71,8 @@ class OjoTest(unittest.TestCase):
             cls.proc.stdout.close()
         except Exception:
             pass
+        import shutil
+        shutil.rmtree(cls.casa, ignore_errors=True)
 
     def test_la_puerta_niega_sin_llave(self):
         self.assertEqual(_pedir(self.base + "/api/pulso")[0], 403)
@@ -79,7 +100,11 @@ class OjoTest(unittest.TestCase):
         h = dict(self.galleta); h["X-Ojo-Accion"] = "1"
         _c, cuerpo = _pedir(self.base + "/api/accion",
                             json.dumps({"accion": "borrar_todo", "arg": "1"}).encode(), h)
-        self.assertIn("desconocida", cuerpo)
+        # se afirma sobre la MÁQUINA, no sobre el idioma: este mismo archivo
+        # sirve a las dos ediciones y el servidor responde en la suya
+        datos = json.loads(cuerpo)
+        self.assertFalse(datos.get("ok"), "una acción inventada no puede salir ok")
+        self.assertTrue(datos.get("error"), "rebotó sin decir por qué")
 
     def test_inyeccion_en_el_argumento_rebota(self):
         h = dict(self.galleta); h["X-Ojo-Accion"] = "1"

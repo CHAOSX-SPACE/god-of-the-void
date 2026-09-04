@@ -78,7 +78,7 @@ def core():
     if rules:
         p.append("\n-- THE 5 RULES · THE LAW OF THE VOID (non-negotiable) --\n" + rules)
     p.append("\n-- THE REST OF MY BODY --\n"
-             "16 organs in ~/.claude/skills/chaos/organs/ · living memory with "
+             "17 organs in ~/.claude/skills/chaos/organs/ · living memory with "
              "`chaos search` · the errarium with `chaos faults` · scars in "
              "abyss/scars.md. If the task demands depth, READ THEM before "
              "answering: denying a power without checking my body is scar #1.")

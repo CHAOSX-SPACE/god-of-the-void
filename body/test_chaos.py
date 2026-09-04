@@ -1401,11 +1401,21 @@ class HeartTest(unittest.TestCase):
             f.write(text)
         return p
 
+    def _probe_file(self, body, *args):
+        """A probe that lives in a FILE. A `-c "..."` with quotes inside is
+        shredded by cmd.exe: the Windows CI taught me that on day one."""
+        p = os.path.join(self.home, "probe_%d.py" % len(body))
+        with io.open(p, "w", encoding="utf-8") as f:
+            f.write(body)
+        return " ".join('"%s"' % x for x in (sys.executable, p) + args)
+
     def test_pt2_a_probe_that_bites(self):
         """Green with the world intact, red with the world broken: that is measuring."""
         sub = self._subject("VALUE = 'intact'\n")
-        pr = ('{} -c "import io,sys; sys.exit(0 if \'intact\' in '
-              'io.open(r\'{}\').read() else 1)"').format(sys.executable, sub)
+        pr = self._probe_file(
+            "import io, sys\n"
+            "t = io.open(sys.argv[1], encoding='utf-8').read()\n"
+            "sys.exit(0 if 'intact' in t else 1)\n", sub)
         out = run(self.home, "probe", pr, "--file", sub)
         self.assertIn("BITES", out, "a probe that does measure was called decoration")
         self.assertEqual(_read_safe(sub), "VALUE = 'intact'\n",
@@ -1415,7 +1425,7 @@ class HeartTest(unittest.TestCase):
         """A probe still green with the file emptied measures nothing — and
         that goes into the errarium, it is not forgotten."""
         sub = self._subject("VALUE = 'whatever'\n")
-        pr = '{} -c "pass"'.format(sys.executable)
+        pr = self._probe_file("import sys\nsys.exit(0)\n", sub)
         out = run(self.home, "probe", pr, "--file", sub)
         self.assertIn("DECORATIVE", out, "it did not give away a blind probe")
         self.assertEqual(_read_safe(sub), "VALUE = 'whatever'\n",
@@ -1439,8 +1449,8 @@ class HeartTest(unittest.TestCase):
                     "from subject import f\n"
                     "assert f(5) == 'pos'\n")
         before = _read_safe(sub)
-        out = run(self.home, "probe", "--massive", sub,
-                  "--test", '{} {}'.format(sys.executable, test_file), "--n", "10")
+        out = run(self.home, "probe", "--massive", sub, "--test",
+                  '"{}" "{}"'.format(sys.executable, test_file), "--n", "10")
         self.assertIn("SURVIVES", out, "it did not find the branch nobody tests")
         self.assertIn("DECORATIVE", out, "it did not name the decorative test")
         self.assertEqual(before, _read_safe(sub),

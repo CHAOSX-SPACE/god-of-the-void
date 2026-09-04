@@ -52,9 +52,15 @@ spec = importlib.util.spec_from_file_location("chaos", CHAOS_APP)
 chaos = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(chaos)
 
-# Edition: if the English DB exists and the Spanish one does not, speak that.
-ES = os.path.exists(os.path.join(CHAOS_HOME, "abismo.db")) or \
-     not os.path.exists(os.path.join(CHAOS_HOME, "abyss.db"))
+# Edition. The DB decides when there IS one; in a virgin house there is none,
+# and the old rule made the English Eye speak Spanish. Then my own folder
+# decides: this file lives in eye/ (English) or ojo/ (Spanish), derived.
+if os.path.exists(os.path.join(CHAOS_HOME, "abismo.db")):
+    ES = True
+elif os.path.exists(os.path.join(CHAOS_HOME, "abyss.db")):
+    ES = False
+else:
+    ES = os.path.basename(AQUI) == "ojo"
 def _t(es_txt, en_txt):
     """Every string the human READS goes through here. The Eye is one
     bilingual program serving both editions, so a hardcoded Spanish string is
@@ -1250,9 +1256,11 @@ def main():
     puerto = srv.server_address[1]
     url = "http://127.0.0.1:{}/?t={}".format(puerto, TOKEN)
     # flush: if the Bearer redirects stdout, the URL MUST come out anyway
-    print("[OJO] {}".format(url), flush=True)
-    print("[OJO] token por arranque; cerrar esta terminal apaga el Ojo.", flush=True)
-    if "--sin-navegador" not in sys.argv:
+    print("{} {}".format(_t("[OJO]", "[EYE]"), url), flush=True)
+    print(_t("[OJO] token por arranque; cerrar esta terminal apaga el Ojo.",
+             "[EYE] token per launch; closing this terminal kills the Eye."),
+          flush=True)
+    if not ({"--sin-navegador", "--no-browser"} & set(sys.argv)):
         try:
             webbrowser.open(url)
         except Exception:
