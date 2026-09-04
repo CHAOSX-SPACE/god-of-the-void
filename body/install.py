@@ -10,10 +10,18 @@ Idempotent: re-running only updates. The living Abyss is NEVER overwritten.
 """
 import os, sys, io, shutil, sqlite3, subprocess, json
 
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
 IS_WIN = os.name == "nt"
 HERE = os.path.dirname(os.path.abspath(__file__))          # .../chaos/body
 SKILL_SRC = os.path.dirname(HERE)                          # .../chaos
-HOME = os.path.expanduser("~")
+HOME = _house()
 CHAOS_HOME = None          # decided in main(): the Bearer chooses
 BIN = None
 SKILL_DST = os.path.join(HOME, ".claude", "skills", "chaos")

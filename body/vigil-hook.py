@@ -21,8 +21,16 @@ Law 1 (inherited): a hook NEVER breaks. On any failure it stays quiet, exit 0.
 """
 import sys, os, io, json, subprocess
 
-CHAOS = os.path.join(os.path.expanduser("~"), ".chaos")
-SKILL = os.path.join(os.path.expanduser("~"), ".claude", "skills", "chaos")
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
+CHAOS = os.path.join(_house(), ".chaos")
+SKILL = os.path.join(_house(), ".claude", "skills", "chaos")
 
 
 def _app():

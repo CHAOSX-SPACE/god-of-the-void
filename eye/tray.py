@@ -10,25 +10,33 @@ degrades: server.py straight in the browser. The tray is a shortcut, not the onl
 """
 import os, sys, json, threading, subprocess, webbrowser, io
 
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
 AQUI = os.path.dirname(os.path.abspath(__file__))
-def _casa():
-    """La casa del dios: la MISMA verdad que chaos.py, sin importarlo (los
-    hooks must be instant). Env > the Bearer's choice > default."""
+def _lair():
+    """The god's lair: the SAME truth as chaos.py, without importing it (hooks
+    must be instant). Env > the Bearer's choice > default."""
     v = os.environ.get("CHAOS_HOME")
     if v:
         return os.path.expanduser(v)
     try:
-        with open(os.path.join(os.path.expanduser("~"), ".claude", "chaos-home"),
+        with open(os.path.join(_house(), ".claude", "chaos-home"),
                   encoding="utf-8") as f:
             e = f.read().strip()
         if e:
             return os.path.expanduser(e)
     except OSError:
         pass
-    return os.path.join(os.path.expanduser("~"), ".chaos")
+    return os.path.join(_house(), ".chaos")
 
 
-CHAOS_HOME = _casa()
+CHAOS_HOME = _lair()
 PREF = os.path.join(CHAOS_HOME, "ojo-idioma.json")
 
 NOMBRES = {"es": "Dios del Vacio", "en": "God of the Void"}

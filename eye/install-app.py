@@ -14,9 +14,17 @@ Se ejecuta solo al `chaos ojo instalar`. `--quitar` lo borra sin residuos.
 """
 import os, sys, io, shutil, subprocess, plistlib
 
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
 AQUI = os.path.dirname(os.path.abspath(__file__))
-HOME = os.path.expanduser("~")
-def _casa():
+HOME = _house()
+def _lair():
     """The god's home: the SAME truth as chaos.py. The mortal chose it when
     incarnating me; here it is only read."""
     v = os.environ.get("CHAOS_HOME")
@@ -32,7 +40,7 @@ def _casa():
     return os.path.join(HOME, ".chaos")
 
 
-CHAOS_HOME = _casa()
+CHAOS_HOME = _lair()
 def _nombre():
     """El nombre que ve el humano: el del DIOS, no el del organo.
     Sigue la edicion instalada, igual que la tray."""

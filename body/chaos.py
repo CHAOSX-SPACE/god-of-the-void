@@ -62,10 +62,21 @@ Usage:
   chaos orphans                                    essences outside the graph (nobody names them)
   chaos backup [reason]                            copy Abyss+DB before mutating (C7)
   chaos sow [--from PATH]                          F1 · raises what the live body learned into the DNA (guarded)
+  chaos plan [file|id] [--paint] [--json] [--run]  VI.1 · the plan PAINTS itself: it measures its probes, never types them
+  chaos probe "<cmd>" --file <path> [--sabotage "<txt>"]  ORGAN 17 · sabotage the subject and demand the red (or the probe is decoration)
+  chaos probe --massive <file> --test "<cmd>" [--n N]   ORGAN 17 AT SCALE: mutates the body and names every decorative test
   chaos debts [id]                                 sessions that died without sedimenting (C4)
   chaos debts settle <id|--all> [--because "..."]  declares that work HAS sedimented
 """
 import sys, os, sqlite3, datetime, re, io, shutil, subprocess, json, time
+
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
 
 # == THE GOD'S HOME - where the memory lives ===============================
 # The Bearer chooses where the Abyss is born - `~/.chaos` is not imposed. The
@@ -74,7 +85,7 @@ import sys, os, sqlite3, datetime, re, io, shutil, subprocess, json, time
 #   1. $CHAOS_HOME             (env var: tests and advanced use)
 #   2. ~/.claude/chaos-home    (what the mortal chose at incarnation)
 #   3. ~/.chaos                (the default, if never chosen)
-_HOME_MARK = os.path.join(os.path.expanduser("~"), ".claude", "chaos-home")
+_HOME_MARK = os.path.join(_house(), ".claude", "chaos-home")
 
 
 def home():
@@ -89,7 +100,7 @@ def home():
             return os.path.expanduser(chosen)
     except OSError:
         pass
-    return os.path.join(os.path.expanduser("~"), ".chaos")
+    return os.path.join(_house(), ".chaos")
 
 
 def set_home(path):
@@ -103,7 +114,7 @@ def set_home(path):
 
 CHAOS_HOME = home()
 DB = os.path.join(CHAOS_HOME, "abyss.db")
-CLAUDE_DIR = os.path.join(os.path.expanduser("~"), ".claude")
+CLAUDE_DIR = os.path.join(_house(), ".claude")
 ESSENCES = os.path.join(CLAUDE_DIR, "skills", "chaos", "abyss", "essences")
 SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
 
@@ -1310,7 +1321,7 @@ def schedule(when="03:00", remove=False):
     hh, mm = int(hh or 3), int(mm or 0)
 
     if plat == "darwin":
-        plist = os.path.join(os.path.expanduser("~"), "Library", "LaunchAgents",
+        plist = os.path.join(_house(), "Library", "LaunchAgents",
                              "lat.chaos.vigil.plist")
         if remove:
             subprocess.call(["launchctl", "unload", plist],
@@ -1982,7 +1993,7 @@ def sow(source=None):
         sys.exit(1)
 
     binp = os.path.join(CHAOS_HOME, "bin")
-    skill_live = os.path.join(os.path.expanduser("~"), ".claude", "skills", "chaos")
+    skill_live = os.path.join(_house(), ".claude", "skills", "chaos")
     pairs = [(os.path.join(binp, f), os.path.join(root, f))
              for f in ("chaos.py", "trail-hook.py", "vigil-hook.py",
                        "presence-hook.py", "closing-hook.py", "dna-guard.py")]
@@ -2185,7 +2196,7 @@ def project_root(path):
     if not path:
         return None
     path = os.path.normpath(os.path.realpath(path))
-    home = os.path.realpath(os.path.expanduser("~"))
+    home = os.path.realpath(_house())
     parts = path.split(os.sep)
     if ".claude" in parts:
         return os.path.join(home, ".claude")
@@ -2440,7 +2451,7 @@ def blockify(which=None, dry=False):
     """Gives addressable blocks to the essences that are sacks."""
     con = db()
     rows = con.execute(
-        "SELECT e.slug, e.content, e.source, m.resident FROM essences e"
+        "SELECT e.slug, e.content, e.origin, m.resident FROM essences e"
         " LEFT JOIN essence_meta m ON m.slug=e.slug"
         " WHERE length(e.content)>4000").fetchall()
     if which and which != "--all":
@@ -3131,6 +3142,414 @@ def stats():
     print("Dwelling          : {}".format(DB))
 
 
+# ══ VI.1 · THE PLAN THAT PAINTS ITSELF ════════════════════════════════════
+# A plan with hand-typed ✅ starts lying the moment someone looks away — it is
+# fault #44 in a different coat. Here the state is DERIVED: every front
+# declares its probe INSIDE the plan itself, and the verdict is measured. A
+# front WITHOUT a probe is never painted green: with no instrument there is
+# no measurement, only wishing.
+#
+#     <!-- sonda II.1 fase 1: archivo .github/workflows/juicio.yml ;
+#          cadena README.md::actions/workflows -->
+#
+# Primitives: archivo (file) · cadena <path>::<text> · prueba <test name> ·
+#             falla <id> · hambre <n> · esencia <slug> · shell <cmd>
+# (the keywords stay Spanish: a plan is written once and read by both
+#  editions — translating the grammar would fork the plans in two.)
+# shell only runs with --run: a plan never executes commands behind your back.
+
+_RE_PROBE = re.compile(
+    r"<!--\s*sonda\s+([A-Za-z0-9][\w.\-]*)"       # the front's id
+    r"(?:\s+fase\s+(\d+))?"                        # its phase, optional
+    r"\s*:\s*(.*?)-->", re.S)
+
+_PRIMITIVES = ("archivo", "cadena", "prueba", "falla", "hambre", "esencia", "shell")
+
+
+def _probe_split(body):
+    """Split on ';' — except inside a shell, which uses ';' too. A fragment
+    not starting with a known primitive belongs to the previous one."""
+    chunks = []
+    for raw in body.split(";"):
+        if not raw.strip():
+            continue
+        first = raw.strip().split(None, 1)[0].lower()
+        if chunks and first not in _PRIMITIVES:
+            chunks[-1] = chunks[-1] + ";" + raw
+        else:
+            chunks.append(raw)
+    return [x for x in chunks if x.strip()]
+
+
+def _plan_find(path=None):
+    """The named plan, or the nearest PLAN-*.md walking up from here."""
+    if path:
+        return os.path.abspath(path) if os.path.isfile(path) else None
+    here = os.getcwd()
+    for _ in range(5):
+        try:
+            cand = sorted(f for f in os.listdir(here)
+                          if f.startswith("PLAN") and f.endswith(".md"))
+        except OSError:
+            cand = []
+        if cand:
+            return os.path.join(here, ([f for f in cand if "SUPREMO" in f] or cand)[0])
+        up = os.path.dirname(here)
+        if up == here:
+            break
+        here = up
+    return None
+
+
+def _probe_one(text, base, run=False, _cache={}):
+    """Measure ONE primitive. Returns (True/False/None, description).
+    None = not measurable here, and it is DECLARED — never counted green."""
+    parts = text.strip().split(None, 1)
+    if not parts:
+        return None, "empty probe"
+    kind = parts[0].lower()
+    arg = parts[1].strip() if len(parts) > 1 else ""
+    if kind == "archivo":
+        return os.path.exists(os.path.join(base, arg)), "file {}".format(arg)
+    if kind == "cadena":
+        rel, _, needle = arg.partition("::")
+        rel, needle = rel.strip(), needle.strip()
+        p = os.path.join(base, rel)
+        desc = "«{}» in {}".format(needle[:44], rel)
+        if not os.path.isfile(p):
+            return False, desc + " (the file does not exist)"
+        try:
+            return needle in io.open(p, encoding="utf-8", errors="replace").read(), desc
+        except OSError as e:
+            return False, desc + " ({})".format(e)
+    if kind == "prueba":
+        key = ("tests", base)
+        if key not in _cache:
+            joined = []
+            for r, ds, fs in os.walk(base):
+                ds[:] = [d for d in ds if d not in (".git", "__pycache__", ".venv", "node_modules")]
+                for f in fs:
+                    if f.startswith("test") and f.endswith(".py"):
+                        try:
+                            joined.append(io.open(os.path.join(r, f), encoding="utf-8",
+                                                  errors="replace").read())
+                        except OSError:
+                            pass
+            _cache[key] = "\n".join(joined)
+        return ("def test_" + arg) in _cache[key], "test test_{}".format(arg)
+    if kind == "falla":
+        row = db().execute("SELECT state FROM faults WHERE rowid = ?", (arg,)).fetchone()
+        return bool(row) and row[0] == "cured", "fault #{} cured".format(arg)
+    if kind == "hambre":
+        row = db().execute("SELECT 1 FROM hungers WHERE id = ?", (arg,)).fetchone()
+        return row is None, "hunger #{} sated".format(arg)
+    if kind == "esencia":
+        row = db().execute("SELECT 1 FROM essences WHERE slug = ?", (arg,)).fetchone()
+        return row is not None, "essence {}".format(arg)
+    if kind == "shell":
+        if not run:
+            return None, "shell «{}» (needs --run)".format(arg[:44])
+        try:
+            rc = subprocess.call(arg, shell=True, cwd=base,
+                                 stdout=open(os.devnull, "w"), stderr=subprocess.STDOUT)
+        except Exception as e:
+            return False, "shell «{}» ({})".format(arg[:44], e)
+        return rc == 0, "shell «{}»".format(arg[:44])
+    return None, "unknown primitive: {}".format(kind)
+
+
+def _plan_title(text, ident, pos):
+    """The front's title: the line where its id is bold, or the one above."""
+    m = re.search(r"\*\*" + re.escape(ident) + r"\*\*[^\n]*", text)
+    line = m.group(0) if m else ""
+    if not line:
+        before = [l for l in text[:pos].split("\n") if l.strip()]
+        line = before[-1] if before else ident
+    line = re.sub(r"<!--.*?-->", "", line)
+    line = re.sub(r"[*`|#]+", " ", line).replace(ident, " ", 1)
+    line = re.sub(r"\s+", " ", line).strip(" ·-—:")
+    if len(line) < 14 and m:                  # «in CI» says nothing: read on
+        rest = text[m.end():m.end() + 120].split("\n")
+        line = (line + " " + " ".join(rest[1:2])).strip()
+        line = re.sub(r"[*`|#]+", " ", line)
+        line = re.sub(r"\s+", " ", line).strip(" ·-—:")
+    return line[:52] or ident
+
+
+def plan(path=None, focus=None, run=False, paint=False, as_json=False):
+    """VI.1 · Reads the plan and PAINTS its state by measuring it, never typing it."""
+    f_plan = _plan_find(path)
+    if not f_plan:
+        print("No plan found. Name one: chaos plan <file.md>"); return
+    base = os.path.dirname(f_plan)
+    text = io.open(f_plan, encoding="utf-8", errors="replace").read()
+    fronts = []
+    for m in _RE_PROBE.finditer(text):
+        ident, phase, body = m.group(1), m.group(2) or "0", m.group(3)
+        if focus and focus.lower() not in ident.lower():
+            continue
+        probes = [_probe_one(s, base, run) for s in _probe_split(body)]
+        good = sum(1 for v, _ in probes if v is True)
+        bad = sum(1 for v, _ in probes if v is False)
+        mute = sum(1 for v, _ in probes if v is None)
+        if not probes:
+            state = "no-probe"
+        elif bad == 0 and mute == 0:
+            state = "closed"
+        elif good == 0 and bad == 0:
+            state = "unmeasured"
+        elif good == 0:
+            state = "open"
+        else:
+            state = "half"
+        fronts.append({"id": ident, "phase": int(phase), "state": state,
+                       "title": _plan_title(text, ident, m.start()),
+                       "probes": [{"ok": v, "what": d} for v, d in probes]})
+    if not fronts:
+        print("{}: no front declares a probe. A plan with no instrument is not"
+              " painted.".format(os.path.basename(f_plan))); return
+    if as_json:
+        print(json.dumps({"plan": f_plan, "fronts": fronts},
+                         ensure_ascii=False, indent=1)); return
+    ICON = {"closed": "✅", "half": "⏳", "open": "⬜",
+            "no-probe": "⚪", "unmeasured": "⏸"}
+    print("🕳️  {} — {} front(s) with a probe".format(
+        os.path.basename(f_plan), len(fronts)))
+    for phase in sorted(set(f["phase"] for f in fronts)):
+        batch = [f for f in fronts if f["phase"] == phase]
+        print("\nPHASE {}".format(phase) if phase else "\nNO PHASE")
+        for f in sorted(batch, key=lambda x: x["id"]):
+            n = sum(1 for s in f["probes"] if s["ok"] is True)
+            print("  {} {:<6} {:<52} {}/{}".format(
+                ICON[f["state"]], f["id"], f["title"], n, len(f["probes"])))
+            if f["state"] != "closed":
+                for s in f["probes"]:
+                    if s["ok"] is not True:
+                        print("       {} {}".format(
+                            "⏸" if s["ok"] is None else "⬜", s["what"]))
+    count = dict((e, sum(1 for f in fronts if f["state"] == e)) for e in ICON)
+    print("\nSUMMARY: " + " · ".join(
+        "{} {}".format(ICON[e], count[e]) for e in
+        ("closed", "half", "open", "unmeasured", "no-probe") if count[e]))
+    if count["no-probe"]:
+        print("⚪ No probe, no green: declare its measurement or the front does not exist.")
+    if paint:
+        dst = os.path.splitext(f_plan)[0] + "-STATE.md"
+        lin = ["# PLAN STATE — derived, not hand-written",
+               "", "> `chaos plan --paint` regenerates it. Editing it is wasted ink:",
+               "> the state lives in the plan's probes, not here.",
+               "", "Measured: {}".format(datetime.datetime.now().isoformat(" ")[:19]),
+               "", "| | front | title | probes |", "|---|---|---|---|"]
+        for f in sorted(fronts, key=lambda x: (x["phase"], x["id"])):
+            n = sum(1 for s in f["probes"] if s["ok"] is True)
+            lin.append("| {} | `{}` | {} | {}/{} |".format(
+                ICON[f["state"]], f["id"], f["title"], n, len(f["probes"])))
+        io.open(dst, "w", encoding="utf-8").write("\n".join(lin) + "\n")
+        print("Derived state → {}".format(os.path.basename(dst)))
+
+
+# ══ ORGAN 17 · THE TOUCHSTONE — who watches the watchman ══════════════════
+
+# The sabotage catalogue: ONE-piece changes, the size of a badly placed
+# finger. If the net does not redden at these, it protects no one from a
+# tired human.
+_MUTATIONS = ((" == ", " != "), (" != ", " == "), (" < ", " >= "),
+              (" > ", " <= "), (" and ", " or "), (" or ", " and "),
+              ("True", "False"), ("False", "True"), (" + 1", " - 1"),
+              (".startswith(", ".endswith("), (" is None", " is not None"))
+
+
+def _mutants(text):
+    """Every possible sabotage of the file: (line number, old, new). Skips
+    comments and the inside of triple-quoted strings: mutating a docstring
+    breaks nothing and would hand out false survivors — an instrument that
+    inflates its own number lies in the comfortable direction."""
+    out = []
+    inside = catalogue = False
+    for i, line in enumerate(text.split("\n")):
+        raw = line.strip()
+        # the sabotage catalogue does NOT sabotage itself: swapping a pair
+        # in the catalogue does not change the behaviour under test, so it
+        # always survives and dirties the number with noise.
+        if raw.startswith(("_MUTACIONES = (", "_MUTATIONS = (")):
+            catalogue = True
+        if catalogue:
+            if raw.endswith(")"):
+                catalogue = False
+            continue
+        quotes = line.count('"""') + line.count("'''")
+        if inside:
+            if quotes % 2:
+                inside = False
+            continue
+        if quotes % 2:
+            inside = True
+            continue
+        if not raw or raw.startswith("#"):
+            continue
+        for old, new in _MUTATIONS:
+            if old in line:
+                out.append((i, old, new))
+    return out
+
+
+def probe_massive(target=None, test=None, how_many=30, seed=1618, ceiling=10.0):
+    """Organ 17 at scale. Sabotages the body ONE change at a time and demands
+    the net turn red. Every mutant that SURVIVES is a decorative test, with
+    its file and its line.
+
+    Not mutmut: it mutates a copy and imports it, but my tests drive
+    `chaos.py` as a SUBPROCESS — the subprocess would keep loading the
+    original and every mutant would "survive". Measured on mutmut 3.7.0,
+    not assumed."""
+    if not target or not test:
+        print('Usage: chaos probe --massive <file> --test "<command>" [--n N]')
+        return False
+    if not os.path.isfile(target):
+        print("There is no body to mutate: {}".format(target)); return False
+    import ast as _ast, random as _random
+    original = io.open(target, encoding="utf-8").read()
+
+    def _no_cache():
+        """Python caches the .pyc by (mtime in SECONDS, size). A mutant of the
+        same length written within the same second revives the old .pyc and
+        the sabotage becomes invisible: a false survivor. Caught because the
+        two editions gave different verdicts on the same subject."""
+        root = os.path.dirname(os.path.abspath(target)) or "."
+        for r, ds, _ in os.walk(root):
+            for d in list(ds):
+                if d == "__pycache__":
+                    shutil.rmtree(os.path.join(r, d), ignore_errors=True)
+                    ds.remove(d)
+
+    clock = {"limit": None}
+
+    def go():
+        """With a CLOCK: a mutant can turn a loop infinite (`!=`→`==`) and hang
+        the net forever. With no limit the instrument hangs with it and
+        measures nothing. Whatever runs past the clock counts as KILLED: the
+        net caught it, even if the hard way."""
+        _no_cache()
+        try:
+            env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+            return subprocess.call(test, shell=True, env=env,
+                                   timeout=clock["limit"],
+                                   stdout=open(os.devnull, "w"),
+                                   stderr=subprocess.STDOUT)
+        except subprocess.TimeoutExpired:
+            return 124                      # the red of those that never return
+        except Exception:
+            return 127
+
+    print("🕳️  MUTATION · {} · test: {}".format(os.path.basename(target), test))
+    print("   While I run, THIS FILE is possessed: nothing else may read it.")
+    t0 = time.time()
+    if go() != 0:
+        print("🩸 The net is ALREADY red with nothing mutated. Cure that before"
+              " measuring it.")
+        return False
+    clock["limit"] = max(60.0, (time.time() - t0) * 6)
+    print("✓ green with the body intact in {:.1f} s — mutant clock: {:.0f} s\n"
+          .format(time.time() - t0, clock["limit"]))
+    candidates = _mutants(original)
+    _random.Random(seed).shuffle(candidates)
+    lines = original.split("\n")
+    killed, alive, skipped = 0, [], 0
+    try:
+        for i, old, new in candidates:
+            if killed + len(alive) >= how_many:
+                break
+            mutated = lines[:]
+            mutated[i] = mutated[i].replace(old, new, 1)
+            text_m = "\n".join(mutated)
+            try:
+                _ast.parse(text_m)
+            except SyntaxError:
+                skipped += 1          # a mutant that does not compile proves nothing
+                continue
+            io.open(target, "w", encoding="utf-8").write(text_m)
+            if go() != 0:
+                killed += 1
+                print("  ☠ {}:{}  «{}» → «{}»".format(
+                    os.path.basename(target), i + 1, old.strip(), new.strip()))
+            else:
+                alive.append((i + 1, old, new, lines[i].strip()[:60]))
+                print("  🩸 SURVIVES {}:{}  «{}» → «{}»".format(
+                    os.path.basename(target), i + 1, old.strip(), new.strip()))
+    finally:
+        io.open(target, "w", encoding="utf-8").write(original)
+    total = killed + len(alive)
+    if not total:
+        print("\nNo mutant compiled. The catalogue does not bite this file."); return False
+    ratio = 100.0 * len(alive) / total
+    print("\n{} mutants · ☠ {} killed · 🩸 {} alive ({:.1f} %) · {} did not compile".format(
+        total, killed, len(alive), ratio, skipped))
+    if alive:
+        print("\nDECORATIVE TESTS — nobody guards these lines:")
+        for ln, o, n, src in alive:
+            print("  {}:{}  «{}»→«{}»   {}".format(
+                os.path.basename(target), ln, o.strip(), n.strip(), src))
+    print("\n↺ {} restored ({} bytes)".format(
+        os.path.basename(target), len(original.encode("utf-8"))))
+    if ratio > ceiling:
+        print("🩸 Above the tolerated {:.0f} %: the net has holes with names.".format(ceiling))
+        return False
+    print("🕳️  The net bites: survivors below {:.0f} %.".format(ceiling))
+    return True
+
+
+def probe(command=None, target=None, sabotage=None):
+    """Organ 17 · A probe that does not turn red when the world breaks is
+    DECORATION. Here the world is broken on purpose and the red is demanded.
+    The sabotaged file is ALWAYS restored, whatever happens."""
+    if not command or not target:
+        print('Usage: chaos probe "<command>" --file <path> [--sabotage "<text>"]')
+        return False
+    if not os.path.isfile(target):
+        print("The subject of the sabotage does not exist: {}".format(target)); return False
+
+    def go():
+        try:
+            return subprocess.call(command, shell=True,
+                                   stdout=open(os.devnull, "w"),
+                                   stderr=subprocess.STDOUT)
+        except Exception as e:
+            print("The probe did not even run: {}".format(e)); return 127
+
+    original = io.open(target, "rb").read()
+    verdict = False
+    try:
+        if go() != 0:
+            print("🩸 The probe is ALREADY red with nothing touched. It does not"
+                  " measure what you say it does.")
+            return False
+        print("✓ green with the world intact")
+        with io.open(target, "wb") as fh:
+            fh.write((original + ("\n" + sabotage + "\n").encode("utf-8"))
+                     if sabotage else b"")
+        print("☠ sabotaged: {}".format(
+            "text injected" if sabotage else "file emptied"))
+        if go() != 0:
+            print("✓ red with the world broken")
+            print("\n🕳️  THE PROBE BITES. Its green is worth something.")
+            verdict = True
+        else:
+            print("✗ STILL GREEN with the world broken")
+            print("\n🩸 DECORATIVE PROBE. It measures nothing: its green is worthless.")
+    finally:
+        with io.open(target, "wb") as fh:
+            fh.write(original)
+        print("↺ {} restored ({} bytes)".format(
+            os.path.basename(target), len(original)))
+    if not verdict:
+        fault("Decorative probe: «{}»".format(command[:60]),
+              symptom="stayed green with {} sabotaged".format(os.path.basename(target)),
+              cause="the probe does not observe the subject it claims to observe",
+              cure="rewrite the probe until the sabotage turns it red",
+              lesson="Before believing a green, sabotage the subject and demand the red.")
+    return verdict
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -3253,6 +3672,20 @@ def main():
     elif cmd == "trail":
         # trail <file> <action> [session] [cwd] [tool] | trail --purge [session]
         trail(*(rest + [None] * 5)[:5])
+    elif cmd == "plan":
+        pt = next((x for x in rest if x.endswith(".md") and os.path.isfile(x)), None)
+        fo = next((x for x in rest if not x.startswith("--") and x != pt), None)
+        plan(pt, fo, "--run" in rest, "--paint" in rest, "--json" in rest)
+    elif cmd == "probe":
+        op = lambda k: (rest[rest.index(k) + 1]
+                        if k in rest and len(rest) > rest.index(k) + 1 else None)
+        if "--massive" in rest:
+            sys.exit(0 if probe_massive(op("--massive"), op("--test"),
+                                        int(op("--n") or 30),
+                                        int(op("--seed") or 1618)) else 1)
+        fi, sb = op("--file"), op("--sabotage")
+        co = next((x for x in rest if not x.startswith("--") and x != fi and x != sb), None)
+        sys.exit(0 if probe(co, fi, sb) else 1)
     elif cmd == "forget" and rest:       forget(rest[0])
     else:
         print(__doc__.strip())

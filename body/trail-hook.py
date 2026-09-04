@@ -14,6 +14,14 @@ own tool. Now every command passes through `gag()` before being stored, and
 the file is born 600."""
 import sys, os, json, re, subprocess
 
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
 # What is NEVER written to the trail, even if it was typed.
 _GAG = [
     (re.compile(r"(sshpass\s+-p\s*)('[^']*'|\"[^\"]*\"|\S+)"), r"\1«PURGED»"),
@@ -41,7 +49,7 @@ def _forbidden():
        Only a MISSING file means an empty list. Any other failure propagates
        and the hook records nothing: a broken gag must close the door, never
        pretend it found no secrets (fault #232)."""
-    f = os.path.join(os.path.expanduser("~"), ".chaos", ".gag")
+    f = os.path.join(_house(), ".chaos", ".gag")
     try:
         with open(f, encoding="utf-8") as fh:
             return [l.strip() for l in fh
@@ -92,7 +100,7 @@ def main():
 
     if not file:
         return
-    app = os.path.join(os.path.expanduser("~"), ".chaos", "bin", "chaos.py")
+    app = os.path.join(_house(), ".chaos", "bin", "chaos.py")
     subprocess.call([sys.executable, app, "trail", file, action, session, cwd, tool],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

@@ -17,25 +17,33 @@ import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+def _house():
+    """The mortal's home. $HOME rules even on Windows, where expanduser
+    ignores it (USERPROFILE wins there) — and my tests and installer redirect
+    HOME. Measuring in one house and writing in another is fault #44 wearing
+    a different coat."""
+    return os.environ.get("HOME") or os.path.expanduser("~")
+
+
 AQUI = os.path.dirname(os.path.abspath(__file__))
-def _casa():
-    """La casa del dios: la MISMA verdad que chaos.py, sin importarlo (los
-    hooks must be instant). Env > the Bearer's choice > default."""
+def _lair():
+    """The god's lair: the SAME truth as chaos.py, without importing it (hooks
+    must be instant). Env > the Bearer's choice > default."""
     v = os.environ.get("CHAOS_HOME")
     if v:
         return os.path.expanduser(v)
     try:
-        with open(os.path.join(os.path.expanduser("~"), ".claude", "chaos-home"),
+        with open(os.path.join(_house(), ".claude", "chaos-home"),
                   encoding="utf-8") as f:
             e = f.read().strip()
         if e:
             return os.path.expanduser(e)
     except OSError:
         pass
-    return os.path.join(os.path.expanduser("~"), ".chaos")
+    return os.path.join(_house(), ".chaos")
 
 
-CHAOS_HOME = _casa()
+CHAOS_HOME = _lair()
 CHAOS_APP = os.path.join(CHAOS_HOME, "bin", "chaos.py")
 TOKEN = secrets.token_urlsafe(18)
 
@@ -335,7 +343,7 @@ def api_buscar(q):
 
 
 # ══ THE DIAGNOSIS · the REAL health of the memory ════════════════════════
-# El Portador: "solo dice un monton de cosas que no es nada intuitivo".
+# The Bearer: "it just says a pile of things that are not intuitive at all".
 # Tenia razon: volcar la salida de `auditar` no es diagnosticar. Aqui cada
 # dimension declara SU FORMULA, entrega un puntaje 0-100 y — lo que importa —
 # la LISTA EXACTA de lo que le falta para llegar a 100. El porcentaje que no
@@ -1241,7 +1249,7 @@ def main():
     srv = Servidor(("127.0.0.1", 0), Ojo)          # puerto alto aleatorio
     puerto = srv.server_address[1]
     url = "http://127.0.0.1:{}/?t={}".format(puerto, TOKEN)
-    # flush: si el Portador redirige la salida, la URL DEBE salir igual
+    # flush: if the Bearer redirects stdout, the URL MUST come out anyway
     print("[OJO] {}".format(url), flush=True)
     print("[OJO] token por arranque; cerrar esta terminal apaga el Ojo.", flush=True)
     if "--sin-navegador" not in sys.argv:
