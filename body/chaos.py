@@ -2962,7 +2962,26 @@ def forge_gh():
 # ── trail: diary of the Hands (the sediment's lock) ──────────────────────────
 
 TRAIL = os.path.join(CHAOS_HOME, "forge", "trail.log")
-_NOISE = re.compile(r"(scratchpad|/tmp/|\.log$|\.pyc$|node_modules|\.git/)")
+# Noise is what REGENERATES itself.
+_NOISE = re.compile(r"(scratchpad|\.log$|\.pyc$|node_modules|\.git/)")
+# A STAGING folder is different: garbage nearly always, and THE WORLD
+# when the work happens inside it. I had "/tmp/" as plain noise, and on
+# Linux — containers, CI, staging folders — that killed the WHOLE trail
+# in silence, and with it the Chronicle, the FOCUS of sparks and
+# "undocumented". On macOS temporary things hang off /var/folders, so no
+# test ever saw it until CI ran in three worlds.
+_EPHEMERAL = re.compile(r"(^|/)(tmp|temp)/")
+
+
+def _is_noise(path, cwd=None):
+    """What regenerates itself is always noise. What lives in a staging
+    folder is noise UNLESS the work is happening inside it."""
+    if _NOISE.search(path):
+        return True
+    if _EPHEMERAL.search(path):
+        here = os.path.realpath(cwd) if cwd else None
+        return not (here and os.path.realpath(path).startswith(here))
+    return False
 
 
 def _trail_line(l):
@@ -3010,7 +3029,7 @@ def trail(file=None, action=None, session=None, cwd=None, tool=None):
         else:
             print("(empty trail — nothing forged yet)")
         return
-    if _NOISE.search(file):  # the Abyss does not log noise
+    if _is_noise(file, cwd):  # the Abyss does not log noise
         return
     os.makedirs(os.path.dirname(TRAIL), exist_ok=True)
     with io.open(TRAIL, "a", encoding="utf-8") as f:
