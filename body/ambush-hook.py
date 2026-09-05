@@ -100,7 +100,7 @@ def _signature(text):
     out = set()
     for x in t:
         x = x.strip().lower()
-        if len(x) >= 3 and not x.startswith("--dry") and x not in ("chaos", "python3"):
+        if len(x) >= 3 and x not in ("chaos", "python3"):
             out.add(x)
     return out
 
@@ -191,8 +191,13 @@ def _scar(command):
         if not hits:
             continue
         fragment = any(" " in x and len(x) >= 12 for x in hits)
-        with_flag = len(hits) >= 2 and any(x.startswith("--") for x in hits)
-        if (fragment or with_flag) and len(hits) > best_n:
+        # TWO signals, and at least one that is NOT a flag. Flags alone are my
+        # own vocabulary: `--causa --cura` bit me while I was writing a fault.
+        # And excluding my flags entirely killed the GOOD ambush (`--paint` +
+        # `a plan file in the forge`), so they are not excluded: the signature is
+        # required to carry something concrete besides the flag.
+        mixed = len(hits) >= 2 and any(not x.startswith("--") for x in hits)
+        if (fragment or mixed) and len(hits) > best_n:
             best, best_n = (f, hits), len(hits)
     if not best:
         return None

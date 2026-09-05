@@ -1360,6 +1360,169 @@ class HeartTest(unittest.TestCase):
         self.assertTrue(self._rows("SELECT 1 FROM blocks"),
                         "it did not index it either: neither writes nor serves")
 
+    # ══ E-1/E-2 · THE MIRROR AND ITS NAME ═════════════════════════════════
+    def test_e1_the_mirror_passes_a_three_colour_sentence(self):
+        """Three CROSSED queries, not one lazy glance — and one looks in
+        English, which is how the world names code."""
+        out = run(self.home, "mirror-organ", "memoria persistente para agentes", "--dry")
+        queries = [l for l in out.split("\n") if "gh search repos" in l]
+        self.assertGreaterEqual(len(queries), 2,
+                                "one query is a glance, not a mirror")
+        self.assertTrue(any("memory" in c for c in queries),
+                        "it did not look in English: that is how code is named")
+        self.assertIn("did not go out", out, "in dry mode it went to the network")
+
+    def test_e1_the_queries_are_short(self):
+        """`gh search repos` joins with AND: five terms return [] ALWAYS, and
+        the Mirror sang "there is a void" over a crowded world."""
+        out = run(self.home, "mirror-organ",
+                  "a distributed system of persistent memory for code agents", "--dry")
+        for l in out.split("\n"):
+            if "gh search repos" in l:
+                terms = l.split("gh search repos")[1].split()
+                self.assertLessEqual(len(terms), 3,
+                                     "a {}-term query: the AND kills it".format(len(terms)))
+
+    def test_e2_the_old_name_warns_and_still_serves(self):
+        """`mirror` was the reconciler; the Mirror organ needed its name. The
+        old one does not break: it warns."""
+        out = run(self.home, "mirror")
+        self.assertIn("reconcile", out, "it did not warn about the new name")
+        self.assertNotIn("Traceback", out, "the old alias broke")
+
+    # ══ C-1 · THE COLLAPSE WITH MUSCLE ════════════════════════════════════
+    def _fat_text(self):
+        path = os.path.join(self.home, "fat.md")
+        # VARIED vocabulary: forty lines with the same shape are ONE
+        # repetition in other clothes, and the Collapse fuses them rightly —
+        # so a monotonous text does not measure the modes, it measures dedup.
+        things = ("port", "cache", "index", "thread", "queue", "token", "batch",
+                  "channel", "node", "session", "table", "field", "filter",
+                  "threshold", "retry", "block", "cursor", "socket",
+                  "buffer", "limit")
+        body = []
+        for i, thing in enumerate(things * 2):
+            body += ["Sure, I will gladly explain this to you.",
+                     "It is worth mentioning that the system works.",
+                     "Decision on the {}: it is {} because the previous failed.".format(thing, 8000 + i),
+                     "The file {}-{}.yml defines its limit.".format(thing, i),
+                     "I hope this helps you."]
+        with io.open(path, "w", encoding="utf-8") as f:
+            f.write("\n".join(body))
+        return path
+
+    def test_c1_collapse_keeps_the_invariants(self):
+        """Decisions, figures and paths are NOT touched. Courtesy dies."""
+        path = self._fat_text()
+        env = dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos)
+        p = subprocess.run([sys.executable, APP, "collapse", path, "--mode", "distilled"],
+                           env=env, capture_output=True, text=True)
+        self.assertIn("8000", p.stdout, "it annihilated a FIGURE: that is losing the soul")
+        self.assertIn("because", p.stdout, "it annihilated the WHY of a decision")
+        self.assertNotIn("I hope this helps you", p.stdout,
+                         "it kept hollow courtesy")
+        self.assertIn("ratio", p.stderr, "it did not confess the ratio")
+        # At 12x something MUST fall, and the least signal falls: the path is
+        # demanded in essence mode, which is where the contract promises it.
+        e = subprocess.run([sys.executable, APP, "collapse", path, "--mode", "essence"],
+                           env=env, capture_output=True, text=True)
+        self.assertIn(".yml", e.stdout, "it annihilated a PATH with room to spare")
+
+    def test_c1_the_four_modes_compress_differently(self):
+        """Four modes giving the same thing are one mode with four names."""
+        path = self._fat_text()
+        env = dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos)
+        sizes = {}
+        for mode in ("distilled", "essence", "prompt", "rolling"):
+            p = subprocess.run([sys.executable, APP, "collapse", path, "--mode", mode],
+                               env=env, capture_output=True, text=True)
+            sizes[mode] = len(p.stdout.split("\n"))
+        self.assertGreater(sizes["rolling"], sizes["distilled"],
+                           "distilled must squeeze harder than rolling")
+        self.assertGreaterEqual(len(set(sizes.values())), 3,
+                                "the modes collapsed to the same result: {}".format(sizes))
+
+    # ══ J-1 · THE JUDGMENT WITH MUSCLE ════════════════════════════════════
+    def _abyss_with_facts(self):
+        """A tribunal needs memory: one is planted, measured."""
+        self._essence("aerial-radar",
+                      "# Aerial radar\n\n## Frequency\n\nThe radar operates at "
+                      "10.5 GHz with a range of 3 kilometres. " * 40 +
+                      "\n\n## Antenna\n\nThe antenna has 16 elements. " * 40)
+        run(self.home, "reindex"); run(self.home, "weave")
+
+    def test_j1_the_judgment_kills_the_false(self):
+        """A figure contradicting my memory DIES, and with the evidence."""
+        self._abyss_with_facts()
+        out = run(self.home, "judge", "The radar operates at 24 GHz.")
+        self.assertIn("DIES", out, "it endorsed a figure my memory contradicts")
+        self.assertIn("10.5", out, "it killed without showing the whole evidence")
+
+    def test_j1_what_is_absent_is_declared_suspended(self):
+        """Suspended is NOT refuted: pretending otherwise is the sin."""
+        self._abyss_with_facts()
+        out = run(self.home, "judge", "String theory has 47 dimensions.")
+        self.assertIn("SUSPENDED", out)
+        self.assertIn("not refuted", out, "it did not declare its seams")
+
+    def test_j1_opinion_does_not_enter_the_tribunal(self):
+        out = run(self.home, "judge", "I think this turned out pretty and elegant.")
+        self.assertIn("opinion", out, "it judged an opinion as if it were a fact")
+
+    def test_j1_a_loose_figure_is_no_warrant(self):
+        """The block speaks of the topic but does not count that thing: no
+        warrant. Measured — comparing loose figures gave SURVIVES by chance."""
+        self._abyss_with_facts()
+        out = run(self.home, "judge", "The radar has 900 detectors.")
+        self.assertIn("SUSPENDED", out,
+                      "it endorsed a figure its own evidence does not count")
+        self.assertNotIn("✅", out, "it marked it as a survivor")
+
+    # ══ S-1/S-3 · THE SINGULARITY: the minimum power, and its tally ═══════
+    def test_s1_route_goes_down_to_the_abyss(self):
+        """The cheap rung really exists: one of my commands answers the
+        question and nobody is summoned."""
+        out = run(self.home, "route", "what faults happened before with the errarium")
+        self.assertIn("CLI", out, "it did not see that a command solves it")
+        self.assertIn("chaos faults", out, "it did not say WHICH command")
+
+    def test_s1_the_critical_rules_over_the_cheap(self):
+        """Knowing something is not enough when the mistake does not undo:
+        economy never decides over safety."""
+        out = run(self.home, "route", "migrate the production database to another server")
+        self.assertIn("DOUBLE-JUDGE", out, "it cheapened an irreversible decision")
+
+    def test_s1_it_does_not_mistake_a_noun_for_a_verb(self):
+        """"sort a list" is not mechanical work: writing code never is.
+        Measured — the first version sent it to the legion over the word
+        «lista»."""
+        out = run(self.home, "route", "escribe una funcion que ordene una lista de enteros")
+        self.assertNotIn("LEGION", out, "it mistook a noun for a verb")
+
+    def test_s1_the_router_has_more_than_one_answer(self):
+        """A router that answers the same to everything is decoration (organ
+        17): my first version said "abyss" to all five test tasks."""
+        tasks = ("what faults happened before",
+                 "rename 400 files in the folder",
+                 "review the security of the payments endpoint",
+                 "explain string theory in three paragraphs")
+        rungs = set()
+        for t in tasks:
+            s = run(self.home, "route", t)
+            rungs.add(s.split("· ")[1].split("\n")[0].strip() if "· " in s else "?")
+        self.assertGreaterEqual(len(rungs), 3,
+                                "the router collapsed to one answer: {}".format(rungs))
+
+    def test_s3_the_route_is_carved_and_counted(self):
+        run(self.home, "route", "rename 400 files in the folder")
+        run(self.home, "route", "review the security of the payments endpoint")
+        rows = self._rows("SELECT rung, reason FROM routes")
+        self.assertEqual(len(rows), 2, "it carved no decision: with no record there is no month")
+        self.assertTrue(all(r[1] for r in rows), "it carved a rung WITHOUT its why")
+        report = run(self.home, "route", "--report")
+        self.assertIn("THE ECONOMY OF THE VOID", report)
+        self.assertIn("2 decision(s)", report)
+
     # ══ VI.1 · THE PLAN THAT PAINTS ITSELF ════════════════════════════════
     def _plan(self, text):
         p = os.path.join(self.home, "PLAN-TEST.md")

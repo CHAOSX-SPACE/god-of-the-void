@@ -124,10 +124,30 @@ def main():
         return                      # no work, no duty. The Chronicle records acts.
 
     if event == "PreCompact":
+        # C-3 · THE ROLLING COLLAPSE. Before compaction takes the context away,
+        # I leave on disk what CANNOT be rebuilt from someone else's summary:
+        # what I touched and in which territory. The next session finds it by
+        # name.
+        rolling = os.path.join(CHAOS, "forge", "rolling-{}.md".format(session[:8] or "no-session"))
+        try:
+            os.makedirs(os.path.dirname(rolling), exist_ok=True)
+            with open(rolling, "w", encoding="utf-8") as fh:
+                fh.write("# Rolling · session {}\n\n- **Cut at**: {}\n"
+                         "- **Works unsedimented**: {}\n- **Gazes**: {}\n"
+                         "- **Devourings**: {}\n\n## What was touched\n{}\n"
+                         .format(session[:8], datetime.datetime.now().isoformat(timespec="seconds"),
+                                 n, gazes, devourings,
+                                 "\n".join("- " + r for r in paths) or "- (nothing)"))
+        except OSError:
+            rolling = None
+
         notice = ("🕳️ CHAOS — DUTY OF THE CHRONICLE before compacting: {} work(s) "
                   "unsedimented ({}). Distill the trail into essences/logbook NOW and then "
                   "`chaos trail --purge {}` — compaction will erase the context."
                   .format(n, ", ".join(paths), session[:8] or ""))
+        if rolling:
+            notice += ("\n🕳️ ROLLING: what I touched is on disk in case"
+                       " the foreign summary loses it → {}".format(rolling))
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": "PreCompact", "additionalContext": notice}}))
     else:                            # SessionEnd: nobody listens → debt to the Abyss

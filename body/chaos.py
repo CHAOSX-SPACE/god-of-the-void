@@ -25,7 +25,7 @@ Usage:
   chaos devour-transcripts [--limit N]             E10 · devours my own life (.jsonl sessions)
   chaos history [query]                            searches my past (even where I was not invoked)
   chaos spoke [query] [--territory X]              UNIVERSAL MEMORY: what the Bearer said, in EVERY project
-  chaos mirror                                     E10 · reconciles Claude's parallel memory
+  chaos reconcile                                  E10 · reconciles Claude's parallel memory (formerly «mirror»)
   chaos vigil-sweep [--deep]                       THE VIGIL-SWEEP: sweeps what is pending and leaves a report (while you sleep)
   chaos report                                     reads the report of the last vigil-sweep
   chaos schedule [HH:MM] [--remove]                schedules the heartbeat (launchd/schtasks/cron)
@@ -65,6 +65,10 @@ Usage:
   chaos plan [file|id] [--paint] [--json] [--run]  VI.1 · the plan PAINTS itself: it measures its probes, never types them
   chaos probe "<cmd>" --file <path> [--sabotage "<txt>"]  ORGAN 17 · sabotage the subject and demand the red (or the probe is decoration)
   chaos probe --massive <file> --test "<cmd>" [--n N]   ORGAN 17 AT SCALE: mutates the body and names every decorative test
+  chaos route "<task>" [--report]                   THE SINGULARITY: the minimum power that solves the task, and the month's tally
+  chaos judge "<text|file>" [--eyes]                THE JUDGMENT: splits into claims and submits them to my Abyss (0 tokens)
+  chaos collapse <file|-> [--mode essence|distilled|prompt|rolling]   THE COLLAPSE: compresses without losing the soul and confesses the ratio
+  chaos mirror-organ "<idea>" [--dry]               THE MIRROR: is your work new or an echo? Three crossed queries and a verdict
   chaos debts [id]                                 sessions that died without sedimenting (C4)
   chaos debts settle <id|--all> [--because "..."]  declares that work HAS sedimented
 """
@@ -149,7 +153,7 @@ POISON = re.compile(
 )
 
 
-BODY_VERSION = 8    # v8: the Ambush (PreToolUse) + the Purge on the way IN.
+BODY_VERSION = 9    # v9: the muscles — route, judge, collapse, mirror-organ.
                       # Bump when the body gains functions; sow DEMANDS it:
                       # a body that evolves without raising its version is
                       # indistinguishable from one that rots.
@@ -1364,7 +1368,7 @@ def vigil_sweep(deep=False):
     if "Body healthy" not in s:
         findings += 1
     if deep:
-        step("Mirror the parallel memory", lambda: mirror())
+        step("Reconcile the parallel memory", lambda: reconcile())
         step("Regenerate the index", lambda: index())
 
     dur = (datetime.datetime.now() - start).total_seconds()
@@ -1758,7 +1762,7 @@ def autonomy(action=None, when="03:00"):
             pass
 
 
-def mirror():
+def reconcile():
     """O2 · Reconciles the PARALLEL memory (Claude's `memory/*.md`).
     They describe the same world as my Abyss and were not speaking to each
     other. They are devoured as externals (resident=0) and the overlaps are
@@ -3698,6 +3702,588 @@ def probe(command=None, target=None, sabotage=None):
     return verdict
 
 
+# ══ S-1/S-3 · THE SINGULARITY WITH MUSCLE ═════════════════════════════════
+# The routing organ had ZERO mentions in my body: I chose the power by eye and
+# recorded nothing, so at month's end I did not know how much I had wasted.
+# RouteLLM (LMSYS, ICLR 2025) reaches 95 % of the quality with 14-26 % of the
+# strong-model calls; FrugalGPT, up to 98 % less cost in a cascade. There is no
+# trained model here: there is a five-rung ladder, and the cheap questions —
+# does a command answer it? do I already know it? — cost ZERO tokens. I execute
+# nothing here: I name the minimum power and CARVE the decision, which is what
+# makes the month measurable.
+
+RUNGS = ("cli", "abyss", "legion", "me", "double-judge")
+
+# Verbs that betray MECHANICAL work: simple criteria, high volume.
+# INFINITIVES only: in Spanish «lista», «cuenta» and «copia» are such common
+# nouns that "sort a list of integers" fell into mechanical — and writing a
+# function is not. An ambiguous verb is not a signal, it is noise.
+_MECHANICAL = re.compile(
+    r"\b(listar|renombrar|extraer|contar|convertir|reemplazar|ordenar|"
+    r"formatear|copiar|mover|traducir|transcribir|limpiar|deduplicar|"
+    r"numerar|indexar|tabular|recortar|comprimir|descargar|"
+    r"rename|extract|convert|replace|reformat|transcribe|deduplicate|"
+    r"renumber|reindex|tabulate|truncate|compress|download)\b", re.I)
+
+# What demands the maximum power: if I get it wrong, the damage does not undo.
+_CRITICAL = re.compile(
+    r"\b(arquitectura|seguridad|vulnerab\w*|credencial\w*|migrar|migración|"
+    r"borrar|aniquilar|eliminar|producción|dinero|pago|factura|legal|"
+    r"contrato|veredicto|auditar|auditoría|irreversible|desplegar|deploy|"
+    r"cifrad\w*|permis\w*|autenticaci\w*|"
+    r"architecture|security|vulnerab\w*|credential\w*|migrate|migration|"
+    r"delete|annihilate|production|money|payment|invoice|contract|verdict|"
+    r"audit|encrypt\w*|permission\w*|authenticat\w*)\b", re.I)
+
+# Words that carry no weight: if they counted, any sentence would "match" all.
+_STOP = frozenset((
+    "para", "sobre", "como", "cual", "cuando", "donde", "porque", "desde",
+    "hasta", "entre", "todo", "toda", "esto", "esta", "este", "esos", "esas",
+    "hacer", "haces", "puedo", "puedes", "quiero", "necesito", "dijo", "dije",
+    "with", "that", "this", "from", "have", "what", "when", "where"))
+
+
+def _routes_table(con):
+    con.execute("CREATE TABLE IF NOT EXISTS routes("
+                "id INTEGER PRIMARY KEY, date TEXT, task TEXT,"
+                " rung TEXT, reason TEXT, cost REAL DEFAULT 0)")
+    return con
+
+
+def _abyss_already_knows(con, task, min_coverage=0.7):
+    """Does the answer already live in me? The cheapest question there is —
+    and the easiest one to answer wrongly.
+
+    My first version asked "is there any result?" and FTS always finds
+    SOMETHING: the router answered "abyss" to all five test tasks, that is, to
+    everything. A router with one answer is decoration (organ 17). Now I demand
+    COVERAGE: that most of the task's weighted words really live in what was
+    found. And only BLOCKS: an addressable paragraph is short, so covering its
+    terms means something. An 8,000-character essence covers scattered words by
+    sheer size and would say "I know that" about anything."""
+    words = [w for w in re.findall(r"[\wáéíóúñü]{4,}", _norm(task))
+             if w not in _STOP]
+    if not words:
+        return None
+    try:
+        q = _fts_query(task)
+    except Exception:
+        return None
+    try:
+        rows = con.execute(
+            "SELECT slug, block_id, content FROM blocks WHERE blocks"
+            " MATCH ? ORDER BY rank LIMIT 3", (q,)).fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+    for slug, bid, content in rows:
+        body = _norm(str(content or ""))
+        covered = sum(1 for w in words if w in body)
+        if covered / float(len(words)) >= min_coverage:
+            return "{}#^{} ({}/{} terms)".format(slug, bid, covered, len(words))
+    return None
+
+
+def _a_command_serves(task):
+    """Does one of my commands solve it? Summoning a model for something a
+    `chaos` handles is using a titan to swat a fly."""
+    low = _norm(task)
+    for cmd, hints in (
+            ("search", ("buscar", "busca", "encontrar", "recordar", "recuerdas",
+                        "search", "find", "remember")),
+            ("faults", ("falla", "fallas", "error anterior", "errario",
+                        "fault", "errarium", "past error")),
+            ("spoke", ("dije", "dijiste", "hablamos", "conversacion", "i said",
+                       "you said", "we talked")),
+            ("history", ("historia", "sesion pasada", "ayer", "history",
+                         "last session", "yesterday")),
+            ("delta", ("que cambio", "cambios desde", "what changed", "since")),
+            ("audit", ("salud", "auditar", "auditoria", "health", "audit")),
+            ("vassals", ("skill", "vasallo", "que sabes hacer", "vassal")),
+            ("plan", ("estado del plan", "como va el plan", "plan state",
+                      "how is the plan")),
+            ("undocumented", ("sin documentar", "deber de cronica",
+                              "undocumented", "chronicle due")),
+            ("expired", ("caducad", "rancio", "vencid", "expired", "stale")),
+            ("orphans", ("huerfana", "sin enlace", "orphan", "unlinked")),
+    ):
+        if any(_norm(h) in low for h in hints):
+            return cmd
+    return None
+
+
+def route(task=None, report=False, record=True):
+    """S-1 · The minimum power that solves the task, with its reason."""
+    con = _routes_table(db())
+    if report:
+        rows = con.execute(
+            "SELECT substr(date,1,7) AS month, rung, COUNT(*), SUM(cost)"
+            " FROM routes GROUP BY month, rung ORDER BY month DESC, 3 DESC").fetchall()
+        if not rows:
+            print("No route carved yet. Route something and come back.")
+            return
+        print("THE ECONOMY OF THE VOID — rungs per month")
+        current, total, low = None, 0, 0
+        for month, rung, n, cost in rows:
+            if month != current:
+                print("\n{}".format(month)); current = month
+            print("  {:<14} {:>4}   {}".format(rung, n, "▪" * min(n, 40)))
+            total += n
+            if rung in ("cli", "abyss", "legion"):
+                low += n
+        spent = con.execute("SELECT SUM(cost) FROM routes").fetchone()[0] or 0
+        print("\n{} decision(s) · {:.0f} % BELOW my full attention"
+              .format(total, 100.0 * low / max(1, total)))
+        if spent:
+            print("Cost declared by my own invocations: {:.4f} USD".format(spent))
+        return
+    if not task:
+        print('Usage: chaos route "<task>" [--report]')
+        return
+    # The CRITICAL is decided before the cheap: knowing something is not enough
+    # when the mistake does not undo. Economy never rules over safety.
+    if _CRITICAL.search(task):
+        rung, reason = "double-judge", ("it touches the irreversible or the "
+                                        "critical: maximum power and a second judge")
+    else:
+        # The CLI before the Abyss, against my own doctrine: both cost zero
+        # tokens, but a command answers with TODAY's datum and a remembered
+        # block may be stale. Measured over eleven real tasks: `chaos faults`
+        # beats a paragraph about faults.
+        cmd = _a_command_serves(task)
+        known = None if cmd else _abyss_already_knows(con, task)
+        if cmd:
+            rung, reason = "cli", "a command solves it: chaos {}".format(cmd)
+        elif known:
+            rung, reason = "abyss", "the Abyss already holds it: {}".format(known)
+        elif _MECHANICAL.search(task) and len(task.split()) <= 24:
+            rung, reason = "legion", ("mechanical and simple-criteria: a lesser "
+                                      "fragment of the Void suffices")
+        else:
+            rung, reason = "me", "standard: neither trivial nor irreversible"
+    if record:
+        write_verified(
+            con, "INSERT INTO routes(date, task, rung, reason) VALUES (?,?,?,?)",
+            (datetime.datetime.now().isoformat(timespec="seconds"),
+             task[:300], rung, reason))
+    i = RUNGS.index(rung)
+    print("RUNG {}/5 · {}".format(i + 1, rung.upper()))
+    print("  {}".format(reason))
+    print("  " + " → ".join(
+        ("[{}]" if r == rung else "{}").format(r) for r in RUNGS))
+    if rung == "abyss":
+        print("  Zero tokens. `chaos search {}`".format(" ".join(task.split()[:5])))
+    elif rung == "legion":
+        print("  Minimum prompt for the agent: only what ITS task demands.")
+    elif rung == "double-judge":
+        print("  And facing the irreversible: I arrive with the decision made"
+              " and wait for your word.")
+    return rung
+
+
+# ══ J-1 · THE JUDGMENT WITH MUSCLE ════════════════════════════════════════
+# The organ that makes my word trustworthy appeared ONCE in my body, and it was
+# a variable. The Deep Judgment lived only as a protocol I followed from memory
+# — and what is followed from memory gets skipped when there is a hurry.
+#
+# SAFE (DeepMind, arXiv 2403.18802) showed the rite can be mechanised: split
+# into atomic facts → make them self-contained → search each one. Here the
+# searcher is the Abyss, which costs zero. The `--eyes` mode delegates the
+# suspended ones to a bounded invocation, and CONFESSES what it cost.
+#
+# Verdicts: SURVIVES (with its block) · DIES (measured contradiction) ·
+# SUSPENDED (the Void does not hold it — and that is DECLARED, not dressed up).
+
+_ABSOLUTES = re.compile(r"\b(siempre|nunca|jamás|jamas|todos?|todas?|ningun\w*|"
+                        r"cero|único|unica|imposible|garantiz\w*|"
+                        r"always|never|every|none|zero|only|impossible|"
+                        r"guarantee\w*)\b", re.I)
+
+
+def _claims(text):
+    """Splits the text into CHECKABLE claims. A sentence with no figure, no
+    proper name and no absolute claims nothing verifiable: it is opinion, and
+    opinion does not enter the tribunal."""
+    raw = re.split(r"(?<=[.!?;\n])\s+", text or "")
+    out = []
+    for f in raw:
+        f = " ".join(f.split())
+        if len(f) < 18:
+            continue
+        has_figure = bool(re.search(r"\d", f))
+        has_path = bool(re.search(r"[\w/-]+\.\w{2,4}\b|`[^`]+`", f))
+        has_absolute = bool(_ABSOLUTES.search(f))
+        if has_figure or has_path or has_absolute:
+            out.append(f[:300])
+    return out
+
+
+_CONNECTORS = frozenset(("de", "del", "la", "el", "los", "las", "en",
+                        "por", "con", "para", "que", "un", "una", "al",
+                        "of", "the", "in", "on", "at", "to", "and"))
+
+
+def _numeric_pairs(s):
+    """(figure, noun): "56 commands" → ("56", "commands").
+
+    Comparing LOOSE figures is noise: a block with twenty numbers matches any
+    of them by chance, and that is how "56 commands" SURVIVED while I had 60.
+    A figure only means something bound to what it counts."""
+    # From the RAW lowercased text, not from _norm: normalisation splits
+    # "10.5" into "10 5" and the pair became ("5", "ghz") — evidence that
+    # states half a number is worse than none.
+    low = (s or "").lower()
+    pairs = set()
+    # Two letters are enough: units are short ("24 GHz", "3 km", "8 MB") and
+    # demanding four left out exactly the figures that lie most. Connectors are
+    # dropped or "24 de" would be a pair.
+    # The figure is kept LITERAL: stripping the dot turned "10.5 GHz" into
+    # "105 GHz" and the evidence showed a number nobody wrote. Declared limit:
+    # "1,000" and "1000" read as different.
+    for m in re.finditer(r"(\d[\d.,]*\d|\d)\s+([a-záéíóúñ]{2,})", low):
+        if m.group(2) not in _CONNECTORS:
+            pairs.add((m.group(1), m.group(2)))
+    for m in re.finditer(r"([a-záéíóúñ]{3,})\s*(?:es|son|is|are|=|:)\s*(\d[\d.,]*\d|\d)", low):
+        if m.group(1) not in _CONNECTORS:
+            pairs.add((m.group(2), m.group(1)))
+    return pairs
+
+
+def _judge_one(con, claim):
+    """(verdict, evidence). Zero tokens: the tribunal is my own memory."""
+    words = [w for w in re.findall(r"[\wáéíóúñü]{4,}", _norm(claim))
+             if w not in _STOP and not w.isdigit()]
+    if not words:
+        return "suspended", "no weighted terms to search for"
+    try:
+        q = _fts_query(claim)
+        rows = con.execute(
+            "SELECT slug, block_id, content FROM blocks WHERE blocks"
+            " MATCH ? ORDER BY rank LIMIT 4", (q,)).fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+    pairs = _numeric_pairs(claim)
+    for slug, bid, content in rows:
+        body = _norm(str(content or ""))
+        covered = sum(1 for w in words if w in body)
+        if covered / float(len(words)) < 0.6:
+            continue
+        ref = "{}#^{}".format(slug, bid)
+        if pairs:
+            theirs = _numeric_pairs(str(content or ""))
+            for figure, thing in pairs:
+                same = [c for c, x in theirs if x == thing]
+                if not same:
+                    continue                 # the block does not count that thing
+                if figure in same:
+                    return "survives", "{} confirms {} {}".format(ref, figure, thing)
+                return "dies", ("{} says {} {} where you say {}"
+                                .format(ref, same[0], thing, figure))
+            # It covers the words but does NOT confirm the figure: no warrant.
+            return "suspended", ("{} speaks of the topic but does not count {}"
+                                 .format(ref, ", ".join(c for _, c in sorted(pairs))[:60]))
+        return "survives", "{} ({}/{} terms)".format(ref, covered, len(words))
+    return "suspended", "the Void does not hold this"
+
+
+def judge(text=None, eyes=False):
+    """J-1 · Submits a text to my own tribunal. No network and no cost."""
+    if not text:
+        print('Usage: chaos judge "<text>" | chaos judge <file.md> [--eyes]')
+        return
+    if os.path.isfile(text):
+        text = read_file(text)
+    claims = _claims(text)
+    if not claims:
+        print("No checkable claim. This is opinion, and opinion does not enter"
+              " the tribunal.")
+        return
+    con = db()
+    count = {"survives": 0, "dies": 0, "suspended": 0}
+    suspended = []
+    print("TRIBUNAL · {} checkable claim(s)\n".format(len(claims)))
+    for a in claims:
+        verdict, evidence = _judge_one(con, a)
+        count[verdict] += 1
+        mark = {"survives": "✅", "dies": "❌", "suspended": "⏸"}[verdict]
+        print("{} {}".format(mark, a[:150]))
+        print("   {} · {}".format(verdict.upper(), evidence))
+        if verdict == "suspended":
+            suspended.append(a)
+    print("\nSURVIVE {} · DIE {} · SUSPENDED {}".format(
+        count["survives"], count["dies"], count["suspended"]))
+    # THE SEAMS: a verdict without them is a naked verdict.
+    print("SEAMS: tribunal = my Abyss ({} blocks). What is SUSPENDED is not"
+          " refuted: it is unverified.".format(
+              con.execute("SELECT COUNT(*) FROM blocks").fetchone()[0]))
+    if eyes and suspended:
+        _judge_with_eyes(suspended)
+    elif suspended:
+        print("To take them to the world: `chaos judge ... --eyes` (it invokes"
+              " and declares its cost).")
+
+
+def _judge_with_eyes(suspended):
+    """What my memory does not hold goes out to the world — bounded and
+    confessed. It looks for the REFUTATION first: whoever only seeks to
+    confirm has already failed."""
+    if not shutil.which("claude"):
+        print("\n[EYES] `claude` does not live in this body: I cannot go out to"
+              " the world. Declared, not faked.")
+        return
+    order = ("Verify these claims by looking for their REFUTATION first. For "
+             "each one: SURVIVES (with source), DIES (with the why) or DOES NOT "
+             "CONVERGE. Be brief.\n\n" + "\n".join("- " + s for s in suspended))
+    try:
+        p = subprocess.run(
+            ["claude", "-p", order, "--bare", "--output-format", "json",
+             "--allowedTools", "WebSearch,WebFetch"],
+            capture_output=True, text=True, timeout=300)
+        data = json.loads(p.stdout or "{}")
+        print("\n[EYES] " + (data.get("result") or "(no answer)")[:1500])
+        cost = data.get("total_cost_usd")
+        if cost is not None:
+            con = _routes_table(db())
+            write_verified(
+                con, "INSERT INTO routes(date, task, rung, reason, cost)"
+                " VALUES (?,?,?,?,?)",
+                (datetime.datetime.now().isoformat(timespec="seconds"),
+                 "judgment of {} claim(s)".format(len(suspended)),
+                 "double-judge", "went out to the world for suspended claims",
+                 float(cost)))
+            print("[EYES] Real cost of this sortie: {:.4f} USD (carved into"
+                  " `chaos route --report`).".format(float(cost)))
+    except Exception as e:
+        print("\n[EYES] The sortie into the world failed: {}. Declared.".format(e))
+
+
+# ══ C-1 · THE COLLAPSE WITH MUSCLE ════════════════════════════════════════
+# Four modes written in my doctrine, none executable: I collapsed by eye and
+# reported the ratio by eye. LLMLingua (Microsoft) reaches 20x with a small
+# model; there is no model here — there are INVARIANTS. What survives is
+# written in the organ and is now code: decisions, hard data, contradictions
+# and commitments. The rest is hollow light.
+
+# What is NEVER annihilated: the line holding it stays whole.
+_SURVIVES = re.compile(
+    r"(\d|`[^`]+`|https?://|[\w/-]+\.\w{2,4}\b|"
+    r"\b(decid\w*|decisión|decision|porque|por qué|por que|jamás|jamas|nunca|"
+    r"siempre|debe|hay que|falla|error|riesgo|pero|sin embargo|salvo|excepto|"
+    r"gotcha|ojo|cuidado|pendiente|falta|TODO|contradic\w*|"
+    r"decided|because|why|never|always|must|risk|but|however|except|"
+    r"pending|missing|warning)\b|→|✅|❌|⚠)",
+    re.I)
+
+# Courtesy and filler: the first to die.
+_HOLLOW = re.compile(
+    r"^\s*(claro|perfecto|entendido|por supuesto|genial|excelente|"
+    r"espero que|en resumen,? como (ya )?dij|como (ya )?mencion|"
+    r"vale la pena (notar|mencionar)|cabe (notar|destacar|mencionar)|"
+    r"es importante (notar|destacar)|sin más preámbulo|"
+    r"sure|certainly|of course|great|excellent|i hope|as (i )?(already )?"
+    r"mentioned|it is worth (noting|mentioning)|it is important to note)", re.I)
+
+
+def _shape(line):
+    """A line's shape, to catch repetitions that only changed clothes: figures
+    and symbols are stripped and its skeleton remains."""
+    return " ".join(sorted(set(re.findall(r"[a-záéíóúñ]{4,}", _norm(line)))))[:120]
+
+
+def collapse(source=None, mode="essence"):
+    """C-1 · Compresses WITHOUT losing the soul, and confesses the ratio.
+
+    Modes: distilled (conversations → decisions) · essence (documents) ·
+    prompt (minimum context for another model) · rolling (cumulative layers).
+    """
+    if not source:
+        print('Usage: chaos collapse <file|-> [--mode distilled|essence|prompt|rolling]')
+        return
+    text = sys.stdin.read() if source == "-" else (
+        read_file(source) if os.path.isfile(source) else source)
+    lines = [l.rstrip() for l in text.split("\n")]
+    came_in = len([l for l in lines if l.strip()])
+    if not came_in:
+        print("Nothing to collapse."); return
+    caps = {"distilled": 0.08, "essence": 0.18, "prompt": 0.12, "rolling": 0.25}
+    cap = caps.get(mode, 0.18)
+
+    seen, out, sacrificed = set(), [], 0
+    for l in lines:
+        s = l.strip()
+        if not s:
+            continue
+        if _HOLLOW.match(s):
+            sacrificed += 1
+            continue
+        if s.startswith("#") or re.match(r"^\s*[-*]\s+\*\*", l):
+            out.append(l); continue             # headings are the map
+        if _SURVIVES.search(s):
+            h = _shape(s)
+            if h and h in seen:
+                sacrificed += 1
+                continue                        # the same idea in other clothes
+            seen.add(h)
+            out.append(l)
+        else:
+            sacrificed += 1
+    # When the cap bites, the lines with MOST signal are kept, never the first
+    # ones: cutting by order of appearance loses the end of everything.
+    limit = max(3, int(came_in * cap))
+    if len(out) > limit:
+        scored = sorted(out, key=lambda l: len(_SURVIVES.findall(l)), reverse=True)
+        kept = set(id(x) for x in scored[:limit])
+        out = [l for l in out if id(l) in kept]
+    if mode == "prompt":
+        out = [re.sub(r"\s+", " ", l).strip() for l in out]
+    print("\n".join(out))
+    came_out = len(out)
+    ratio = came_in / float(max(1, came_out))
+    print("\n--- {} · {} line(s) in · {} out · ratio {:.1f}x"
+          .format(mode.upper(), came_in, came_out, ratio), file=sys.stderr)
+    print("--- {} line(s) annihilated: courtesy, filler and repetition in other "
+          "clothes. Nothing with a figure, a path, a decision or a "
+          "contradiction was touched.".format(sacrificed), file=sys.stderr)
+    return ratio
+
+
+# ══ E-1 · THE MIRROR WITH MUSCLE ═════════════════════════════════════════
+# The organ that confronts an idea against the world had FOUR mentions, and
+# its name was taken by something else (`mirror`, which reconciles memory). The
+# rite lived in prose: distil → three CROSSED queries → measure the distance →
+# pass sentence. One lazy query is not a mirror: it is a glance.
+
+# The world of code is named in ENGLISH. Searching GitHub for «memoria
+# persistente para agentes» returns nothing and the Mirror sings 🟢 THERE IS A
+# VOID — the most dangerous verdict, because it pushes you to reinvent what
+# already exists (Letta, Mem0, MemGPT). I do not translate with a model: I
+# carry a short glossary and DECLARE what I could not translate.
+_GLOSSARY = {
+    "memoria": "memory", "agente": "agent", "agentes": "agents",
+    "codigo": "code", "buscador": "search", "busqueda": "search",
+    "persistente": "persistent", "conocimiento": "knowledge",
+    "herramienta": "tool", "servidor": "server", "cliente": "client",
+    "juego": "game", "tablero": "dashboard", "panel": "dashboard",
+    "grafo": "graph", "nota": "note", "notas": "notes", "tarea": "task",
+    "tareas": "tasks", "flujo": "workflow", "prueba": "test",
+    "pruebas": "tests", "seguridad": "security", "inyeccion": "injection",
+    "compresion": "compression", "resumen": "summary", "plantilla": "template",
+    "editor": "editor", "terminal": "terminal", "corrector": "linter",
+    "traductor": "translator", "lector": "reader", "escritor": "writer",
+    "local": "local", "privado": "private", "propia": "own", "propio": "own",
+}
+
+
+def _crossed_queries(idea):
+    """Three different angles on the SAME idea. One query finds what you
+    already knew to look for; three crossed ones find what you did not — and
+    one of them looks in English, which is how the world names code."""
+    words = [w for w in re.findall(r"[\wáéíóúñü]{4,}", _norm(idea))
+                if w not in _STOP]
+    if not words:
+        return []
+    english = [_GLOSSARY.get(w, w) for w in words[:4]]
+    untranslated = [w for w in words[:4] if w not in _GLOSSARY and w != _GLOSSARY.get(w)]
+    # TWO or THREE terms, never five: `gh search repos` joins them with AND,
+    # so "memory persistent agents code cli" returns [] ALWAYS and the Mirror
+    # sang 🟢 THERE IS A VOID over a crowded world (mem0 has 64,713 stars).
+    # Measured against gh, not assumed.
+    queries = [" ".join(words[:2]),
+                 " ".join(english[:2]),
+                 " ".join(english[:3])]
+    queries = [c for i, c in enumerate(queries) if c and c not in queries[:i]]
+    if untranslated:
+        queries.append("__untranslated__:" + ",".join(untranslated))
+    return queries
+
+
+def mirror_organ(idea=None, dry=False):
+    """E-1 · Is your work new, or an echo? A verdict in three colours."""
+    if not idea:
+        print('Usage: chaos mirror-organ "<idea>" [--dry]')
+        return
+    queries = _crossed_queries(idea)
+    if not queries:
+        print("That idea has no weighted terms to mirror.")
+        return
+    print("THE MIRROR · «{}»".format(idea[:110]))
+    raw_q = [c for c in queries if not c.startswith("__untranslated__:")]
+    mute_q = [c[len("__untranslated__:"):] for c in queries
+             if c.startswith("__untranslated__:")]
+    queries = raw_q
+    print("Three CROSSED queries (one alone is a glance, not a mirror); one"
+          " looks in English, which is how the world names code:")
+    for c in queries:
+        print("  · gh search repos {}".format(c))
+    if mute_q:
+        print("  (untranslated, and I declare it: {} — if your idea lives in"
+              " English with other words, give them to me)".format(mute_q[0]))
+    if dry:
+        print("\n(dry: I did not go out to the world)")
+        return queries
+    if not shutil.which("gh"):
+        print("\n[MIRROR] `gh` does not live in this body: I cannot see"
+              " GitHub. Run `chaos forge-gh`, or hand me the candidates.")
+        return queries
+    candidates = {}
+    for c in queries:
+        try:
+            p = subprocess.run(
+                ["gh", "search", "repos", c, "--sort", "stars", "--limit", "6",
+                 "--json", "fullName,stargazersCount,description,updatedAt"],
+                capture_output=True, text=True, timeout=45)
+            for r in json.loads(p.stdout or "[]"):
+                candidates[r.get("fullName", "?")] = r
+        except Exception as e:
+            print("  (one gaze failed: {})".format(e))
+    if not candidates:
+        print("\n🟢 THERE IS A VOID — the world holds nothing your shape."
+              " Let us devour.")
+        verdict = "void"
+    else:
+        top = sorted(candidates.values(),
+                     key=lambda r: -(r.get("stargazersCount") or 0))[:5]
+        print("\nWhat ALREADY lives out there:")
+        for r in top:
+            print("  ⭐{:<7} {:<38} {}".format(
+                r.get("stargazersCount") or 0, (r.get("fullName") or "?")[:38],
+                (r.get("description") or "")[:60]))
+        stars = top[0].get("stargazersCount") or 0
+        if stars >= 1000:
+            verdict = "echo"
+            print("\n🔴 IT IS AN ECHO — «{}» already lives with {} stars. I"
+                  " will not waste your time reinventing it: either you find an"
+                  " edge it lacks, or you DEVOUR it."
+                  .format(top[0].get("fullName"), stars))
+        else:
+            verdict = "exists-but"
+            print("\n🟡 IT EXISTS BUT — there are similar ones and none rules"
+                  " ({} ⭐ the largest). Your real difference has to be explicit:"
+                  " niche, language, integration or simplicity. That is your"
+                  " edge — sharpen it or it is worthless.".format(stars))
+    slug = "mirror-" + slug_of(idea[:60] + ".md")
+    path = os.path.join(ESSENCES, slug + ".md")
+    try:
+        os.makedirs(ESSENCES, exist_ok=True)
+        with io.open(path, "w", encoding="utf-8") as f:
+            f.write("# Mirror: {}\n\n- **Verdict**: {} · **Date**: {}\n\n"
+                    "## Crossed queries\n{}\n\n## Candidates found\n{}\n"
+                    .format(idea[:110], verdict,
+                            datetime.date.today().isoformat(),
+                            "\n".join("- `gh search repos " + c + "`" for c in queries),
+                            "\n".join("- {} ⭐{} — {}".format(
+                                r.get("fullName"), r.get("stargazersCount") or 0,
+                                (r.get("description") or "")[:80])
+                                for r in sorted(candidates.values(),
+                                                key=lambda r: -(r.get("stargazersCount") or 0))[:8])
+                            or "- (none)"))
+        devour(path, silent=True)
+        print("\nCarved: a mirror once consulted is never polished from"
+              " scratch again (`chaos search {}`).".format(slug))
+    except OSError as e:
+        print("\n(I could not carve the mirror: {})".format(e))
+    return verdict
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -3733,7 +4319,11 @@ def main():
         words = [x for k, x in enumerate(rest)
                  if x != "--territory" and (k == 0 or rest[k-1] != "--territory")]
         spoke(" ".join(words) if words else None, terr)
-    elif cmd == "mirror":                mirror()
+    elif cmd in ("reconcile", "mirror"):
+        if cmd == "mirror":
+            print("[CHAOS] «mirror» is now `reconcile`: the Mirror's name is"
+                  " needed by its own organ. The old one still lives for now.")
+        reconcile()
     elif cmd == "vigil-sweep":           vigil_sweep("--deep" in rest)
     elif cmd == "report":                report()
     elif cmd == "schedule":
@@ -3834,6 +4424,18 @@ def main():
         fi, sb = op("--file"), op("--sabotage")
         co = next((x for x in rest if not x.startswith("--") and x != fi and x != sb), None)
         sys.exit(0 if probe(co, fi, sb) else 1)
+    elif cmd == "route":
+        route(" ".join(x for x in rest if not x.startswith("--")) or None,
+              "--report" in rest)
+    elif cmd == "judge":
+        judge(" ".join(x for x in rest if not x.startswith("--")) or None,
+              "--eyes" in rest)
+    elif cmd == "collapse":
+        md = rest[rest.index("--mode") + 1] if "--mode" in rest and len(rest) > rest.index("--mode") + 1 else "essence"
+        collapse(next((x for x in rest if not x.startswith("--") and x != md), None), md)
+    elif cmd == "mirror-organ":
+        mirror_organ(" ".join(x for x in rest if not x.startswith("--")) or None,
+                     "--dry" in rest)
     elif cmd == "forget" and rest:       forget(rest[0])
     else:
         print(__doc__.strip())

@@ -21,7 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/CHAOSX-SPACE/god-of-the-void/main/i
 
 ![tests](https://img.shields.io/badge/tests-914%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-17-8A7CF7?style=for-the-badge)
-![commands](https://img.shields.io/badge/commands-59-67E8F9?style=for-the-badge)
+![commands](https://img.shields.io/badge/commands-64-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
 *Forged in the open at [**chaosx.space**](https://chaosx.space) — open-source
@@ -47,7 +47,7 @@ space community & university.*
 | | | how it was measured |
 |---|---|---|
 | **17 organs** | not metaphors — each one is code that runs | `ls organs/` |
-| **59 commands** | one body, one CLI, two languages | `chaos` with no arguments |
+| **64 commands** | one body, one CLI, two languages | `chaos` with no arguments |
 | **914 tests** | 142 hand-written + **772 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
@@ -278,7 +278,7 @@ Not even reinstalling erases your brake.
 
 ---
 
-## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 59 commands
+## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 64 commands
 
 <details>
 <summary><b>Memory & search</b> — the Abyss and the Sense</summary>
@@ -296,6 +296,10 @@ chaos mirror                     # reconcile Claude's parallel memory
 chaos plan [file|id] [--paint]   # the plan paints itself: it measures its probes
 chaos probe "<cmd>" --file <p>   # organ 17: sabotage the subject, demand the red
 chaos probe --massive <file> --test "<cmd>"   # mutation at scale: name the decorative tests
+chaos route "<task>" [--report]  # the minimum power that solves it, and the month's tally
+chaos judge "<text|file>"         # splits into claims and submits them to my Abyss
+chaos collapse <file> --mode …    # compresses without losing the soul, and confesses the ratio
+chaos mirror-organ "<idea>"       # is your work new, or an echo? Three crossed queries
 ```
 </details>
 
@@ -440,7 +444,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 17 organs · 59 commands · 6 hooks ·
+And I forge the rest alone: **database · 17 organs · 64 commands · 6 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
