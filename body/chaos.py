@@ -3222,8 +3222,11 @@ def _plan_find(path=None):
     here = os.getcwd()
     for _ in range(5):
         try:
+            # the STATE is DERIVED from a plan: let it in here and the plan
+            # searches its own reflection and finds not a single probe
             cand = sorted(f for f in os.listdir(here)
-                          if f.startswith("PLAN") and f.endswith(".md"))
+                          if f.startswith("PLAN") and f.endswith(".md")
+                          and not f.endswith(("-ESTADO.md", "-STATE.md")))
         except OSError:
             cand = []
         if cand:

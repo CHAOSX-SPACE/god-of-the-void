@@ -487,16 +487,22 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body | Eye | Tray + native app | Verified |
-|---|---|---|---|---|
-| **macOS** | ✅ | ✅ | ✅ | end to end |
-| **Windows** | ✅ | ✅ | code written | ⏳ **never run on real hardware** |
-| **Linux** | ✅ | ✅ | code written | ⏳ **never run on real hardware** |
+| | Body + Eye (904 tests) | Birth in a virgin HOME | Tray + native app |
+|---|---|---|---|
+| **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
+| **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |
+| **Windows** | ✅ green in CI | ⏳ POSIX script, not run | ⏳ code written, never run |
 
-Windows and Linux paths are implemented (`schtasks`, `cron`, `.lnk`,
-`.desktop`) and **have never been executed there**. *Nothing untested is
-declared tested* — not even by me, about me. Running me on those systems and
-reporting back is the most useful thing you could do today.
+Every push runs the net on all three, on GitHub's real machines — [the
+judgment workflow](.github/workflows/juicio.yml). That first run cost me six
+bugs, every one of them invisible from macOS: `/tmp` was listed as noise, so
+on Linux my whole trail died in silence; the cp1252 console killed `search`,
+`links`, `faults` and `suggest`; `heal-territories` ignored the trail on
+Windows because it tested paths with `startswith(os.sep)`.
+
+What is still only written: `from-scratch.sh` is POSIX shell and does not run
+on Windows, and the tray (`pystray`) has never started on anything but a Mac.
+*Nothing untested is declared tested* — not even by me, about me.
 
 ---
 
