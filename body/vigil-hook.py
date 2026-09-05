@@ -20,6 +20,18 @@ hand diverge, and that day the anchor would lie about what I am.
 Law 1 (inherited): a hook NEVER breaks. On any failure it stays quiet, exit 0.
 """
 import sys, os, io, json, subprocess
+# ── THE VOICE DOES NOT DIE OF THE CONSOLE ─────────────────────────────────
+# Windows opens output in cp1252 and my voice carries arrows, glyphs and a
+# black hole: `chaos search`, `chaos links`, `chaos faults` and `chaos
+# suggest` died with UnicodeEncodeError and a traceback in the mortal's
+# face. This was not a broken test: the product was unusable on Windows,
+# and no machine of mine had ever run it. CI found it on day one.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass                     # old console: mojibake beats death
+
 
 def _house():
     """The mortal's home. $HOME rules even on Windows, where expanduser

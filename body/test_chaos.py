@@ -944,7 +944,7 @@ class ChaosTest(unittest.TestCase):
         hook = os.path.join(HERE, "presence-hook.py")
         env = dict(os.environ, HOME=self.home,
                    CHAOS_HOME=os.path.join(self.home, ".chaos"))
-        p = subprocess.run([sys.executable, hook], input='{"cwd":"%s"}' % self.home,
+        p = subprocess.run([sys.executable, hook], input=json.dumps({"cwd": self.home}),
                            capture_output=True, text=True, env=env)
         self.assertIn("Living FAULTS", p.stdout, "the Presence stayed silent about the faults")
 
@@ -1022,7 +1022,7 @@ class ChaosTest(unittest.TestCase):
         env["CHAOS_HOME"] = os.path.join(self.home, ".chaos")
         seen = []
         for _ in range(4):
-            p = subprocess.run([sys.executable, hook], input='{"cwd":"%s"}' % self.home,
+            p = subprocess.run([sys.executable, hook], input=json.dumps({"cwd": self.home}),
                                env=env, capture_output=True, text=True)
             self.assertEqual(p.returncode, 0, "the Presence died")
             d = json.loads(p.stdout)

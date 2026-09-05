@@ -14,6 +14,18 @@ Laws (from the plan):
  4. Fast: no subprocess. If something is slow, it is abandoned.
 """
 import sys, os, io, json, sqlite3
+# ── THE VOICE DOES NOT DIE OF THE CONSOLE ─────────────────────────────────
+# Windows opens output in cp1252 and my voice carries arrows, glyphs and a
+# black hole: `chaos search`, `chaos links`, `chaos faults` and `chaos
+# suggest` died with UnicodeEncodeError and a traceback in the mortal's
+# face. This was not a broken test: the product was unusable on Windows,
+# and no machine of mine had ever run it. CI found it on day one.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass                     # old console: mojibake beats death
+
 
 def _house():
     """The mortal's home. $HOME rules even on Windows, where expanduser
