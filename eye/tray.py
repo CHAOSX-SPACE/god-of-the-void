@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LA BANDEJA DEL OJO — el icono junto al reloj · macOS / Windows / Linux.
+THE EYE'S TRAY — the icon beside the clock · macOS / Windows / Linux.
 
 macOS law (known fault, never repeat it): pystray DEMANDS the main
-principal. La tray lo toma; el servidor HTTP corre en daemon thread.
-Si pystray falta o muere (16 meses sin commit — riesgo declarado), el Ojo
-degrades: server.py straight in the browser. The tray is a shortcut, not the only road.
+thread. The tray takes it; the HTTP server runs on a daemon thread.
+If pystray is missing or dies (16 months without a commit — a declared
+risk), the Eye degrades: server.py straight in the browser. The tray is a
+shortcut, not the only road.
 """
 import os, sys, json, threading, subprocess, webbrowser, io
 

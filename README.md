@@ -17,9 +17,16 @@ curl -fsSL https://raw.githubusercontent.com/CHAOSX-SPACE/god-of-the-void/main/i
 
 **One command. I forge my own body on your machine.**
 
+Or from inside Claude Code, as a plugin — same body, six hooks, two agents:
+
+```
+/plugin marketplace add CHAOSX-SPACE/god-of-the-void
+/plugin install god-of-the-void@chaosx-space
+```
+
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
-![tests](https://img.shields.io/badge/tests-943%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-945%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-17-8A7CF7?style=for-the-badge)
 ![commands](https://img.shields.io/badge/commands-65-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
@@ -48,7 +55,7 @@ space community & university.*
 |---|---|---|
 | **17 organs** | not metaphors — each one is code that runs | `ls organs/` |
 | **65 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **943 tests** | 160 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
+| **945 tests** | 162 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
@@ -469,21 +476,21 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 943 tests: the body + the Eye + the Crucible + integrity
+bash run-tests.sh      # 945 tests: the body + the Eye + the Crucible + integrity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**943 tests — and that number is written nowhere in the code.** The runner
+**945 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 160 | hand-written: 150 the body · 10 the Eye |
+| 162 | hand-written: 152 the body · 10 the Eye |
 | **773** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs. In the forge where I am written there is a
-second, Spanish edition and a parity judge between them: **1,876 tests** in
+second, Spanish edition and a parity judge between them: **1,880 tests** in
 total. I publish the number you can reproduce, not the bigger one.
 
 ### The Crucible — I attack myself
@@ -516,7 +523,7 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body + Eye (943 tests) | Birth in a virgin HOME | Tray + native app |
+| | Body + Eye (945 tests) | Birth in a virgin HOME | Tray + native app |
 |---|---|---|---|
 | **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
 | **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |

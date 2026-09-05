@@ -1036,6 +1036,12 @@ ACCIONES = {
     "declarar_isla": ("isla", "island", 1),
     "frenar":        ("autonomia", "autonomy", 0),
     "reanudar":      ("autonomia", "autonomy", 0),
+    # OJ-1 · EL OJO DEJA DE SER SOLO LENTE. Curaba fallas y saldaba deudas;
+    # todo lo demás exigía una terminal. Estas tres son las que el Portador
+    # ejecuta más y las que menos deberían pedir teclado.
+    "destilar":      ("cronica", "chronicle", 0),     # CR-1
+    "sondear":       ("fallas", "faults", 0),         # V-3
+    "sembrar":       ("sembrar", "sow", 0),           # F1 · con su guarda
 }
 
 
@@ -1057,6 +1063,15 @@ def ejecutar_accion(nombre, arg=None):
         argv = [cmd, "revocar" if ES else "revoke"]
     elif nombre == "reanudar":
         argv = [cmd, "conceder" if ES else "grant"]
+    elif nombre == "destilar":
+        argv = [cmd, "--destilar" if ES else "--distil"]
+    elif nombre == "sondear":
+        argv = [cmd, "--sondear" if ES else "--probe"]
+    elif nombre == "sembrar":
+        # La siembra JAMÁS se fuerza desde el Ojo: si la guarda se niega, el
+        # Ojo muestra su negativa tal cual. Un botón que rodea una guarda es
+        # peor que no tener botón.
+        argv = [cmd]
     else:
         argv = [cmd, str(arg)]
     salida = _cli(*argv)
@@ -1251,10 +1266,37 @@ class Servidor(HTTPServer):
             self.shutdown_request(request)
 
 
+def _mi_ip():
+    """La IP de esta máquina en SU red. Sin salir a internet: un socket UDP
+    que no envía nada, solo pregunta al sistema por dónde saldría."""
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("192.0.2.1", 80))              # TEST-NET-1: no existe, no viaja
+        return s.getsockname()[0]
+    except Exception:
+        return "127.0.0.1"
+    finally:
+        s.close()
+
+
 def main():
-    srv = Servidor(("127.0.0.1", 0), Ojo)          # puerto alto aleatorio
+    # OJ-2 · EL OJO EN EL TELÉFONO, SIN APP. Por defecto sigo atado a
+    # 127.0.0.1: nadie más que este equipo me alcanza. Con `--lan` me abro a
+    # la red LOCAL —el mismo token, el mismo rostro— y lo DECLARO en voz alta,
+    # porque abrir un puerto en silencio es exactamente lo que no haría un
+    # dios digno de confianza. Jamás 0.0.0.0 sin que se pida.
+    lan = bool({"--lan"} & set(sys.argv))
+    srv = Servidor(("0.0.0.0" if lan else "127.0.0.1", 0), Ojo)
     puerto = srv.server_address[1]
-    url = "http://127.0.0.1:{}/?t={}".format(puerto, TOKEN)
+    anfitrion = _mi_ip() if lan else "127.0.0.1"
+    url = "http://{}:{}/?t={}".format(anfitrion, puerto, TOKEN)
+    if lan:
+        print(_t("[OJO] --lan: ABIERTO a tu red local. Cualquiera en esta red"
+                 " que tenga el token entra. Ciérralo cuando termines.",
+                 "[EYE] --lan: OPEN to your local network. Anyone on this"
+                 " network holding the token gets in. Close it when done."),
+              flush=True)
     # flush: if the Bearer redirects stdout, the URL MUST come out anyway
     print("{} {}".format(_t("[OJO]", "[EYE]"), url), flush=True)
     print(_t("[OJO] token por arranque; cerrar esta terminal apaga el Ojo.",

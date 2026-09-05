@@ -1360,6 +1360,59 @@ class HeartTest(unittest.TestCase):
         self.assertTrue(self._rows("SELECT 1 FROM blocks"),
                         "it did not index it either: neither writes nor serves")
 
+    # ══ PT-4 · HYPOTHESIS: the one that SHRINKS the counterexample ═══════
+    def test_pt4_slug_properties(self):
+        """The Crucible GENERATES hostile payloads; Hypothesis also SHRINKS the
+        failing case to the smallest one that still breaks. If it does not live
+        here, it is declared: a test that pretends to have run is worse than
+        no test."""
+        try:
+            from hypothesis import given, settings, strategies as st
+        except ImportError:
+            self.skipTest("hypothesis does not live in this body (optional, dev only)")
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_pt4", APP)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+
+        @given(st.text(min_size=1, max_size=80))
+        @settings(max_examples=200, deadline=None)
+        def prop(name):
+            slug = m.slug_of(name + ".md")
+            # A slug is a KEY: with uppercase, spaces or slashes the index
+            # and the disk stop matching and memory splits in two.
+            assert slug == slug.lower(), slug
+            assert " " not in slug and "/" not in slug, slug
+            assert not slug.startswith("-") and not slug.endswith("-"), slug
+            assert m.slug_of(name + ".md") == slug, "not deterministic"
+        prop()
+
+    def test_pt4_collapse_properties(self):
+        """Collapsing can NEVER return more lines than went in."""
+        try:
+            from hypothesis import given, settings, strategies as st
+        except ImportError:
+            self.skipTest("hypothesis does not live in this body (optional, dev only)")
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_pt4b", APP)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+
+        @given(st.lists(st.text(min_size=0, max_size=60), min_size=1, max_size=40))
+        @settings(max_examples=120, deadline=None)
+        def prop(lines):
+            text = "\n".join(lines)
+            path = os.path.join(self.home, "h.md")
+            with io.open(path, "w", encoding="utf-8") as f:
+                f.write(text)
+            import contextlib
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                m.collapse(path, "essence")
+            after = [l for l in out.getvalue().split("\n") if l.strip()]
+            before = [l for l in lines if l.strip()]
+            assert len(after) <= max(3, len(before)), \
+                "the collapse INFLATED: {} -> {}".format(len(before), len(after))
+        prop()
+
     # ══ PHASE 4 · MEMORY, CHRONICLE AND VIGIL ════════════════════════════
     def test_a1_memory_is_reinforced_by_use(self):
         """What is consulted lives; the rest is DECLARED, never deleted."""
