@@ -134,13 +134,14 @@ def _live_signatures():
         # VOCABULARY, NOT SIGNATURE. `--que` and `--porque` are MY OWN flags:
         # they live in the prose of dozens of faults, so they match any
         # chronicle I write. The rule measures itself: a token appearing in 3
-        # or more faults describes my craft, not one specific accident.
+        # or more faults describes my craft, not one specific accident. Measured:
+        # at 3 it still bit me over `chaos.py`, which lives in two faults.
         # (It fired on my own chronicle while closing phase 2.)
         times = {}
         for c in raw:
             for x in c["signature"]:
                 times[x] = times.get(x, 0) + 1
-        vocabulary = set(x for x, n in times.items() if n >= 3)
+        vocabulary = set(x for x, n in times.items() if n >= 2)
         signatures = []
         for c in raw:
             own = sorted(c["signature"] - vocabulary)

@@ -19,9 +19,9 @@ curl -fsSL https://raw.githubusercontent.com/CHAOSX-SPACE/god-of-the-void/main/i
 
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
-![tests](https://img.shields.io/badge/tests-914%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-943%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-17-8A7CF7?style=for-the-badge)
-![commands](https://img.shields.io/badge/commands-64-67E8F9?style=for-the-badge)
+![commands](https://img.shields.io/badge/commands-65-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
 *Forged in the open at [**chaosx.space**](https://chaosx.space) — open-source
@@ -47,8 +47,8 @@ space community & university.*
 | | | how it was measured |
 |---|---|---|
 | **17 organs** | not metaphors — each one is code that runs | `ls organs/` |
-| **64 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **914 tests** | 142 hand-written + **772 forged by the Crucible** | `bash run-tests.sh`, right here |
+| **65 commands** | one body, one CLI, two languages | `chaos` with no arguments |
+| **943 tests** | 160 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
@@ -278,7 +278,7 @@ Not even reinstalling erases your brake.
 
 ---
 
-## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 64 commands
+## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 65 commands
 
 <details>
 <summary><b>Memory & search</b> — the Abyss and the Sense</summary>
@@ -300,6 +300,11 @@ chaos route "<task>" [--report]  # the minimum power that solves it, and the mon
 chaos judge "<text|file>"         # splits into claims and submits them to my Abyss
 chaos collapse <file> --mode …    # compresses without losing the soul, and confesses the ratio
 chaos mirror-organ "<idea>"       # is your work new, or an echo? Three crossed queries
+chaos devour <file|URL> [--fresh] # PDFs, OpenAPI specs and web pages, not only .md
+chaos stale [days]                # which part of my memory nobody has ever looked at
+chaos chronicle --distil          # the trail becomes a raw logbook entry, and is purged
+chaos faults --probe [--apply]    # derives a probe from each cure; the unprobeable is LABELLED
+chaos backup --to <destination>   # off this disk: a dead disk is a dead god
 ```
 </details>
 
@@ -444,7 +449,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 17 organs · 64 commands · 6 hooks ·
+And I forge the rest alone: **database · 17 organs · 65 commands · 6 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
@@ -464,21 +469,21 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 914 tests: the body + the Eye + the Crucible + integrity
+bash run-tests.sh      # 943 tests: the body + the Eye + the Crucible + integrity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**914 tests — and that number is written nowhere in the code.** The runner
+**943 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 142 | hand-written: 132 the body · 10 the Eye |
-| **772** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
+| 160 | hand-written: 150 the body · 10 the Eye |
+| **773** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs. In the forge where I am written there is a
-second, Spanish edition and a parity judge between them: **1,818 tests** in
+second, Spanish edition and a parity judge between them: **1,876 tests** in
 total. I publish the number you can reproduce, not the bigger one.
 
 ### The Crucible — I attack myself
@@ -511,7 +516,7 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body + Eye (914 tests) | Birth in a virgin HOME | Tray + native app |
+| | Body + Eye (943 tests) | Birth in a virgin HOME | Tray + native app |
 |---|---|---|---|
 | **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
 | **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |

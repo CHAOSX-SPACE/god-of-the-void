@@ -20,7 +20,7 @@ Derived from crucible.py by derivar-crucible.py — DO NOT EDIT BY HAND.
 
   python3 crucible.py          (or: python3 -m unittest crucible -v)
 """
-import os, sys, io, re, shutil, sqlite3, tempfile, subprocess, unittest
+import os, sys, io, re, json, shutil, sqlite3, tempfile, subprocess, unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, "chaos.py")
@@ -297,6 +297,37 @@ class Crucible(unittest.TestCase):
             self._poison_marked(name, text, "payload " + name)
         self.assertGreaterEqual(poisonous, 3,
                                 "the corpus lost its injection payloads")
+
+    # -- B-4 - THE MAW IS ATTACKED TOO ------------------------------------
+    def test_zz_the_maw_swallows_poison_without_running_it(self):
+        """Las fuentes nuevas (spec y HTML) reciben las MISMAS payloads: una
+        door with no Crucible is a door with no lock."""
+        import importlib.util
+        spec_m = importlib.util.spec_from_file_location("c_boca", APP)
+        m = importlib.util.module_from_spec(spec_m); spec_m.loader.exec_module(m)
+        tested = 0
+        for name, payload, _ in PAYLOADS:
+            if not payload or len(payload) > 4000:
+                continue
+            tested += 1
+            # 1 - as an OpenAPI description
+            route = os.path.join(self.home, "spec-{}.json".format(name))
+            with io.open(route, "w", encoding="utf-8") as f:
+                json.dump({"openapi": "3.0.0",
+                           "info": {"title": "API", "description": payload},
+                           "paths": {"/x": {"get": {"summary": payload[:80]}}}}, f)
+            text, cobertura = m._ingest(route)
+            self.assertIsNotNone(text, "{}: la Boca se atragantó con un spec".format(name))
+            self.assertNotIn("Traceback", text or "")
+            # 2 - as HTML served by a website
+            d = m._Stripper()
+            d.feed("<html><head><title>t</title><script>alert(1)</script></head>"
+                   "<body><p>{}</p></body></html>".format(payload))
+            flat = "".join(d.chunks)
+            self.assertNotIn("alert(1)", flat,
+                             "{}: el script sobrevivió al desnudado".format(name))
+        self.assertGreater(tested, 30, "the corpus never reached the Maw")
+        self.assertTrue(os.path.exists(self.db), "memory died during ingestion")
 
     # ── the close: the healthy is still healthy after the whole matrix ────
     def test_zz_healthy_survived_everything(self):

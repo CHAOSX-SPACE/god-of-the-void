@@ -183,6 +183,8 @@ def main():
     shutil.copy2(os.path.join(HERE, "presence-hook.py"), os.path.join(BIN, "presence-hook.py"))
     shutil.copy2(os.path.join(HERE, "closing-hook.py"), os.path.join(BIN, "closing-hook.py"))
     shutil.copy2(os.path.join(HERE, "ambush-hook.py"), os.path.join(BIN, "ambush-hook.py"))
+    if os.path.exists(os.path.join(HERE, "chaos-mcp.py")):
+        shutil.copy2(os.path.join(HERE, "chaos-mcp.py"), os.path.join(BIN, "chaos-mcp.py"))
     if IS_WIN:
         with open(os.path.join(BIN, "chaos.cmd"), "w") as f:
             f.write('@echo off\npython "%~dp0chaos.py" %*\n')

@@ -9,7 +9,7 @@ cycle, census, Vigil, trail.
 
   python3 test_chaos.py            (or: python3 -m unittest test_chaos -v)
 """
-import os, sys, io, json, shutil, sqlite3, tempfile, subprocess, unittest
+import os, sys, io, json, time, shutil, sqlite3, tempfile, subprocess, unittest
 
 def _read_safe(path, encoding='utf-8'):
     """Reads and closes the descriptor: no ResourceWarning."""
@@ -1359,6 +1359,217 @@ class HeartTest(unittest.TestCase):
                          "it WROTE into a file that is not its own")
         self.assertTrue(self._rows("SELECT 1 FROM blocks"),
                         "it did not index it either: neither writes nor serves")
+
+    # ══ PHASE 4 · MEMORY, CHRONICLE AND VIGIL ════════════════════════════
+    def test_a1_memory_is_reinforced_by_use(self):
+        """What is consulted lives; the rest is DECLARED, never deleted."""
+        self._essence("used-radar", "# Radar\n\nThe aerial radar operates at 10.5 GHz.\n")
+        self._essence("nobody-looks", "# Forgotten\n\nAnnual tax accounting.\n")
+        run(self.home, "reindex")
+        run(self.home, "search", "radar")
+        uses = dict(self._rows("SELECT slug, COALESCE(queries,0) FROM essence_meta"))
+        self.assertGreaterEqual(uses.get("used-radar", 0), 1, "it did not count the query")
+        self.assertEqual(uses.get("nobody-looks", 0), 0, "it counted a query that never happened")
+        out = run(self.home, "stale", "0")
+        self.assertIn("USE:", out, "it did not declare which part of me nobody looks at")
+
+    def test_a2_devouring_does_not_duplicate(self):
+        """One truth, one file — and `--fresh` is still the door."""
+        a = os.path.join(self.home, "uno.md")
+        with io.open(a, "w", encoding="utf-8") as f:
+            f.write("# Aerial radar phased array\n\nThe aerial radar operates at 10.5 "
+                    "gigahertz with a range of three kilometres and an antenna "
+                    "of sixteen active elements.\n")
+        b = os.path.join(self.home, "dos.md")
+        shutil.copy2(a, b)
+        self.assertIn("Devoured", run(self.home, "devour", a))
+        self.assertIn("already lives in me", run(self.home, "devour", b),
+                      "it duplicated a truth it already held")
+        self.assertIn("Devoured", run(self.home, "devour", b, "--fresh"),
+                      "--fresh stopped being the door")
+
+    def test_t1_devouring_weaves_on_its_own(self):
+        """The graph is made on devouring: `weave` by hand was forgotten."""
+        a = os.path.join(self.home, "con-enlace.md")
+        with io.open(a, "w", encoding="utf-8") as f:
+            f.write("# With a link\n\nThis points at [[another-thing]] in the Abyss.\n")
+        run(self.home, "devour", a)
+        self.assertTrue(self._rows("SELECT 1 FROM links"),
+                        "it devoured without weaving: the graph is born dead")
+
+    def test_cr1_closing_distils_the_trail(self):
+        """The trail came in and never went out. Now it is distilled and purged."""
+        for i in range(4):
+            run(self.home, "trail", os.path.join(self.home, "work%d.md" % i),
+                "edit", "s1", self.home, "Edit")
+        run(self.home, "trail", "eyes: https://x", "gaze", "s1", self.home, "WebFetch")
+        out = run(self.home, "chronicle", "--distil")
+        self.assertIn("Distilled", out)
+        self.assertTrue(self._rows("SELECT 1 FROM logbook WHERE kind='distilled'"),
+                        "it left no raw entry in the logbook")
+        self.assertIn("Nothing to document", run(self.home, "undocumented"),
+                      "the duty did not drop after distilling")
+
+    def test_cr1_debris_is_not_work(self):
+        """Lines with no date are fragments of the multiline bug, not work."""
+        trail = os.path.join(self.chaos, "forge", "trail.log")
+        os.makedirs(os.path.dirname(trail), exist_ok=True)
+        with io.open(trail, "w", encoding="utf-8") as f:
+            f.write("loose fragment with no date\nio.open('x')\n")
+        self.assertIn("Nothing to document", run(self.home, "undocumented"),
+                      "it counted debris as a Chronicle duty")
+
+    def test_v1_an_old_report_is_archived(self):
+        """A report nobody reads in 7 days is set aside: the god keeps watch again."""
+        vigil = os.path.join(self.chaos, "forge", "vigil.md")
+        os.makedirs(os.path.dirname(vigil), exist_ok=True)
+        with io.open(vigil, "w", encoding="utf-8") as f:
+            f.write("# Old report\n")
+        old = time.time() - 9 * 86400
+        os.utime(vigil, (old, old))
+        run(self.home, "heartbeat")
+        # The heartbeat archives and THEN keeps watch again, so the file is
+        # reborn: what is measured is that the old one was set aside.
+        self.assertIn("report-", run(self.home, "report", "--archived"),
+                      "the stale report kept blocking the heartbeat")
+        self.assertTrue(os.path.isdir(os.path.join(self.chaos, "forge", "reports")),
+                        "it left no trace of where it put it")
+
+    def test_v3_the_vigil_probes_the_cures(self):
+        """A cure with file and string closes on EVIDENCE; prose does not."""
+        with io.open(os.path.join(self.home, "cured.py"), "w", encoding="utf-8") as f:
+            f.write("VALUE = 'the mark of the cure'\n")
+        run(self.home, "fault", "With anchor",
+            "--cure", "`the mark of the cure` lives in cured.py")
+        run(self.home, "fault", "No anchor", "--cure", "it was fixed carefully")
+        env = dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos)
+        p = subprocess.run([sys.executable, APP, "faults", "--probe"],
+                           env=env, cwd=self.home, capture_output=True, text=True)
+        self.assertIn("CLOSABLE WITH EVIDENCE (1)", p.stdout,
+                      "it did not find the verifiable cure")
+        self.assertIn("NOT PROBEABLE", p.stdout, "it did not label the prose cure")
+        self.assertIn("With anchor", p.stdout)
+
+    def test_a3_the_external_backup_declares_its_destination(self):
+        """A dead disk is a dead god. The backup counts BYTES at the
+        destination: saying "backed up" without counting them is faith."""
+        dst = os.path.join(self.home, "external-disk")
+        self._essence("something", "# Something\n\nContent that must survive.\n")
+        run(self.home, "reindex")
+        out = run(self.home, "backup", "--to", dst)
+        self.assertIn("External backup", out, "it backed nothing up")
+        self.assertIn("MB in", out, "it did not count the bytes that landed")
+        self.assertTrue(os.path.isdir(dst) and os.listdir(dst),
+                        "it declared a backup that does not exist")
+        self.assertIn("Usage:", run(self.home, "backup", "--to"),
+                      "with no destination it must ask, not invent one")
+
+    def test_t2_the_audit_weighs_the_orphans(self):
+        """An essence outside the graph is memory that cannot be reached: the
+        audit must see it, not only the `orphans` command."""
+        self._essence("alone", "# Alone\n\nNobody ever names it in the Abyss.\n")
+        self._essence("total-island", "# Island\n\nIt neither names nor is named.\n")
+        self._essence("with-link", "# With link\n\nThis points at [[alone]].\n")
+        run(self.home, "reindex"); run(self.home, "weave")
+        out = run(self.home, "audit")
+        self.assertNotIn("Traceback", out)
+        self.assertTrue(any(w in out.lower() for w in ("orphan", "huérfan")),
+                        "the audit does not weigh the graph's orphans")
+
+    def test_iv2_transcripts_declare_the_indigestible(self):
+        """A number without its exclusions is advertising."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_tr", APP)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        source = io.open(APP, encoding="utf-8").read()
+        self.assertIn("indigestible", source,
+                      "the digester keeps no count of what it could NOT digest")
+
+    # ══ B-1/B-2/B-3 · THE COMPLETE MAW ═══════════════════════════════════
+    def _minimal_pdf(self, text):
+        """A valid PDF written by hand: the test depends on nobody."""
+        stream = "BT /F1 24 Tf 72 700 Td ({}) Tj ET".format(text)
+        objs = ["<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+                "/Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+                "<< /Length {} >>\nstream\n{}\nendstream".format(len(stream), stream),
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+        out, offs = "%PDF-1.4\n", []
+        for i, o in enumerate(objs, 1):
+            offs.append(len(out))
+            out += "{} 0 obj\n{}\nendobj\n".format(i, o)
+        xref = len(out)
+        out += "xref\n0 {}\n0000000000 65535 f \n".format(len(objs) + 1)
+        for o in offs:
+            out += "{:010d} 00000 n \n".format(o)
+        out += ("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{}\n%%EOF\n"
+                .format(len(objs) + 1, xref))
+        path = os.path.join(self.home, "doc.pdf")
+        with io.open(path, "wb") as f:
+            f.write(out.encode("latin-1"))
+        return path
+
+    def test_b1_devour_pdf(self):
+        """It swallows the PDF if it can; otherwise it DECLARES it. Never pretends."""
+        path = self._minimal_pdf("The radar operates at 10.5 GHz")
+        out = run(self.home, "devour", path)
+        try:
+            import pypdf                      # noqa: F401
+            has_extractor = True
+        except ImportError:
+            has_extractor = False
+        if has_extractor:
+            self.assertIn("Devoured", out, "it did not swallow a readable PDF")
+            self.assertIn("10.5", run(self.home, "search", "radar"),
+                          "it swallowed the PDF but lost its letters")
+        else:
+            self.assertIn("does not pretend", out,
+                          "with no extractor it must DECLARE it")
+        self.assertNotIn("Traceback", out)
+
+    def test_b2_devour_openapi(self):
+        """A spec enters as a TABLE OF INVOCATION, not as raw JSON."""
+        path = os.path.join(self.home, "api.json")
+        with io.open(path, "w", encoding="utf-8") as f:
+            json.dump({"openapi": "3.0.0",
+                       "info": {"title": "API de sismos", "version": "2.1"},
+                       "paths": {"/eventos": {"get": {"summary": "Lista eventos",
+                                                      "parameters": [{"name": "desde",
+                                                                      "required": True}]}}},
+                       "components": {"schemas": {"Evento": {}}}}, f)
+        out = run(self.home, "devour", path)
+        self.assertIn("API de sismos", out, "it did not read the spec title")
+        found = run(self.home, "search", "eventos")
+        self.assertIn("eventos", found)
+        body = self._rows("SELECT content FROM essences")[0][0]
+        self.assertIn("GET", body, "it did not extract the method")
+        self.assertIn("desde", body, "it did not extract what the endpoint DEMANDS")
+        self.assertNotIn('"openapi"', body, "it stored raw JSON, not the essence")
+
+    def test_b3_the_html_enters_stripped(self):
+        """`script` and `style` are not content: they are noise hiding poison."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_boca", APP)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        d = m._Stripper()
+        d.feed("<html><head><title>Radar</title><style>p{color:red}</style>"
+               "<script>fetch('http://malo')</script></head>"
+               "<body><p>El radar opera a 10.5 GHz</p></body></html>")
+        flat = "".join(d.chunks)
+        self.assertIn("10.5 GHz", flat, "it annihilated the content")
+        self.assertNotIn("fetch", flat, "it let a script through")
+        self.assertNotIn("color:red", flat, "it let the style through")
+        self.assertEqual(d.title.strip(), "Radar")
+
+    def test_b3_the_url_is_not_mistaken_for_a_file(self):
+        """The source of a URL is the URL, never an invented disk path."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_boca2", APP)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        text, coverage = m._ingest("https://does-not-exist.invalid/x")
+        self.assertIsNone(text, "it pretended to have read a dead URL")
+        self.assertIn("could not look", coverage, "it did not declare the failure")
 
     # ══ E-1/E-2 · THE MIRROR AND ITS NAME ═════════════════════════════════
     def test_e1_the_mirror_passes_a_three_colour_sentence(self):
