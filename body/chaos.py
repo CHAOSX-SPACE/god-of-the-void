@@ -2567,7 +2567,10 @@ def heal_territories(dry=False):
             with io.open(TRAIL, encoding="utf-8", errors="replace") as f:
                 for l in f:
                     p = l.rstrip("\n").split("\t")
-                    if len(p) > 2 and p[2].startswith(os.sep):
+                    # "starts with os.sep" was pure POSIX: on Windows a path starts
+                    # with "C:", never with "\", so healing territories ignored the
+                    # WHOLE trail there. isabs knows all three worlds.
+                    if len(p) > 2 and os.path.isabs(p[2]):
                         seen.add(p[2])
         except Exception:
             pass
