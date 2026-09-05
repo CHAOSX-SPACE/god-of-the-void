@@ -123,14 +123,30 @@ def _live_signatures():
                 return saved.get("signatures", [])
         except Exception:
             pass
-        signatures = []
+        raw = []
         for rid, tit, sym, cau, cur, les in con.execute(
                 "SELECT rowid, title, symptom, cause, cure, lesson FROM faults"
                 " WHERE state='alive'").fetchall():
             f = _signature(" ".join(x or "" for x in (tit, sym, cau, cur)))
             if f:
-                signatures.append({"id": rid, "title": (tit or "")[:90],
-                                   "lesson": (les or "")[:160], "signature": sorted(f)})
+                raw.append({"id": rid, "title": (tit or "")[:90],
+                            "lesson": (les or "")[:160], "signature": f})
+        # VOCABULARY, NOT SIGNATURE. `--que` and `--porque` are MY OWN flags:
+        # they live in the prose of dozens of faults, so they match any
+        # chronicle I write. The rule measures itself: a token appearing in 3
+        # or more faults describes my craft, not one specific accident.
+        # (It fired on my own chronicle while closing phase 2.)
+        times = {}
+        for c in raw:
+            for x in c["signature"]:
+                times[x] = times.get(x, 0) + 1
+        vocabulary = set(x for x, n in times.items() if n >= 3)
+        signatures = []
+        for c in raw:
+            own = sorted(c["signature"] - vocabulary)
+            if own:
+                signatures.append({"id": c["id"], "title": c["title"],
+                                   "lesson": c["lesson"], "signature": own})
         try:
             os.makedirs(os.path.dirname(CACHE), exist_ok=True)
             with open(CACHE, "w", encoding="utf-8") as f:
