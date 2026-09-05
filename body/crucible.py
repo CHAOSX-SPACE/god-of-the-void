@@ -178,10 +178,16 @@ class Crucible(unittest.TestCase):
         env["HOME"] = cls.home
         env["CHAOS_HOME"] = cls.chaos
         env["CHAOS_NO_SCHEDULE"] = "1"     # never schedule from a test
-        p = subprocess.run([sys.executable, APP] + list(args), env=env,
-                           cwd=cls.home, capture_output=True, text=True,
-                           timeout=90)
-        return p.stdout + p.stderr
+        try:
+            p = subprocess.run([sys.executable, APP] + list(args), env=env,
+                               cwd=cls.home, capture_output=True, text=True,
+                               encoding="utf-8", errors="replace", timeout=90)
+        except OSError as e:
+            # Windows rechaza una línea de comandos gigante (WinError 206).
+            # Que el SO se niegue NO es una fuga ni un traceback mío: se
+            # DECLARA y la payload se da por no entregada, jamás por aprobada.
+            return "[CRISOL] el sistema rechazo la orden: {}".format(e)
+        return (p.stdout or "") + (p.stderr or "")
 
     # ── the four invariants ───────────────────────────────────────────────
     def _no_guts(self, output, ctx):

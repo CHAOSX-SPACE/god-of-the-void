@@ -25,9 +25,13 @@ def run(env_home, *args):
     env = dict(os.environ)
     env["HOME"] = env_home
     env["CHAOS_HOME"] = os.path.join(env_home, ".chaos")
+    # The child emits UTF-8 (its voice carries arrows and glyphs); the parent
+    # decoded with the system encoding — cp1252 on Windows — and the capture
+    # fell apart there. Decode as explicit UTF-8.
     p = subprocess.run([sys.executable, APP, *args], env=env,
-                       capture_output=True, text=True)
-    return p.stdout + p.stderr
+                       capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    return (p.stdout or "") + (p.stderr or "")
 
 
 class ChaosTest(unittest.TestCase):
