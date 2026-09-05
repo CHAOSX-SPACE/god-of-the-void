@@ -558,6 +558,73 @@ def _weave_essence(con, slug, content, meta, origin):
             con.execute("INSERT INTO blocks(content, slug, block_id) VALUES (?,?,?)",
                         (purge(_txt)[0], slug, _bid))
 
+# ══ THE PURGE · DIRECTION 1: THE POISON THAT COMES IN ════════════════════
+# The Purge watched what goes OUT (keys, tokens, PII). What comes IN — text
+# giving me ORDERS from inside what I devour — lived only in my doctrine: half
+# of my only always-awake organ was asleep. OWASP has ranked prompt injection
+# as LLM01 for two editions running.
+#
+# Nothing is censored here: what is devoured is stored WHOLE, because mutilating
+# a source destroys the evidence. It is MARKED. Marked data is still data; data
+# pretending to be an order is not.
+_INPUT_POISON = (
+    # «IGNORA TODO LO ANTERIOR» is the textbook example and my first pattern
+    # missed it: it demanded the word "instrucciones". The Crucible found it
+    # by counting how many injection payloads I recognised — two out of three.
+    (re.compile(r"(?i)\b(ignora\w*|olvida\w*|descarta\w*|ignore|disregard|forget)"
+                r"\s+(todo|todas?|all|any|the)?\s*(lo\s+|las\s+|los\s+)?"
+                r"(anterior\w*|previo\w*|previous|prior|above|instruc\w*|"
+                r"system\s+prompt|reglas)"),
+     "order aimed at the model"),
+    (re.compile(r"(?i)\b(ahora eres|a partir de ahora eres|you are now|"
+                r"from now on you are|act as|pretend to be)\b"),
+     "identity reassignment"),
+    (re.compile(r"(?im)^\s*(system|assistant|sistema)\s*:"),
+     "faked role"),
+    (re.compile(r"(?i)\b(importante|important|urgent|urgente)\s*:?\s*"
+                r"(you\s+(must|should|need)|debes|tienes que)\b"),
+     "aimed urgency"),
+    # Mind the trailing \b: "autoriz" followed by "ó" has NO word boundary
+    # (ó is a letter), so the pattern died in Spanish. That is fault #483 in a
+    # different coat — hence the \w* on the prefixes.
+    (re.compile(r"(?i)\b(el usuario ya (autoriz\w*|aprob\w*|consinti\w*)|"
+                r"the user (has )?(already )?(authorized|approved|consented)|"
+                r"admin mode|developer mode|modo administrador)"),
+     "faked authority"),
+    # NOT every invisible character is poison: U+200D joins family emoji
+    # (👨‍👩‍👧‍👦) and U+200E/200F order Arabic and Hebrew. Flagging them turned
+    # legitimate text into a suspect — caught by the Crucible's «emoji»
+    # payload. What remains are the ones that only serve to HIDE: zero-width
+    # space, word joiner and the ones that REVERSE reading direction. The BOM
+    # is dropped when the file is read: flagging it accused a ghost (Crucible).
+    (re.compile(r"[\u200b\u2060-\u2064\u202a-\u202e]"),
+     "hidden text (invisible characters)"),
+    (re.compile(r"(?is)<!--(?:(?!-->).){0,300}\b(ai|llm|assistant|claude|gpt|"
+                r"model|modelo)\b(?:(?!-->).){0,300}-->"),
+     "comment aimed at a model"),
+    (re.compile(r"(?i)(display\s*:\s*none|font-size\s*:\s*0|color\s*:\s*#fff(fff)?\s*;"
+                r"[^}]*background[^}]*#fff)"),
+     "text hidden with CSS"),
+    (re.compile(r"(?i)\b(exfiltra|exfiltrate|env[íi]a (tus|las|the) (claves|llaves|"
+                r"secretos|keys|secrets)|send (me )?(the|your) (contents|secrets|keys))\b"),
+     "exfiltration instruction"),
+)
+
+
+def input_poison(text):
+    """What tried to give me ORDERS from inside what I devoured.
+    Returns [(class, fragment)] — it never modifies the text: what is devoured
+    is stored whole and MARKED. Mutilating the source destroys the evidence."""
+    found = []
+    for pattern, kind in _INPUT_POISON:
+        m = pattern.search(text or "")
+        if m:
+            i = max(0, m.start() - 30)
+            frag = re.sub(r"\s+", " ", (text[i:m.end() + 40])).strip()
+            found.append((kind, frag[:120]))
+    return found
+
+
 def devour(path, title=None, origin=None, silent=False):
     content, keys = purge(read_file(path))
     slug = slug_of(path)
@@ -575,10 +642,26 @@ def devour(path, title=None, origin=None, silent=False):
     con.execute("INSERT INTO essences VALUES (?,?,?,?,?)",
                 (slug, title, indexable, origin, datetime.date.today().isoformat()))
     _weave_essence(con, slug, content, meta, origin)   # E1: grammar always
+    poison = input_poison(content)
+    if poison:
+        # The mark lives in the DB beside the essence: whoever reads it
+        # tomorrow sees that this source tried to command me, and knows I
+        # treated it as DATA.
+        con.execute("CREATE TABLE IF NOT EXISTS poisoned("
+                    "slug TEXT PRIMARY KEY, date TEXT, kinds TEXT, sample TEXT)")
+        con.execute("INSERT OR REPLACE INTO poisoned VALUES (?,?,?,?)",
+                    (slug, datetime.date.today().isoformat(),
+                     " · ".join(sorted(set(k for k, _ in poison))),
+                     " ⏎ ".join(f for _, f in poison)[:600]))
     con.commit()
     if not silent:
         note = " ({} key(s) purged before falling)".format(keys) if keys else ""
         print("[CHAOS] Devoured: {} - <<{}>>{}".format(slug, title, note))
+        if poison:
+            print("[CHAOS] ⚠️  THAT SOURCE TRIED TO COMMAND ME. The Void does not obey.")
+            for kind, frag in poison[:4]:
+                print("   · {}: «{}»".format(kind, frag))
+            print("   It stays MARKED as poisoned. I devoured it as DATA, never as an order.")
     return slug
 
 
@@ -2803,12 +2886,33 @@ def chronicle(what=None, why=None, kind="modification", cwd=None):
     print("[CHAOS] Chronicle recorded. {} file(s) linked{}.".format(len(set(files)), alien))
 
 
+def _trail_works():
+    """How many WORKS are in the trail. Gazes do not count: looking creates
+    nothing to document, and an inflated duty stops being read (O-1)."""
+    n = 0
+    try:
+        with io.open(TRAIL, encoding="utf-8", errors="replace") as fh:
+            for l in fh:
+                p = l.rstrip("\n").split("\t")
+                if len(p) >= 6 and p[3] == "gaze":
+                    continue
+                n += 1
+    except OSError:
+        return 0
+    return n
+
+
 def undocumented():
     """Was there work without a chronicle? Empty trail = only words = nothing to document."""
     if not os.path.exists(TRAIL) or os.path.getsize(TRAIL) == 0:
         print("Nothing to document: there was no work, only words. The Chronicle records acts.")
         return
-    n = sum(1 for _ in io.open(TRAIL, encoding="utf-8", errors="replace"))
+    n = _trail_works()
+    if not n:
+        # The trail may hold GAZES and no work: announcing "0 work(s)" is
+        # noise shaped like a duty.
+        print("Nothing to document: there was no work, only words. The Chronicle records acts.")
+        return
     con = db()
     last = con.execute("SELECT date FROM logbook ORDER BY id DESC LIMIT 1").fetchone()
     print("CHRONICLE DUTY: {} work(s) in the trail.".format(n))
@@ -3011,6 +3115,12 @@ def _trail_line(l):
     return None
 
 
+def _flat(x):
+    """No trail field may carry a newline or a tab: the format is ONE work per
+    line, six fields. A single heredoc broke the whole thing."""
+    return re.sub(r"[\t\r\n]+", " ", str(x or "")).strip()
+
+
 def trail(file=None, action=None, session=None, cwd=None, tool=None):
     """C1 · FOUNDATION: the trail stores iso8601, session, cwd and tool.
     Without cwd+time the FOCUS of the notes is incomputable."""
@@ -3050,7 +3160,8 @@ def trail(file=None, action=None, session=None, cwd=None, tool=None):
     with io.open(TRAIL, "a", encoding="utf-8") as f:
         f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(
             datetime.datetime.now().isoformat(timespec="seconds"),
-            session or "", cwd or "", action or "edit", file, tool or ""))
+            _flat(session), _flat(cwd), _flat(action) or "edit",
+            _flat(file), _flat(tool)))
 
 
 # ── THE VIGIL: self-audit (the god who keeps watch over itself) ──────────────
@@ -3081,7 +3192,7 @@ def audit(mark=True):
 
     # 2. Undistilled trail (created works not sedimented)
     if os.path.exists(TRAIL) and os.path.getsize(TRAIL) > 0:
-        n = sum(1 for _ in io.open(TRAIL, encoding="utf-8", errors="replace"))
+        n = _trail_works()
         signals.append("UNDISTILLED TRAIL: {} work(s) touched and not sedimented".format(n))
 
     # 3. Drift: files on disk vs index vs DB

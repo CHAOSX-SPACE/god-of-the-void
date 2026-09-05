@@ -54,20 +54,31 @@ DB = os.path.join(CHAOS, "abyss.db")
 
 
 def pending(session):
-    """Trail lines of THIS session not distilled (new and old format)."""
+    """Trail lines of THIS session not distilled (new and old format).
+
+    GAZES are not work: reading twenty pages creates nothing to document.
+    They are counted apart (O-1) to charge me the Law of Sediment, never as
+    a Chronicle duty — an inflated duty stops being read."""
     if not os.path.exists(TRAIL):
-        return 0, []
-    n, paths = 0, []
+        return 0, [], 0, 0
+    n, paths, gazes, devourings = 0, [], 0, 0
     with open(TRAIL, encoding="utf-8", errors="replace") as f:
         for l in f:
             p = l.rstrip("\n").split("\t")
             ses = p[1] if len(p) >= 6 else ""
+            action = p[3] if len(p) >= 6 else ""
             path = p[4] if len(p) >= 6 else (p[2] if len(p) == 3 else "")
-            if not session or ses == session or not ses:
-                n += 1
-                if path and len(paths) < 5:
-                    paths.append(os.path.basename(path))
-    return n, paths
+            if not (not session or ses == session or not ses):
+                continue
+            if action == "gaze":
+                gazes += 1
+                continue
+            if "devour" in path:
+                devourings += 1
+            n += 1
+            if path and len(paths) < 5:
+                paths.append(os.path.basename(path))
+    return n, paths, gazes, devourings
 
 
 def record_debt(session, n, paths):
@@ -90,7 +101,25 @@ def main():
     ev = json.load(sys.stdin)
     event = ev.get("hook_event_name", "")
     session = ev.get("session_id", "") or ""
-    n, paths = pending(session)
+    n, paths, gazes, devourings = pending(session)
+
+    # O-1 · THE LAW OF SEDIMENT, CHARGED. Researching and not sedimenting
+    # leaves the Abyss as poor as never having looked, and costs double next
+    # time. Three gazes with not one devouring leave a spark the Presence
+    # will surface on the next turn.
+    if gazes >= 3 and devourings == 0:
+        try:
+            import subprocess
+            app = os.path.join(CHAOS, "bin", "chaos.py")
+            if os.path.exists(app):
+                subprocess.call(
+                    [sys.executable, app, "note",
+                     "I gazed at {} foreign source(s) and sedimented none: the "
+                     "Law of Sediment went unpaid this session.".format(gazes)],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
     if not n:
         return                      # no work, no duty. The Chronicle records acts.
 

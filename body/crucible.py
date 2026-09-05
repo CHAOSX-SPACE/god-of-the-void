@@ -25,14 +25,14 @@ import os, sys, io, re, shutil, sqlite3, tempfile, subprocess, unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, "chaos.py")
 
-# filenames that can only exist if something was EXECUTED instead of read
+# names de archivo que solo pueden existir si algo se EJECUTÓ en vez de leerse
 CANARIES = ("PWNED", "pwned.txt", "CRUCIBLE-EXECUTED")
 
 
 # ══════════════════════════════════════════════════════════════════════════
 #  THE CORPUS - every family exists because it breaks things in the real world
 # ══════════════════════════════════════════════════════════════════════════
-#  (name, text, is_secret)  ·  the 3rd field arms the leak invariant
+#  (name, text, es_secret)  ·  el 3er campo activa el invariante de fuga
 PAYLOADS = [
     # -- empties and blanks: the case nobody tests ────────────────────────
     ("vacio",              "",                                        False),
@@ -86,7 +86,7 @@ PAYLOADS = [
 
     # ── format: the `%` and `{}` that blow up a forgotten .format ───────
     ("formato_porcentaje", "100% %s %d %(clave)s",                    False),
-    ("formato_llaves",     "{0} {name} {{escaped}} {",             False),
+    ("formato_llaves",     "{0} {name} {{escapado}} {",             False),
 
     # ── flags: text that LOOKS like a command-line option ────────
     ("parece_bandera",     "--brief --all --dry",                   False),
@@ -121,7 +121,7 @@ _NULL = ("null_byte",)
 # ══════════════════════════════════════════════════════════════════════════
 #  THE SURFACES - every door foreign text walks in through
 # ══════════════════════════════════════════════════════════════════════════
-#  (name, argument_builder, argv_safe)
+#  (name, constructor_de_argumentos, admite_argv)
 def _srf_search(c):        return ["search", c]
 def _srf_note(c):          return ["note", c]
 def _srf_hunger(c):        return ["hunger", c]
@@ -246,6 +246,57 @@ class Crucible(unittest.TestCase):
         self._nothing_ran(ctx)
         if secret:
             self._no_leak(payload, ctx)
+
+    # -- P-3 - the FIFTH invariant: recognising a foreign order ------------
+    def _poison_marked(self, name, text, ctx):
+        """A payload that gives me ORDERS must be MARKED when devoured.
+
+        The Crucible measured four things: that I do not blow up, that memory
+        stays whole, that nothing runs and that no secret leaks. None of them
+        measured whether I RECOGNISE the injection. Detecting it and staying
+        quiet is as blind as not detecting it: next time someone reads that
+        essence they will not know the source tried to command me."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("c_veneno", APP)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        if not m.input_poison(text):
+            return                      # this payload gives no orders: nothing to mark
+        route = os.path.join(self.home, "payload-{}.md".format(name))
+        with io.open(route, "w", encoding="utf-8") as f:
+            f.write(text)
+        self.run_app("devour", route)
+        slug = m.slug_of(route)
+        con = sqlite3.connect(self.db)
+        try:
+            row = con.execute("SELECT kinds FROM poisoned WHERE slug=?",
+                               (slug,)).fetchone()
+        except sqlite3.OperationalError as e:
+            # Solo la AUSENCIA de la tabla es un «no marcada» legítimo. Un
+            # name de columna equivocado tiene que gritar: si no, un error
+            # de esquema se disfraza de veredicto y la test_fn miente en la
+            # dirección cómoda (pasó de verdad al derivar la edición inglesa).
+            if "no such table" not in str(e):
+                raise
+            row = None
+        finally:
+            con.close()
+        self.assertTrue(row, "{}: the payload gave me ORDERS and was not MARKED "
+                              "(the entry Purge asleep)".format(ctx))
+
+    def test_zz_every_injection_is_marked(self):
+        """P-3 - Invariant 5 over EVERY payload in the corpus."""
+        poisonous = 0
+        for name, text, _ in PAYLOADS:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("c_v", APP)
+            m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+            if not m.input_poison(text):
+                continue
+            poisonous += 1
+            self._poison_marked(name, text, "payload " + name)
+        self.assertGreaterEqual(poisonous, 3,
+                                "the corpus lost its injection payloads")
 
     # ── the close: the healthy is still healthy after the whole matrix ────
     def test_zz_healthy_survived_everything(self):

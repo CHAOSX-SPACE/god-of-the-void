@@ -34,6 +34,25 @@ def _house():
     return os.environ.get("HOME") or os.path.expanduser("~")
 
 
+def _lair():
+    """The god's lair: the SAME truth as chaos.py, without importing it. This
+    hook used to build the path by hand (`~/.chaos/bin`), so if the Bearer
+    chose another house the trail called a file that did not exist and was
+    lost in silence: the lock was still on, but it closed nothing."""
+    v = os.environ.get("CHAOS_HOME")
+    if v:
+        return os.path.expanduser(v)
+    try:
+        with open(os.path.join(_house(), ".claude", "chaos-home"),
+                  encoding="utf-8") as f:
+            e = f.read().strip()
+        if e:
+            return os.path.expanduser(e)
+    except OSError:
+        pass
+    return os.path.join(_house(), ".chaos")
+
+
 # What is NEVER written to the trail, even if it was typed.
 _GAG = [
     (re.compile(r"(sshpass\s+-p\s*)('[^']*'|\"[^\"]*\"|\S+)"), r"\1«PURGED»"),
@@ -61,7 +80,7 @@ def _forbidden():
        Only a MISSING file means an empty list. Any other failure propagates
        and the hook records nothing: a broken gag must close the door, never
        pretend it found no secrets (fault #232)."""
-    f = os.path.join(_house(), ".chaos", ".gag")
+    f = os.path.join(_lair(), ".gag")
     try:
         with open(f, encoding="utf-8") as fh:
             return [l.strip() for l in fh
@@ -83,12 +102,16 @@ def gag(command):
     return command
 
 # Bash that mutates the world (what used to be invisible to me)
+# Redirection: a leading `\b` killed it (there is no word boundary between
+# " " and ">"), so `python3 x.py > report.md` was INVISIBLE work to me.
+# And `2>&1` or `2>/dev/null` are NOT mutation: they are excluded, or every
+# command would look like a mutation and the filter would stop filtering.
 _MUTATES = re.compile(
-    r"\b(git\s+(commit|push|merge|rebase|reset|checkout|rm|mv)|"
+    r"(\b(git\s+(commit|push|merge|rebase|reset|checkout|rm|mv)|"
     r"mv|rm|cp|chmod|chown|mkdir|touch|tee|dd|"
     r"npm\s+(i|install|publish)|pip\s+install|brew\s+install|"
     r"docker\s+(build|run|compose)|make|deploy|rsync|scp|"
-    r"sed\s+-i|>>?\s*\S)")
+    r"sed\s+-i)|>>?\s*(?!&|/dev/null)\S)")
 
 
 def main():
@@ -98,21 +121,39 @@ def main():
     session = ev.get("session_id", "") or ""
     cwd = ev.get("cwd", "") or ""
 
+    # The gazes that bring FOREIGN content in: the Ambush reads this mark for
+    # the lethal trifecta (private data + untrusted content + outward send).
+    _EYES = ("WebFetch", "WebSearch", "mcp__Claude_Browser__navigate",
+             "mcp__claude-in-chrome__navigate")
+
     if tool in ("Write", "Edit", "NotebookEdit", "MultiEdit"):
         file = ti.get("file_path") or ti.get("path") or ti.get("notebook_path")
         action = "create" if tool == "Write" else "edit"
+    elif tool in _EYES:
+        # O-1 · THE LAW OF SEDIMENT NEEDS A WITNESS. I would read twenty pages
+        # and sediment none, and nothing noticed. Now the gaze leaves a mark
+        # with its own action ("gaze"), which is NOT work: the Chronicle's due
+        # does not count gazes, and the Ambush uses it for the trifecta.
+        url = (ti.get("url") or ti.get("query") or ti.get("prompt") or "")
+        if not url:
+            return
+        file = "eyes: " + re.sub(r"\s+", " ", str(url))[:120]
+        action = "gaze"
     elif tool == "Bash":
         command = (ti.get("command") or "")
         if not _MUTATES.search(command):
             return                      # read-only Bash: not a work
-        file = "bash: " + gag(command)[:120]
+        # A seven-line heredoc wrote SEVEN entries and broke the format (one
+        # work per line): that is why the Chronicle duty read 1,267 works where
+        # there were dozens. It is flattened to a single line.
+        file = "bash: " + re.sub(r"\s+", " ", gag(command)).strip()[:120]
         action = "run"
     else:
         return
 
     if not file:
         return
-    app = os.path.join(_house(), ".chaos", "bin", "chaos.py")
+    app = os.path.join(_lair(), "bin", "chaos.py")
     subprocess.call([sys.executable, app, "trail", file, action, session, cwd, tool],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

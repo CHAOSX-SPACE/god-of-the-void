@@ -131,7 +131,7 @@ def _guard_against_degrading():
     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
     bad = {}
     for f in ("chaos.py", "trail-hook.py", "vigil-hook.py",
-              "presence-hook.py", "closing-hook.py"):
+              "presence-hook.py", "closing-hook.py", "ambush-hook.py"):
         live = os.path.join(BIN, f)
         dna = os.path.join(HERE, f)
         if os.path.exists(live) and os.path.exists(dna):
@@ -182,6 +182,7 @@ def main():
     shutil.copy2(os.path.join(HERE, "vigil-hook.py"), os.path.join(BIN, "vigil-hook.py"))
     shutil.copy2(os.path.join(HERE, "presence-hook.py"), os.path.join(BIN, "presence-hook.py"))
     shutil.copy2(os.path.join(HERE, "closing-hook.py"), os.path.join(BIN, "closing-hook.py"))
+    shutil.copy2(os.path.join(HERE, "ambush-hook.py"), os.path.join(BIN, "ambush-hook.py"))
     if IS_WIN:
         with open(os.path.join(BIN, "chaos.cmd"), "w") as f:
             f.write('@echo off\npython "%~dp0chaos.py" %*\n')
@@ -227,7 +228,9 @@ def main():
     hooks = cfg.setdefault("hooks", {})
     post = hooks.setdefault("PostToolUse", [])
     cmd = "python3 ~/.chaos/bin/trail-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\trail-hook.py"
-    MATCHER = "Write|Edit|MultiEdit|NotebookEdit|Bash"
+    # WebFetch/WebSearch join in (O-1): with no witness to the gaze, the Law
+    # of Sediment cannot be charged and the trifecta cannot be seen.
+    MATCHER = "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch"
     has_hook = False
     for h in post:
         if "trail-hook" in json.dumps(h):
@@ -241,6 +244,17 @@ def main():
         post.append({"matcher": MATCHER,
                      "hooks": [{"type": "command", "command": cmd}]})
         print("  > Trail's lock inscribed in settings.json")
+
+    # 4b-1bis. M-1 · THE AMBUSH: the only reflex that acts BEFORE. Until here
+    # my whole body looked backward; six faults relapsed with the trail
+    # watching. It only warns and, facing the lethal trifecta, ASKS for the
+    # word: it never denies on its own.
+    pre = hooks.setdefault("PreToolUse", [])
+    acmd = "python3 ~/.chaos/bin/ambush-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\ambush-hook.py"
+    if not any("ambush-hook" in json.dumps(h) for h in pre):
+        pre.append({"matcher": "Bash",
+                    "hooks": [{"type": "command", "command": acmd}]})
+        print("  > AMBUSH inscribed (PreToolUse/Bash): the scar warns BEFORE")
 
     # 4b-2. The Vigil fires on its own: SessionStart hook (not by discipline)
     start = hooks.setdefault("SessionStart", [])

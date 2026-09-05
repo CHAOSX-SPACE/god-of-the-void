@@ -1461,5 +1461,124 @@ class HeartTest(unittest.TestCase):
                          "the mutated body was NOT restored: that is unforgivable")
 
 
+# ══════════════════════════════════════════════════════════════════════════
+#  PHASE 2 · THE REFLEXES — M-1 the Ambush · P-2 the trifecta · O-1 the gaze
+#
+#  Until here my whole body looked BACKWARD. These tests demand that the only
+#  reflex acting BEFORE bites when it must and stays quiet when it must not:
+#  an alarm that always rings is wallpaper, one that never rings is decoration.
+# ══════════════════════════════════════════════════════════════════════════
+class ReflexesTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp(prefix="chaos-reflexes-")
+        self.chaos = os.path.join(self.home, ".chaos")
+        os.makedirs(os.path.join(self.home, ".claude", "skills", "chaos",
+                                 "abyss", "essences"), exist_ok=True)
+        self.hook = os.path.join(HERE, "ambush-hook.py")
+        self.trail = os.path.join(self.chaos, "forge", "trail.log")
+
+    def tearDown(self):
+        shutil.rmtree(self.home, ignore_errors=True)
+
+    def _ambush(self, command, session="s1", tool="Bash"):
+        env = dict(os.environ)
+        env["HOME"] = self.home
+        env["CHAOS_HOME"] = self.chaos
+        ev = json.dumps({"tool_name": tool, "session_id": session,
+                         "cwd": self.home, "tool_input": {"command": command}})
+        p = subprocess.run([sys.executable, self.hook], input=ev, env=env,
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, "the lock jammed the door: " + p.stderr)
+        return p.stdout.strip()
+
+    def _plant_fault(self):
+        run(self.home, "fault", "The forge took the .git with it",
+            "--cause", "I ran `rm -rf god-of-the-void` with `--force` on",
+            "--lesson", "look before you crush")
+
+    # ── M-1 · the scar that returns ───────────────────────────────────────
+    def test_m1_ambush_warns_about_the_fault(self):
+        self._plant_fault()
+        out = self._ambush("rm -rf god-of-the-void --force")
+        self.assertTrue(out, "it did not warn about a fault being repeated")
+        d = json.loads(out)["hookSpecificOutput"]
+        self.assertIn("AMBUSH", d.get("additionalContext", ""))
+        self.assertIn("#1", d["additionalContext"], "it did not say WHICH fault")
+        self.assertNotIn("permissionDecision", d,
+                         "a scar WARNS; it never decides for the Bearer")
+
+    def test_m1_ambush_stays_quiet_on_the_innocent(self):
+        """13 % false positives measured with the first rule: an alarm ringing
+        on every `run-tests.sh` stops being read (my scar #62)."""
+        self._plant_fault()
+        for innocent in ("ls -la", "cat README.md", "grep -rn x .",
+                         "bash run-tests.sh 2>&1 | tail -5",
+                         "git status --short", "python3 -c 'print(1)'"):
+            self.assertEqual(self._ambush(innocent), "",
+                             "it shouted at an innocent command: " + innocent)
+
+    def test_m1_ambush_does_not_bite_what_only_reads(self):
+        """A command that does not MUTATE cannot repeat a fault."""
+        self.assertEqual(self._ambush("grep -n 'rm -rf god-of-the-void' notes.md"), "",
+                         "it ambushed a grep: reading is not repeating")
+
+    # ── P-2 · the lethal trifecta ─────────────────────────────────────────
+    def test_p2_trifecta_asks(self):
+        """Private data + foreign content + outward send = his word."""
+        run(self.home, "trail", "eyes: https://foreign.example/x", "gaze",
+            "s1", self.home, "WebFetch")
+        out = self._ambush("git push origin main")
+        self.assertTrue(out, "the trifecta went by in silence")
+        d = json.loads(out)["hookSpecificOutput"]
+        self.assertEqual(d.get("permissionDecision"), "ask",
+                         "it either did not ask, or it DENIED on its own")
+        self.assertIn("TRIFECTA", d.get("permissionDecisionReason", ""))
+
+    def test_p2_no_gaze_no_trifecta(self):
+        """With no foreign content there is no trifecta: pushing is no crime."""
+        self.assertEqual(self._ambush("git push origin main"), "",
+                         "it asked for permission having looked at nothing foreign")
+
+    def test_p2_reading_the_web_is_not_emitting(self):
+        """A `curl` that only READS takes no data out: the trifecta needs a send."""
+        run(self.home, "trail", "eyes: https://foreign.example/x", "gaze",
+            "s1", self.home, "WebFetch")
+        self.assertEqual(self._ambush("curl -s https://example.com > /tmp/x"), "",
+                         "it confused reading with emitting")
+
+    def test_p2_the_gaze_belongs_to_THIS_session(self):
+        """What another session looked at does not condemn me in this one."""
+        run(self.home, "trail", "eyes: https://foreign.example/x", "gaze",
+            "other-session", self.home, "WebFetch")
+        self.assertEqual(self._ambush("git push origin main", session="s1"), "",
+                         "it crossed sessions: the trifecta is measured per session")
+
+    # ── O-1 · the gaze leaves a mark and is NOT work ──────────────────────
+    def test_o1_the_gaze_leaves_a_mark_and_is_not_work(self):
+        env = dict(os.environ)
+        env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
+        os.makedirs(os.path.join(self.chaos, "bin"), exist_ok=True)
+        shutil.copy2(APP, os.path.join(self.chaos, "bin", "chaos.py"))
+        ev = json.dumps({"tool_name": "WebFetch", "session_id": "s1",
+                         "cwd": self.home,
+                         "tool_input": {"url": "https://foreign.example/doc"}})
+        subprocess.run([sys.executable, os.path.join(HERE, "trail-hook.py")],
+                       input=ev, env=env, capture_output=True, text=True)
+        self.assertTrue(os.path.exists(self.trail), "the gaze left no mark")
+        line = _read_safe(self.trail).strip().split("\n")[-1].split("\t")
+        self.assertEqual(line[3], "gaze", "the gaze was logged as work")
+        self.assertIn("eyes:", line[4])
+        self.assertIn("Nothing to document", run(self.home, "undocumented"),
+                      "the Chronicle duty counted a GAZE as work")
+
+    def test_o1_the_trail_flattens_a_multiline_command(self):
+        """A seven-line heredoc wrote SEVEN works and broke the format: that is
+        why the duty read 1,267 where there were dozens."""
+        run(self.home, "trail", "bash: one\ntwo\nthree", "run",
+            "s1", self.home, "Bash")
+        self.assertEqual(len(_read_safe(self.trail).strip().split("\n")), 1,
+                         "a multiline work was split into several")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

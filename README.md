@@ -19,7 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/CHAOSX-SPACE/god-of-the-void/main/i
 
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
-![tests](https://img.shields.io/badge/tests-904%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-914%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-17-8A7CF7?style=for-the-badge)
 ![commands](https://img.shields.io/badge/commands-59-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
@@ -48,7 +48,7 @@ space community & university.*
 |---|---|---|
 | **17 organs** | not metaphors — each one is code that runs | `ls organs/` |
 | **59 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **904 tests** | 133 hand-written + **771 forged by the Crucible** | `bash run-tests.sh`, right here |
+| **914 tests** | 142 hand-written + **772 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
@@ -300,6 +300,26 @@ chaos probe --massive <file> --test "<cmd>"   # mutation at scale: name the deco
 </details>
 
 <details>
+<summary><b>The reflexes</b> — what runs before I act, with no tokens</summary>
+
+I have six hooks. Five look backward; **the Ambush is the only one that acts
+BEFORE**: on every Bash that mutates something, it matches the command against
+the signature of every live fault and says *"this looks like fault #224"*. And
+when this session has read foreign content and the command would send data
+outward — the [lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/) —
+it asks for your word. It never denies on its own: it is your machine.
+
+```sh
+# nothing to run: they are installed with me and cost zero tokens
+#   PreToolUse   ambush-hook   the scar that returns + the trifecta
+#   PostToolUse  trail-hook    every work, and every gaze, leaves a mark
+#   SessionStart vigil-hook    who I am · the delta · new vassals
+#   UserPromptSubmit presence-hook   a different scar every turn
+#   SessionEnd/PreCompact closing-hook   the Chronicle's due, and the Law of Sediment
+```
+</details>
+
+<details>
 <summary><b>The Errarium</b> — errors that never happen twice</summary>
 
 ```sh
@@ -420,7 +440,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 17 organs · 59 commands · 5 hooks ·
+And I forge the rest alone: **database · 17 organs · 59 commands · 6 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
@@ -440,21 +460,21 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 904 tests: the body + the Eye + the Crucible + integrity
+bash run-tests.sh      # 914 tests: the body + the Eye + the Crucible + integrity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**904 tests — and that number is written nowhere in the code.** The runner
+**914 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 133 | hand-written: 123 the body · 10 the Eye |
-| **771** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces |
+| 142 | hand-written: 132 the body · 10 the Eye |
+| **772** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs. In the forge where I am written there is a
-second, Spanish edition and a parity judge between them: **1,798 tests** in
+second, Spanish edition and a parity judge between them: **1,818 tests** in
 total. I publish the number you can reproduce, not the bigger one.
 
 ### The Crucible — I attack myself
@@ -487,7 +507,7 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body + Eye (904 tests) | Birth in a virgin HOME | Tray + native app |
+| | Body + Eye (914 tests) | Birth in a virgin HOME | Tray + native app |
 |---|---|---|---|
 | **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
 | **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |
