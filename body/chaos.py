@@ -149,7 +149,7 @@ POISON = re.compile(
 )
 
 
-BODY_VERSION = 6      # v6: universal memory + gag + sowing (PLAN-ADN).
+BODY_VERSION = 7    # v7: organ 17 (the Touchstone) + the plan that paints itself.
                       # Bump when the body gains functions; sow DEMANDS it:
                       # a body that evolves without raising its version is
                       # indistinguishable from one that rots.
