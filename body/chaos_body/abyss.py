@@ -302,7 +302,11 @@ def _neural_fusion(con, query, ranked, top):
     document and the sum wins. It does not compare scores — bm25 and cosine live
     on scales that do not speak to each other — but RANKS, which do compare.
 
-    MEASURED over the bench's 45 queries (`the forge's relevance judge.py`):
+    MEASURED over the bench's 45 queries (`the forge's relevance judge.py`) on the day the
+    strategy was chosen. The ABSOLUTE figures moved afterwards — the bench was
+    measuring the live Abyss and the Abyss grows: today they are 19/45 and
+    28/45 on a frozen corpus — but what this table decides is the ORDER between
+    strategies, and that did not move. They are left as they were measured:
 
         lexical alone ..................... 19/45 (42%) · MRR 0.34
         neurons alone ..................... 30/45 (67%) · MRR 0.56

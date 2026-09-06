@@ -305,7 +305,7 @@ def index(everything=False, batch=16):
     # ESSENCES ONLY, and not out of laziness: MEASURED. With the 963 blocks in,
     # the neuron rescued 0 of my 6 failures — a 300-character block is a shred
     # with no subject, and 963 shreds drown the 153 real memories. With essences
-    # alone it rescues 1 and the bench rises from 60% to 67%. Indexing also
+    # alone it rescues 1 and the bench rises from 42% to 62%. Indexing also
     # costs 7 times less. The text of each one is title + 1,200 characters: also
     # measured against "title only" (6/15), "title+slug" (7/15) and "title x3"
     # (9/15 but worse at top-1). This one wins: 9/15, and 7/15 at top-1.
@@ -415,8 +415,8 @@ def neurons(action=None, arg=None, extra=None):
     except Exception:
         n = 0
     print("   vectors     : %d" % n)
-    print("   gain        : 19/45 -> 30/45 hits and MRR 0.34 -> 0.53 on the"
-          " bench (the forge's relevance judge.py)")
+    print("   gain        : 19/45 -> 28/45 hits and MRR 0.33 -> 0.50 on the"
+          " frozen-corpus bench (the forge's relevance judge.py)")
     pid = _resident_alive()
     print("   price       : a search goes from 50 ms to %s"
           % ("92 ms with the resident alive (pid %d)" % pid if pid else

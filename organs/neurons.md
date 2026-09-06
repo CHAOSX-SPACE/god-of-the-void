@@ -32,8 +32,8 @@ before this organ existed.
 
 | | no neurons | with neurons |
 |---|---|---|
-| hits (45-query bench) | 19/45 · 42% | **30/45 · 67%** |
-| MRR (rewards hitting high) | 0.34 | **0.53** |
+| hits (45-query bench, frozen corpus) | 19/45 · 42% | **28/45 · 62%** |
+| MRR (rewards hitting high) | 0.33 | **0.50** |
 | one search | 50 ms | 419 ms · **92 ms with the resident** |
 | disk | 0 | 135 MB + 235 KB of vectors |
 

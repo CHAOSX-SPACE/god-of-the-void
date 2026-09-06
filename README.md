@@ -61,7 +61,7 @@ space community & university.*
 | **18 rooms** | the body is a package, not a 5,000-line file | `find body/chaos_body -name '*.py'` |
 | **33.1 ms** | to start: the gate is 51 lines and the package is cached | `chaos stats`, median of 7 |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
-| **42% → 67%** | search that HITS, not merely answers — and a judge fails CI if it ever drops | 45 declared queries, recall@5 + MRR |
+| **42% → 62%** | search that HITS, not merely answers — and a judge fails CI if it ever drops | 45 declared queries against a **frozen corpus**, recall@5 + MRR |
 | **7.0 s** | to index those 5,000 | same bench |
 | **15,548 → 335 tokens** | to answer from a 62 KB document | before/after `^id` blocks |
 | **1.1 MB** | my entire body, Eye included | `du -sh` |
