@@ -86,7 +86,7 @@ Three new laws, each with a judge in the net that measures it alone:
 - **The package judge** (`test_e24_organs_import_modules_never_names` and its
   two siblings): MODULES are imported, never names; nothing runs at import
   time; and the core drags no organs. With those three, cycles between organs
-  are harmless — and `a cycle fixture in the forge` proves it on all three systems
+  are harmless — and a cycle fixture in the forge proves it on all three systems
   before anyone moves a single function.
 - **The SQL judge** (`test_e33_no_insert_without_named_columns` and
   `test_e33_the_schema_lives_in_one_place`): zero positional `INSERT`s and zero

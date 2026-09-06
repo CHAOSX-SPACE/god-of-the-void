@@ -1720,7 +1720,16 @@ class HeartTest(unittest.TestCase):
         repo publicado lo deja `the forge's build script` en el mismo sitio."""
         d = HERE
         for _ in range(5):
-            c = os.path.join(d, "the forge's proving ground", "ciclo")
+            # El nombre del taller del Portador no viaja en mi código: se pide
+            # por entorno y, si no lo dan, se busca uno neutro. Un archivo
+            # publicado que nombra su carpeta privada es un rastro suyo.
+            # El nombre de la carpeta privada del Portador no viaja en mi
+            # código: se busca «fixtures/ciclo» (neutro) y, si acaso, el que
+            # diga CHAOS_FIXTURES. Un archivo publicado que nombra su taller
+            # es un rastro suyo — y `ciclo` es el nombre del PAQUETE que se
+            # importa abajo, no el de su carpeta: renombrarlo rompe el import,
+            # y así rompí yo mismo estas dos pruebas hace un minuto.
+            c = os.path.join(d, os.environ.get("CHAOS_FIXTURES", "fixtures"), "ciclo")
             if os.path.isdir(c):
                 return os.path.dirname(c)
             d = os.path.dirname(d)
@@ -1740,7 +1749,7 @@ class HeartTest(unittest.TestCase):
             # forge's copy above the repo: a stranger would have seen red. It
             # SKIPS and declares — a test without its fixture is not a failure,
             # it is a test that cannot run here.
-            self.skipTest("a cycle fixture in the forge missing: the hypothesis has no probe")
+            self.skipTest("cycle fixture absent: it is forge scaffolding")
         r = subprocess.run([sys.executable, "-c",
                             "import sys; sys.path.insert(0, sys.argv[1])\n"
                             "from ciclo import a, b\n"
@@ -1762,7 +1771,7 @@ class HeartTest(unittest.TestCase):
             # forge's copy above the repo: a stranger would have seen red. It
             # SKIPS and declares — a test without its fixture is not a failure,
             # it is a test that cannot run here.
-            self.skipTest("a cycle fixture in the forge missing")
+            self.skipTest("cycle fixture absent: it is forge scaffolding")
         r = subprocess.run([sys.executable, "-c",
                             "import sys; sys.path.insert(0, sys.argv[1])\n"
                             "import ciclo.c", field],

@@ -4,7 +4,7 @@
 Moved from the monolith by `partir-monolito.py`: not one line was
 rewritten by hand. House rule: MODULES are imported here, never names —
 the attribute resolves when CALLED, and that is why cycles between
-organs are harmless (`a cycle fixture in the forge` proves it on three
+organs are harmless (a cycle fixture in the forge proves it on three
 systems). And nothing runs at import time: no constant in this module
 may read the home, the environment or the disk (judge E1.4).
 """
