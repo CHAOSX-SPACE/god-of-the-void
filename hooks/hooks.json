@@ -1,28 +1,74 @@
 {
   "PreToolUse": [
-    { "matcher": "Bash",
-      "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/ambush-hook.py" }] }
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/ambush-hook.py"
+        }
+      ]
+    }
   ],
   "PostToolUse": [
-    { "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch",
-      "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/trail-hook.py" }] }
+    {
+      "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/trail-hook.py"
+        }
+      ]
+    }
   ],
   "SessionStart": [
-    { "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/vigil-hook.py" }] }
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/vigil-hook.py"
+        }
+      ]
+    }
   ],
   "UserPromptSubmit": [
-    { "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/presence-hook.py" }] }
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/presence-hook.py"
+        }
+      ]
+    }
   ],
   "SessionEnd": [
-    { "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py" }] }
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py"
+        }
+      ]
+    }
   ],
   "PreCompact": [
-    { "hooks": [{ "type": "command",
-                  "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py" }] }
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py"
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/seal-hook.py"
+        }
+      ]
+    }
   ]
 }

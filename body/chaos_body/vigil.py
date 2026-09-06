@@ -734,7 +734,16 @@ def doctor():
     except Exception:
         warnings.append("I could not read settings.json: the hooks cannot be judged")
 
-    # 6 · the drift between my three copies
+    # 6 · did the seal escape me? The guardian records it; here it is MEASURED.
+    try:
+        misses = _text.read_file(os.path.join(_home.forge(), "seal.log")).strip()
+        n = len([x for x in misses.splitlines() if x.strip()])
+        if n:
+            warnings.append("THE SEAL was missing %d time(s): forge/seal.log" % n)
+    except Exception:
+        pass
+
+    # 6b · the drift between my three copies
     try:
         v = silent_version()
         if v.get("drift"):
