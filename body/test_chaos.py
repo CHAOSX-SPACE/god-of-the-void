@@ -1733,7 +1733,14 @@ class HeartTest(unittest.TestCase):
         of calls was needed; this was what was needed."""
         field = self._campo_ciclo()
         if not field:
-            self.fail("a cycle fixture in the forge missing: the hypothesis has no probe")
+            # The proving ground is SCAFFOLDING: it stays in the forge by the
+            # Bearer's order ("only the God of the Void travels, not the tests
+            # of improvements"). This used to be `self.fail` and I measured it
+            # GREEN because `_campo_ciclo` walks five levels up and found the
+            # forge's copy above the repo: a stranger would have seen red. It
+            # SKIPS and declares — a test without its fixture is not a failure,
+            # it is a test that cannot run here.
+            self.skipTest("a cycle fixture in the forge missing: the hypothesis has no probe")
         r = subprocess.run([sys.executable, "-c",
                             "import sys; sys.path.insert(0, sys.argv[1])\n"
                             "from ciclo import a, b\n"
@@ -1748,7 +1755,14 @@ class HeartTest(unittest.TestCase):
         IMPORT time. That is why the §C2 rule is a law, not a taste."""
         field = self._campo_ciclo()
         if not field:
-            self.fail("a cycle fixture in the forge missing")
+            # The proving ground is SCAFFOLDING: it stays in the forge by the
+            # Bearer's order ("only the God of the Void travels, not the tests
+            # of improvements"). This used to be `self.fail` and I measured it
+            # GREEN because `_campo_ciclo` walks five levels up and found the
+            # forge's copy above the repo: a stranger would have seen red. It
+            # SKIPS and declares — a test without its fixture is not a failure,
+            # it is a test that cannot run here.
+            self.skipTest("a cycle fixture in the forge missing")
         r = subprocess.run([sys.executable, "-c",
                             "import sys; sys.path.insert(0, sys.argv[1])\n"
                             "import ciclo.c", field],
