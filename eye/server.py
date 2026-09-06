@@ -89,13 +89,35 @@ T = {  # table/column names per edition — the only map allowed
 
 
 def _cli(*args):
-    """Anything with logic is asked of the CLI: zero duplication, one truth."""
+    """Anything with logic is asked of the CLI: zero duplication, one truth.
+
+    E3.4 · It is asked in JSON. Reading the text by eye could not tell an empty
+    result from a failure: a body that died printed nothing and the Eye painted
+    a serene void. Now the envelope carries the exit code, and the text is the
+    same text the mortal would read."""
     try:
-        p = subprocess.run([sys.executable, CHAOS_APP, *args],
+        p = subprocess.run([sys.executable, CHAOS_APP, *args, "--json"],
                            capture_output=True, text=True, timeout=30)
-        return p.stdout
+        try:
+            sobre = json.loads(p.stdout)
+        except (ValueError, TypeError):
+            return p.stdout          # una puerta vieja: se degrada, no se muere
+        if sobre.get("code"):
+            return "[error {}] {}".format(sobre["code"], sobre.get("text", ""))
+        return sobre.get("text", "")
     except Exception as e:
         return "[error] {}".format(e)
+
+
+def _cli_datos(*args):
+    """Lo mismo, pero devolviendo la ESTRUCTURA cuando el comando la da."""
+    try:
+        p = subprocess.run([sys.executable, CHAOS_APP, *args, "--json"],
+                           capture_output=True, text=True, timeout=30)
+        sobre = json.loads(p.stdout)
+        return sobre.get("data")
+    except Exception:
+        return None
 
 
 def _q(sql, args=()):

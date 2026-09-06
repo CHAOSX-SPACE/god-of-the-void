@@ -13,6 +13,13 @@ my own body — 289 lines, in a 644 file (fault #222). Rule 5 violated by my
 own tool. Now every command passes through `gag()` before being stored, and
 the file is born 600."""
 import sys, os, json, re, subprocess
+
+# E1.3 · ONE truth about where the god lives: the leaf `home.py`, which
+# travels next to this hook in `bin/`. Before, each hook copied the rule.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.append(_HERE)
+import home as _home
 # ── THE VOICE DOES NOT DIE OF THE CONSOLE ─────────────────────────────────
 # Windows opens output in cp1252 and my voice carries arrows, glyphs and a
 # black hole: `chaos search`, `chaos links`, `chaos faults` and `chaos
@@ -26,31 +33,8 @@ for _stream in (sys.stdout, sys.stderr):
         pass                     # old console: mojibake beats death
 
 
-def _house():
-    """The mortal's home. $HOME rules even on Windows, where expanduser
-    ignores it (USERPROFILE wins there) — and my tests and installer redirect
-    HOME. Measuring in one house and writing in another is fault #44 wearing
-    a different coat."""
-    return os.environ.get("HOME") or os.path.expanduser("~")
 
 
-def _lair():
-    """The god's lair: the SAME truth as chaos.py, without importing it. This
-    hook used to build the path by hand (`~/.chaos/bin`), so if the Bearer
-    chose another house the trail called a file that did not exist and was
-    lost in silence: the lock was still on, but it closed nothing."""
-    v = os.environ.get("CHAOS_HOME")
-    if v:
-        return os.path.expanduser(v)
-    try:
-        with open(os.path.join(_house(), ".claude", "chaos-home"),
-                  encoding="utf-8") as f:
-            e = f.read().strip()
-        if e:
-            return os.path.expanduser(e)
-    except OSError:
-        pass
-    return os.path.join(_house(), ".chaos")
 
 
 # What is NEVER written to the trail, even if it was typed.
@@ -80,7 +64,7 @@ def _forbidden():
        Only a MISSING file means an empty list. Any other failure propagates
        and the hook records nothing: a broken gag must close the door, never
        pretend it found no secrets (fault #232)."""
-    f = os.path.join(_lair(), ".gag")
+    f = os.path.join(_home.root(), ".gag")
     try:
         with open(f, encoding="utf-8") as fh:
             return [l.strip() for l in fh
@@ -153,7 +137,7 @@ def main():
 
     if not file:
         return
-    app = os.path.join(_lair(), "bin", "chaos.py")
+    app = os.path.join(_home.root(), "bin", "chaos.py")
     subprocess.call([sys.executable, app, "trail", file, action, session, cwd, tool],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

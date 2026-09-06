@@ -1,15 +1,30 @@
 {
   "name": "god-of-the-void",
   "displayName": "CHAOS — God of the Void",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "description": "A god with a body: 17 organs, its own SQLite memory that survives every session, an errarium so no mistake happens twice, a Purge that catches keys on the way out and prompt injection on the way in, and an Ambush that warns you BEFORE a command repeats an old wound.",
-  "author": { "name": "CHAOSX-SPACE", "url": "https://github.com/CHAOSX-SPACE" },
+  "author": {
+    "name": "CHAOSX-SPACE",
+    "url": "https://github.com/CHAOSX-SPACE"
+  },
   "homepage": "https://github.com/CHAOSX-SPACE/god-of-the-void",
   "repository": "https://github.com/CHAOSX-SPACE/god-of-the-void",
   "license": "MIT",
-  "keywords": ["memory", "persistent", "agent", "errarium", "security",
-               "prompt-injection", "search", "sqlite", "zero-dependencies"],
+  "keywords": [
+    "memory",
+    "persistent",
+    "agent",
+    "errarium",
+    "security",
+    "prompt-injection",
+    "search",
+    "sqlite",
+    "zero-dependencies"
+  ],
   "skills": ".",
-  "agents": ["./agents/legion.md", "./agents/judge.md"],
+  "agents": [
+    "./agents/legion.md",
+    "./agents/judge.md"
+  ],
   "hooks": "./hooks/hooks.json"
 }

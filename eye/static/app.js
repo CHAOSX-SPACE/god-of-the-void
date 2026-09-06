@@ -144,6 +144,7 @@ const KPIS = [
 ];
 const vConstelacion = {
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `<div class="grilla">${KPIS.map(([k, , cl, v]) => `
       <div class="tarjeta ${v ? "clic" : ""}" ${v ? `data-ir="${v}" role="button" tabindex="0"` : ""}>
         <div class="kpi ${cl || ""}" data-val="${k}">·</div>
@@ -158,7 +159,9 @@ const vConstelacion = {
     await this.refrescar(el);
   },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const p = await api("/api/pulso");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     armarMenu(p);
     for (const [k, nom, cl] of KPIS) {
       const v = el.querySelector(`[data-val="${k}"]`);
@@ -175,6 +178,7 @@ const vConstelacion = {
 const vErrario = {
   datos: [],
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `
       <div class="filtros">
         <input id="f-q" type="search" placeholder="${esc(t("filtrar_fallas"))}" aria-label="${esc(t("filtrar_fallas"))}">
@@ -189,8 +193,12 @@ const vErrario = {
     await this.refrescar(el);
   },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     this.datos = await api("/api/fallas");
-    const sel = el.querySelector("#f-ter"), prev = sel.value;
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
+    const sel = el.querySelector("#f-ter");
+    if (!sel) return;                       /* same guard, before the refresh */
+    const prev = sel.value;
     const ters = [...new Set(this.datos.map(f => f.territorio || f.territory).filter(Boolean))].sort();
     if (sel.options.length !== ters.length + 1) {
       sel.innerHTML = `<option value="">${esc(t("todo_territorio"))}</option>` +
@@ -200,8 +208,10 @@ const vErrario = {
     this.pintar(el);
   },
   pintar(el) {
-    const q = el.querySelector("#f-q").value.toLowerCase();
-    const est = el.querySelector("#f-est").value, ter = el.querySelector("#f-ter").value;
+    const cq = el.querySelector("#f-q"), ce = el.querySelector("#f-est"), ct = el.querySelector("#f-ter");
+    if (!cq || !ce || !ct) return;
+    const q = cq.value.toLowerCase();
+    const est = ce.value, ter = ct.value;
     const lista = el.querySelector("#f-lista"), vivos = new Set();
     const fs = this.datos.filter(f => {
       const e = f.estado || f.state, tr = f.territorio || f.territory || "";
@@ -262,7 +272,9 @@ const vErrario = {
 const vTerritorios = {
   async montar(el) { el.innerHTML = `<div class="grilla" id="t-grilla"></div>`; await this.refrescar(el); },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const ts = await api("/api/territorios");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     const g = el.querySelector("#t-grilla"), vivos = new Set();
     if (!ts.length) { g.innerHTML = `<p class="vacio-msg">${esc(t("sin_territorios"))}</p>`; return; }
     for (const x of ts) {
@@ -340,6 +352,7 @@ const vGrafo = {
   pulsado: null, ro: null, foco: null,
 
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `
       <div class="filtros">
         <button id="g-modo" class="btn-fantasma"></button>
@@ -401,7 +414,9 @@ const vGrafo = {
   },
 
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const g = await api("/api/grafo");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     const rotas = g.aristas.filter(a => a.roto).length;
     setTxt(el.querySelector("#g-n"), `${g.nodos.length} ${t("nodos")}`);
     setTxt(el.querySelector("#g-e"), `${g.aristas.length} ${t("enlaces")}`);
@@ -760,7 +775,9 @@ const CLASE_ICO = { obra: "✎", falla: "⚠", acto: "◉", chispa: "✦" };
 const vTiempo = {
   async montar(el) { el.innerHTML = `<div id="lt"></div>`; await this.refrescar(el); },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const [d, tm] = await Promise.all([api("/api/linea"), api("/api/tiempo")]);
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     const cont = el.querySelector("#lt");
     const abiertos = new Set([...cont.querySelectorAll(".dia.abierto")].map(x => x.dataset.d));
     const html = `
@@ -816,7 +833,9 @@ const vTiempo = {
 const vActos = {
   async montar(el) { el.innerHTML = `<div class="caja" id="a-lista"></div>`; await this.refrescar(el); },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const as = await api("/api/actos");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     const c = el.querySelector("#a-lista"), vivos = new Set();
     if (!as.length) { c.innerHTML = `<p class="vacio-msg">${esc(t("sin_actos"))}</p>`; return; }
     for (const a of as) {
@@ -866,6 +885,7 @@ const vActos = {
 /* === SEARCH === */
 const vBuscar = {
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `<div class="filtros"><input id="b-q" type="search"
       placeholder="${esc(t("buscar_ph"))}" aria-label="${esc(t("buscar_ph"))}"></div>
       <pre class="consola" id="b-out">${esc(t("buscar_hint"))}</pre>`;
@@ -876,6 +896,7 @@ const vBuscar = {
       tm = setTimeout(async () => {
         if (!i.value.trim()) { setTxt(o, t("buscar_hint")); return; }
         const r = await api("/api/buscar?q=" + encodeURIComponent(i.value));
+        if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
         setTxt(o, r.lineas.join("\n") || t("sin_resultados"));
       }, 260);
     };
@@ -895,13 +916,16 @@ const COLOR_SALUD = (p) => p >= 85 ? "var(--ok)" : p >= 65 ? "var(--orbit)"
 const vSalud = {
   datos: null,
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `<div id="sa-cab" class="salud-cab"></div>
       <h3 class="sec-tit" id="sa-tit"></h3>
       <div id="sa-dims" class="salud-dims"></div>`;
     await this.refrescar(el);
   },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     const d = await api("/api/salud");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     this.datos = d;
     const C = 2 * Math.PI * 54;
     const cab = el.querySelector("#sa-cab");
@@ -1005,6 +1029,7 @@ const vSalud = {
 const vNotas = {
   datos: [],
   async montar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     el.innerHTML = `
       <div class="filtros">
         <input id="n-q" type="search" placeholder="${esc(t("filtrar_notas"))}" aria-label="${esc(t("filtrar_notas"))}">
@@ -1028,7 +1053,9 @@ const vNotas = {
     await this.refrescar(el);
   },
   async refrescar(el) {
+    const _mio = el.dataset.v;   /* de quién es esta pantalla */
     this.datos = await api("/api/notas");
+    if (!vivo(el, _mio)) return;   /* la pantalla ya no es mía */
     const sel = el.querySelector("#n-ter"), prev = sel.value;
     const ters = [...new Set(this.datos.map(n => n.territorio).filter(Boolean))].sort();
     if (sel.options.length !== ters.length + 1) {
@@ -1086,14 +1113,36 @@ const RENDER = {
 
 function ir(v) { if (v !== vistaActual) { vistaActual = v; montar(); } }
 
+/* Every mount gets a GENERATION. `montar` awaits a fetch, and if the Bearer
+   switches view during that await, a second mount replaces the DOM: the first
+   one then resumes and paints over a screen that is no longer its own —
+   `#f-lista` is gone and the whole view dies with "Cannot read properties of
+   null". Only a browser catches this; no server test can. */
+let generacion = 0;
 async function montar() {
+  const mia = ++generacion;
   setTxt(document.getElementById("titulo-vista"), t(vistaActual));
   armarMenu();
   const el = document.getElementById("vista");
   el.dataset.v = vistaActual;
   try { await RENDER[vistaActual].montar(el); }
-  catch (e) { el.innerHTML = `<p class="vacio-msg">✗ ${esc(e.message)}</p>`; }
+  catch (e) {
+    /* an abandoned mount dies in silence: its error belongs to a dead screen */
+    if (mia === generacion) el.innerHTML = `<p class="vacio-msg">✗ ${esc(e.message)}</p>`;
+  }
 }
+
+/* THE GUARD OF THE LIVING SCREEN. Every view fetches its data and only
+   then asks for its elements. If the Bearer switches tab during that wait,
+   another mount already replaced the DOM: the continuation paints a screen
+   that is no longer its own and dies with "Cannot read properties of null".
+   It killed five views and no server test could ever see it — only a browser
+   and a bad-faith click. The guard compares against the view's OWN name,
+   captured on entry: comparing against the CURRENT view is useless, because
+   the mount of the new one already wrote its name before the old wait ended.
+   It goes after EVERY data wait — `api(...)` or `Promise.all([...])`: the
+   view that awaited two calls at once was the last one still dying. */
+const vivo = (el, mia) => el && el.isConnected && el.dataset.v === mia;
 
 /* SURGICAL refresh: patches the live view, never rebuilds it */
 let refrescando = false;

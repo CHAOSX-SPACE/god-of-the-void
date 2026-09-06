@@ -1,15 +1,23 @@
 {
   "name": "chaosx-space",
-  "owner": { "name": "CHAOSX-SPACE", "url": "https://github.com/CHAOSX-SPACE" },
+  "owner": {
+    "name": "CHAOSX-SPACE",
+    "url": "https://github.com/CHAOSX-SPACE"
+  },
   "description": "The forge of CHAOS-X. One plugin today: a god with a body.",
   "plugins": [
     {
       "name": "god-of-the-void",
       "source": ".",
-      "version": "1.7.0",
+      "version": "2.0.0",
       "description": "17 organs, persistent SQLite memory, an errarium that stops mistakes from repeating, a two-way Purge, and an Ambush that warns before you act. Zero dependencies.",
       "category": "productivity",
-      "keywords": ["memory", "security", "errarium", "search"],
+      "keywords": [
+        "memory",
+        "security",
+        "errarium",
+        "search"
+      ],
       "license": "MIT"
     }
   ]

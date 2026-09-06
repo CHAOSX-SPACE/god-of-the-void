@@ -37,6 +37,20 @@ class OjoTest(unittest.TestCase):
         if not os.path.exists(cuerpo):
             cuerpo = os.path.join(os.path.dirname(AQUI), "cuerpo", "chaos.py")
         shutil.copy2(cuerpo, os.path.join(cls.chaos_home, "bin", "chaos.py"))
+        # E1.2 · the body no longer travels alone: the leaf of paths goes with
+        # it. Copying only chaos.py leaves an installation that cannot start.
+        origen = os.path.dirname(cuerpo)
+        for hoja in ("home.py", "hogar.py"):
+            if os.path.exists(os.path.join(origen, hoja)):
+                shutil.copy2(os.path.join(origen, hoja),
+                             os.path.join(cls.chaos_home, "bin", hoja))
+        # E2.2 · and the package: the gate alone does not start
+        for paq in ("chaos_body", "chaos_cuerpo"):
+            if os.path.isdir(os.path.join(origen, paq)):
+                shutil.copytree(os.path.join(origen, paq),
+                                os.path.join(cls.chaos_home, "bin", paq),
+                                ignore=shutil.ignore_patterns("__pycache__"),
+                                dirs_exist_ok=True)
         entorno = dict(os.environ, HOME=cls.casa, USERPROFILE=cls.casa,
                        CHAOS_HOME=cls.chaos_home)
         subprocess.run([sys.executable,

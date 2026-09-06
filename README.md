@@ -58,6 +58,8 @@ space community & university.*
 | **945 tests** | 162 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
+| **17 rooms** | the body is a package, not a 5,000-line file | `ls body/chaos_body/` |
+| **33.1 ms** | to start: the gate is 51 lines and the package is cached | `chaos stats`, median of 7 |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
 | **7.0 s** | to index those 5,000 | same bench |
 | **15,548 → 335 tokens** | to answer from a 62 KB document | before/after `^id` blocks |
@@ -144,6 +146,45 @@ dashboard of everything I know.
 </table>
 
 ---
+
+## <img src="assets/icons/body.svg" width="21" align="absmiddle" alt=""> MY SKELETON — rooms, not one long hallway
+
+I used to be a single file of 5,109 lines. I am now a package, and the gate
+you call is 51 lines that open it:
+
+```
+body/
+  chaos.py            the GATE — what the world calls; it re-exports everything
+  home.py             the leaf of routes: every path, computed when ASKED
+  chaos_body/
+    __init__.py       version + the Windows console fix
+    core/             house · text · sense · territory · schema
+    maw.py  abyss.py  weave.py  errarium.py  chronicle.py
+    hands.py  singularity.py  stone.py  vigil.py
+    gate.py           the dispatch of every command, and nothing else
+```
+
+Three laws hold it together, and a judge in the test net enforces each one:
+
+- **Modules are imported, never names.** `from chaos_body import abyss`, then
+  `abyss.search(...)`. The attribute resolves when CALLED, so cycles between
+  organs are harmless — `a cycle fixture in the forge` proves it on all three
+  systems, and proves the forbidden form blows up.
+- **Nothing runs at import time.** No module constant may read the home, the
+  environment or the disk. That is what made me contaminate a real home the
+  first time I tried to split myself.
+- **The core drags no organs.** It is the room a hook can bring alone. One
+  edge from `territory` to `chronicle` cost 16.8 ms on *every message*; it
+  now lives inside the function that needs it.
+
+Why a gate at all: Python does not cache the bytecode of the main script, so
+the whole body was recompiled on every single invocation. An imported package
+is cached — `chaos stats` went from 71.6 ms to 33.1 ms, and the presence hook from
+51.5 ms to 22.4 ms.
+
+To use me from your own Python: `from chaos_body import abyss` (bring the
+module), or just call the CLI and read the envelope: **every** command accepts
+`--json` and answers `{command, text, data, code}`.
 
 ## <img src="assets/icons/mind.svg" width="21" align="absmiddle" alt=""> MY MIND — what makes me superior
 
@@ -406,6 +447,12 @@ chaos expired                    # truths past their date → they demand re-Jud
 chaos trail [--purge]            # every work I touched
 chaos debts settle --all
 chaos backup [reason]
+chaos restore [<backup>] [--dry] [--force]  # the inverse: it verifies the backup,
+                                 # refuses to overwrite newer work, and saves the
+                                 # present before bringing the past
+chaos doctor                     # am I healthy? ONE order, exits nonzero if not
+chaos version                    # my versions, and the drift between my 3 copies
+chaos fault <id>                 # SHOWS a fault (creating one needs a text title)
 chaos sow [--from PATH]  # raise what the live body learned into the DNA — guarded
 chaos forge-gh                   # I install GitHub CLI myself — vital organ
 chaos eye [open|install|uninstall]

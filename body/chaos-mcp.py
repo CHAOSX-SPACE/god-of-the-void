@@ -23,6 +23,7 @@ turned into a weapon by whoever walks through it.
 Requires the official SDK (`pip install mcp`). If it does not live here, this
 says so and dies quietly: a god does not pretend to have a door.
 """
+import json
 import os
 import subprocess
 import sys
@@ -34,9 +35,17 @@ APP = os.path.join(HERE, "chaos.py")
 def _run(*args):
     """The body answers; this file only carries. One source of truth, always."""
     try:
-        p = subprocess.run([sys.executable, APP] + list(args),
+        p = subprocess.run([sys.executable, APP] + list(args) + ["--json"],
                            capture_output=True, text=True, timeout=90)
-        return (p.stdout or "") + (p.stderr or "")
+        try:
+            envelope = json.loads(p.stdout)
+        except (ValueError, TypeError):
+            return (p.stdout or "") + (p.stderr or "")   # old gate: degrade
+        # E3.4 · the envelope carries the exit code: a failure stops looking
+        # like an empty answer, which is how the MCP served errors in silence.
+        if envelope.get("code") or envelope.get("codigo"):
+            return "[CHAOS] the body failed: " + (envelope.get("text") or envelope.get("texto") or "")
+        return envelope.get("text") or envelope.get("texto") or ""
     except Exception as e:
         return "[CHAOS] the body did not answer: {}".format(e)
 
@@ -75,6 +84,13 @@ def main():
         if territory:
             args += ["--territory", territory]
         return _run(*args)
+
+    @mcp.tool()
+    def show_fault(id: int) -> str:
+        """SHOWS a fault by its id: cause, cure, lesson and relapses. Half the
+        door was missing: a fault could be CARVED from here, but no single one
+        could be read."""
+        return _run("fault", str(int(id)))
 
     @mcp.tool()
     def fault(title: str, cause: str = "", cure: str = "", lesson: str = "") -> str:

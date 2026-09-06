@@ -73,3 +73,23 @@ alone, or it does not run.
 - *"The probe stayed green with the file emptied. The probe is the liar, not
   the cure. DECORATIVE."*
 - *"I measured with the wrong ruler. The number dies with me, not with you."*
+
+
+## The judges of the skeleton (2026-09-05)
+
+Three new laws, each with a judge in the net that measures it alone:
+
+- **The bomb judge** (`test_e14_no_module_constant_reads_the_home`): no module
+  constant may read the home, the environment or the disk. That was fault #499
+  — paths computed at import time that stayed cached and contaminated the
+  Bearer's real house. A lazy accessor cannot be photographed by accident.
+- **The package judge** (`test_e24_organs_import_modules_never_names` and its
+  two siblings): MODULES are imported, never names; nothing runs at import
+  time; and the core drags no organs. With those three, cycles between organs
+  are harmless — and `a cycle fixture in the forge` proves it on all three systems
+  before anyone moves a single function.
+- **The SQL judge** (`test_e33_no_insert_without_named_columns` and
+  `test_e33_the_schema_lives_in_one_place`): zero positional `INSERT`s and zero
+  `CREATE TABLE` outside `core/schema.py`. This one caught me the very day it
+  was born: I wrote a probe table inside the doctor. A judge you dodge stops
+  being a judge.

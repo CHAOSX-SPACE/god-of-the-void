@@ -10,6 +10,13 @@ been failing for DAYS (508 unsedimented lines).
                 which the Presence of the next session will bring to light.
 Fail-safe: it never breaks the closing."""
 import sys, os, json, sqlite3, datetime
+
+# E1.3 · ONE truth about where the god lives: the leaf `home.py`, which
+# travels next to this hook in `bin/`. Before, each hook copied the rule.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.append(_HERE)
+import home as _home
 # ── THE VOICE DOES NOT DIE OF THE CONSOLE ─────────────────────────────────
 # Windows opens output in cp1252 and my voice carries arrows, glyphs and a
 # black hole: `chaos search`, `chaos links`, `chaos faults` and `chaos
@@ -23,34 +30,10 @@ for _stream in (sys.stdout, sys.stderr):
         pass                     # old console: mojibake beats death
 
 
-def _house():
-    """The mortal's home. $HOME rules even on Windows, where expanduser
-    ignores it (USERPROFILE wins there) — and my tests and installer redirect
-    HOME. Measuring in one house and writing in another is fault #44 wearing
-    a different coat."""
-    return os.environ.get("HOME") or os.path.expanduser("~")
 
 
-def _lair():
-    """The god's lair: the SAME truth as chaos.py, without importing it (hooks
-    must be instant). Env > the Bearer's choice > default."""
-    v = os.environ.get("CHAOS_HOME")
-    if v:
-        return os.path.expanduser(v)
-    try:
-        with open(os.path.join(_house(), ".claude", "chaos-home"),
-                  encoding="utf-8") as f:
-            e = f.read().strip()
-        if e:
-            return os.path.expanduser(e)
-    except OSError:
-        pass
-    return os.path.join(_house(), ".chaos")
 
 
-CHAOS = _lair()
-TRAIL = os.path.join(CHAOS, "forge", "trail.log")
-DB = os.path.join(CHAOS, "abyss.db")
 
 
 def pending(session):
@@ -59,10 +42,10 @@ def pending(session):
     GAZES are not work: reading twenty pages creates nothing to document.
     They are counted apart (O-1) to charge me the Law of Sediment, never as
     a Chronicle duty — an inflated duty stops being read."""
-    if not os.path.exists(TRAIL):
+    if not os.path.exists(_home.trail()):
         return 0, [], 0, 0
     n, paths, gazes, devourings = 0, [], 0, 0
-    with open(TRAIL, encoding="utf-8", errors="replace") as f:
+    with open(_home.trail(), encoding="utf-8", errors="replace") as f:
         for l in f:
             p = l.rstrip("\n").split("\t")
             ses = p[1] if len(p) >= 6 else ""
@@ -84,7 +67,7 @@ def pending(session):
 def record_debt(session, n, paths):
     """The session dies; the debt does not. The next Presence will raise it."""
     try:
-        con = sqlite3.connect(DB, timeout=30.0)
+        con = sqlite3.connect(_home.abyss_db(), timeout=30.0)
         con.execute("PRAGMA busy_timeout=30000")
         con.execute("CREATE TABLE IF NOT EXISTS debts("
                     "id INTEGER PRIMARY KEY, session TEXT, date TEXT,"
@@ -110,7 +93,7 @@ def main():
     if gazes >= 3 and devourings == 0:
         try:
             import subprocess
-            app = os.path.join(CHAOS, "bin", "chaos.py")
+            app = os.path.join(_home.root(), "bin", "chaos.py")
             if os.path.exists(app):
                 subprocess.call(
                     [sys.executable, app, "note",
@@ -128,7 +111,7 @@ def main():
         # I leave on disk what CANNOT be rebuilt from someone else's summary:
         # what I touched and in which territory. The next session finds it by
         # name.
-        rolling = os.path.join(CHAOS, "forge", "rolling-{}.md".format(session[:8] or "no-session"))
+        rolling = os.path.join(_home.root(), "forge", "rolling-{}.md".format(session[:8] or "no-session"))
         try:
             os.makedirs(os.path.dirname(rolling), exist_ok=True)
             with open(rolling, "w", encoding="utf-8") as fh:

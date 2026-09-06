@@ -19,25 +19,41 @@ CLI (for shell, e.g. the forge):
 API (for install.py and `chaos sow`):
     would_lose(source, destination) → dict of losses; empty = safe.
 """
-import ast, io, re, sys
+import ast, io, os, re, sys
+
+
+def _whole_body(path):
+    """The body is a TREE since the split: the gate plus its package. A guard
+    that reads only `chaos.py` sees a 51-line door and declares that 130
+    functions died — it refused a healthy forge the first time it met one."""
+    parts = [io.open(path, encoding="utf-8").read()]
+    base = os.path.dirname(os.path.abspath(path))
+    for pkg in ("chaos_body", "chaos_cuerpo"):
+        for root, _, files in os.walk(os.path.join(base, pkg)):
+            if "__pycache__" in root:
+                continue
+            for f in sorted(files):
+                if f.endswith(".py"):
+                    parts.append(io.open(os.path.join(root, f),
+                                         encoding="utf-8").read())
+    return "\n".join(parts)
 
 
 def functions(path):
     try:
-        tree = ast.parse(io.open(path, encoding="utf-8").read())
+        tree = ast.parse(_whole_body(path))
     except SyntaxError:
         return {"<BROKEN SYNTAX>"}       # an unreadable side is never declared empty
     return {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
 
 
 def commands(path):
-    return set(re.findall(r'elif cmd == "([\w-]+)"',
-                          io.open(path, encoding="utf-8").read()))
+    return set(re.findall(r'elif cmd == "([\w-]+)"', _whole_body(path)))
 
 
 def tables(path):
     return set(re.findall(r'CREATE (?:VIRTUAL )?TABLE (?:IF NOT EXISTS )?(\w+)',
-                          io.open(path, encoding="utf-8").read()))
+                          _whole_body(path)))
 
 
 def would_lose(source, destination):

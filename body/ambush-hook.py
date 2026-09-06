@@ -24,6 +24,13 @@ A lock never jams the door.
 """
 import sys, os, json, re, sqlite3, time
 
+# E1.3 · ONE truth about where the god lives: the leaf `home.py`, which
+# travels next to this hook in `bin/`. Before, each hook copied the rule.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.append(_HERE)
+import home as _home
+
 for _stream in (sys.stdout, sys.stderr):
     try:
         _stream.reconfigure(encoding="utf-8", errors="replace")
@@ -31,33 +38,10 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 
-def _house():
-    """The mortal's home. $HOME rules even on Windows, where expanduser
-    ignores it (USERPROFILE wins there)."""
-    return os.environ.get("HOME") or os.path.expanduser("~")
 
 
-def _lair():
-    """The god's lair: the SAME truth as chaos.py, without importing it (hooks
-    must be instant). Env > the Bearer's choice > default."""
-    v = os.environ.get("CHAOS_HOME")
-    if v:
-        return os.path.expanduser(v)
-    try:
-        with open(os.path.join(_house(), ".claude", "chaos-home"),
-                  encoding="utf-8") as f:
-            e = f.read().strip()
-        if e:
-            return os.path.expanduser(e)
-    except OSError:
-        pass
-    return os.path.join(_house(), ".chaos")
 
 
-CHAOS = _lair()
-DB = os.path.join(CHAOS, "abyss.db")
-TRAIL = os.path.join(CHAOS, "forge", "trail.log")
-CACHE = os.path.join(CHAOS, "forge", "ambush.json")
 
 # What EMITS outward. Touching the network is not enough: a `curl` that only
 # READS is not a leak. The trifecta demands that DATA leaves.
@@ -109,7 +93,7 @@ def _live_signatures():
     """Signatures of LIVE faults, cached: recomputing 400 faults on EVERY Bash
     would turn the reflex into a brake. The seal is (how many, the last one)."""
     try:
-        con = sqlite3.connect("file:{}?mode=ro".format(DB), uri=True, timeout=2.0)
+        con = sqlite3.connect("file:{}?mode=ro".format(_home.abyss_db()), uri=True, timeout=2.0)
     except Exception:
         return []
     try:
@@ -117,7 +101,7 @@ def _live_signatures():
             "SELECT COUNT(*), MAX(rowid) FROM faults WHERE state='alive'").fetchone()
         seal = "{}:{}".format(row[0] or 0, row[1] or 0)
         try:
-            with open(CACHE, encoding="utf-8") as f:
+            with open(_home.ambush_json(), encoding="utf-8") as f:
                 saved = json.load(f)
             if saved.get("seal") == seal:
                 return saved.get("signatures", [])
@@ -149,8 +133,8 @@ def _live_signatures():
                 signatures.append({"id": c["id"], "title": c["title"],
                                    "lesson": c["lesson"], "signature": own})
         try:
-            os.makedirs(os.path.dirname(CACHE), exist_ok=True)
-            with open(CACHE, "w", encoding="utf-8") as f:
+            os.makedirs(os.path.dirname(_home.ambush_json()), exist_ok=True)
+            with open(_home.ambush_json(), "w", encoding="utf-8") as f:
                 json.dump({"seal": seal, "signatures": signatures}, f, ensure_ascii=False)
         except Exception:
             pass
@@ -214,11 +198,11 @@ def _scar(command):
 
 def _looked_outside(session):
     """Did I bring foreign content into THIS session? The trail knows."""
-    if not session or not os.path.exists(TRAIL):
+    if not session or not os.path.exists(_home.trail()):
         return 0
     n = 0
     try:
-        with open(TRAIL, encoding="utf-8", errors="replace") as f:
+        with open(_home.trail(), encoding="utf-8", errors="replace") as f:
             for l in f:
                 p = l.rstrip("\n").split("\t")
                 if len(p) >= 6 and p[1] == session and p[5] in _EYES:

@@ -33,6 +33,37 @@ def run(env_home, *args):
                        encoding="utf-8", errors="replace")
     return (p.stdout or "") + (p.stderr or "")
 
+def _body_source():
+    """The whole BODY as text: the gate plus every module of the package.
+    Reading `chaos.py` used to be enough because the body was one file; now a
+    rule may live in any room, and a test that only looks at the gate would
+    declare absent what exists."""
+    parts = [_read_safe(APP)]
+    paq = os.path.join(HERE, "chaos_body")
+    for root, _, files in os.walk(paq):
+        if "__pycache__" in root:
+            continue
+        for f in sorted(files):
+            if f.endswith(".py"):
+                parts.append(_read_safe(os.path.join(root, f)))
+    return "\n".join(parts)
+
+
+def _install_body(bin_dst):
+    """An installed body is the gate + the leaf of routes + the package.
+    Copying only `chaos.py` leaves an installation that does not start."""
+    os.makedirs(bin_dst, exist_ok=True)
+    shutil.copy2(APP, os.path.join(bin_dst, "chaos.py"))
+    for leaf in ("hogar.py", "home.py"):
+        if os.path.exists(os.path.join(HERE, leaf)):
+            shutil.copy2(os.path.join(HERE, leaf), os.path.join(bin_dst, leaf))
+    for paq in ("chaos_cuerpo", "chaos_body"):
+        src = os.path.join(HERE, paq)
+        if os.path.isdir(src):
+            shutil.copytree(src, os.path.join(bin_dst, paq),
+                            ignore=shutil.ignore_patterns("__pycache__"),
+                            dirs_exist_ok=True)
+
 
 class ChaosTest(unittest.TestCase):
     def setUp(self):
@@ -670,7 +701,7 @@ class ChaosTest(unittest.TestCase):
 
     def test_o4_schedule_is_cross_platform(self):
         """The code covers the 3 systems (NOT executed: it would install a real task)."""
-        src = _read_safe(APP)
+        src = _body_source()
         i = src.find("def schedule")
         block = src[i:src.find("\ndef ", i + 10)]
         for mark, system in (("launchctl", "macOS"), ("schtasks", "Windows"), ("crontab", "Linux")):
@@ -770,7 +801,7 @@ class ChaosTest(unittest.TestCase):
 
     def test_acts_declares_the_cage_breach(self):
         """If I leave the cage, the DB says so — not just the log."""
-        src = _read_safe(APP)
+        src = _body_source()
         self.assertIn("cage-breach", src,
                       "leaving the cage is not marked in the DB verdict")
 
@@ -955,19 +986,19 @@ class ChaosTest(unittest.TestCase):
     def test_r4_body_version_seal(self):
         """Front 15: the body declares its version so the Eye can say
         'reincarnate' instead of degrading in silence."""
-        src = _read_safe(APP)
+        src = _body_source()
         self.assertIn("BODY_VERSION", src, "the body declares no version")
 
     def test_r4_installs_by_tag_not_main(self):
         """Front 13: one broken push of mine cannot break today's installs."""
-        src = _read_safe(APP)
+        src = _body_source()
         self.assertIn('"tag", "-l", "v*"', src, "does not pin by tag")
         self.assertIn('"--main" not in sys.argv', src, "no explicit escape to main")
 
     def test_r4_venv_before_the_launcher(self):
         """The native launcher points at whatever interpreter it finds: if the
         venv is born later, the app stays bound to the system Python."""
-        src = _read_safe(APP)
+        src = _body_source()
         i, j = src.find("_eye_venv()"), src.find('install-app.py"')
         self.assertTrue(0 < i < j, "the venv is NOT created before the launcher")
 
@@ -1119,6 +1150,446 @@ class HeartTest(unittest.TestCase):
             return m
         finally:
             os.environ.clear(); os.environ.update(old)
+
+
+
+
+    # ── E1.1/E1.4 · the joints ────────────────────────────────────────────
+    def test_e11_home_changes_without_reimport(self):
+        """Fault #499 as a test: paths used to be computed at IMPORT time and
+        stayed photographed in sys.modules. Now they are asked."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "h_lazy", os.path.join(HERE, "home.py"))
+        h = importlib.util.module_from_spec(spec); spec.loader.exec_module(h)
+        viejo = dict(os.environ)
+        try:
+            os.environ["CHAOS_HOME"] = os.path.join(self.home, "house-one")
+            uno = h.abyss_db()
+            os.environ["CHAOS_HOME"] = os.path.join(self.home, "house-two")
+            dos = h.abyss_db()
+        finally:
+            os.environ.clear(); os.environ.update(viejo)
+        self.assertNotEqual(uno, dos, "the path stayed photographed at import time")
+        self.assertIn("house-two", dos, "the accessor did not look at the environment of NOW")
+
+    def test_e11_the_leaf_does_not_import_the_body(self):
+        """`home.py` is a LEAF: if it imported the body, a hook would pay the
+        5,109 lines it saves by bringing it."""
+        fuente = _read_safe(os.path.join(HERE, "home.py"))
+        for prohibido in ("import chaos", "from chaos"):
+            self.assertNotIn(prohibido, fuente, "the leaf stopped being a leaf")
+
+    def test_e14_no_module_constant_reads_the_home(self):
+        """THE BOMB JUDGE. Every module constant that reads the home, the
+        environment or the disk is fault #499 waiting its turn again. It
+        watches the WHOLE body: app, hooks and installer."""
+        import ast, glob
+        bombas = []
+        for f in sorted(glob.glob(os.path.join(HERE, "*.py"))):
+            if os.path.basename(f).startswith("test"):
+                continue
+            arbol = ast.parse(_read_safe(f))
+            for n in arbol.body:
+                if not isinstance(n, ast.Assign):
+                    continue
+                for x in ast.walk(n.value):
+                    fn = getattr(x, "func", None)
+                    nombre = getattr(fn, "attr", None) or getattr(fn, "id", None) or ""
+                    if nombre in ("expanduser", "getenv", "root", "house", "_house",
+                                  "_lair", "abyss_db", "trail", "vigil_report",
+                                  "essences", "claude", "skill_dir", "_bin") \
+                            or (isinstance(x, ast.Attribute) and x.attr == "environ"):
+                        bombas.append("%s::%s" % (os.path.basename(f),
+                                                  getattr(n.targets[0], "id", "?")))
+        self.assertEqual(bombas, [], "home bombs resurrected: " + ", ".join(bombas))
+
+
+    # ── E2.4 · THE LAW OF THE PACKAGE ─────────────────────────────────────
+    def test_e24_organs_import_modules_never_names(self):
+        """The rule that makes cycles harmless (§C2): inside the package the
+        MODULE is imported, never a name of it. `from x import f` resolves at
+        IMPORT time, when the other module may be half born; `x.f()` resolves
+        when CALLED, with everything already loaded. Without this law the
+        split is fault #499 again."""
+        import ast, glob
+        paquete = os.path.join(HERE, "chaos_body")
+        if not os.path.isdir(paquete):
+            self.skipTest("body not split")
+        pecados = []
+        for f in glob.glob(os.path.join(paquete, "**", "*.py"), recursive=True):
+            arbol = ast.parse(_read_safe(f))
+            for n in ast.walk(arbol):
+                if isinstance(n, ast.ImportFrom) and (n.module or "").startswith("chaos_body"):
+                    hondo = (n.module or "").count(".")
+                    # `from chaos_body import maw` and `from chaos_body.core
+                    # import text` bring MODULES: that is what is allowed.
+                    if hondo >= 2:
+                        pecados.append("%s: %s importa nombres"
+                                       % (os.path.basename(f), n.module))
+        self.assertEqual(pecados, [], "the package imports names: " + "; ".join(pecados))
+
+    def test_e24_no_module_runs_anything_at_import(self):
+        """The other half of §C2: if nothing RUNS across at import time, the
+        order in which Python closes the cycle is irrelevant. Only imports,
+        definitions and constants are allowed."""
+        import ast, glob
+        paquete = os.path.join(HERE, "chaos_body")
+        if not os.path.isdir(paquete):
+            self.skipTest("body not split")
+        pecados = []
+        for f in glob.glob(os.path.join(paquete, "**", "*.py"), recursive=True):
+            if os.path.basename(f) == "__init__.py":
+                continue          # the __init__ fixes the console: declared
+            for n in ast.parse(_read_safe(f)).body:
+                if not isinstance(n, (ast.Import, ast.ImportFrom, ast.FunctionDef,
+                                      ast.ClassDef, ast.Assign, ast.Expr)):
+                    pecados.append("%s:%d %s" % (os.path.basename(f), n.lineno,
+                                                 type(n).__name__))
+        self.assertEqual(pecados, [], "something runs at import: " + "; ".join(pecados))
+
+    def test_e24_the_core_does_not_drag_organs(self):
+        """The core is what a hook can bring ALONE. One edge of it to an organ
+        at import time cost 16.8 ms on every message from the Bearer: the edge
+        lives inside the function or it does not live."""
+        import ast, glob
+        nucleo = os.path.join(HERE, "chaos_body", "core")
+        if not os.path.isdir(nucleo):
+            self.skipTest("body not split")
+        pecados = []
+        for f in glob.glob(os.path.join(nucleo, "*.py")):
+            for n in ast.parse(_read_safe(f)).body:
+                if isinstance(n, ast.ImportFrom) and n.module == "chaos_body":
+                    pecados.append("%s → %s" % (os.path.basename(f),
+                                                n.names[0].name))
+        self.assertEqual(pecados, [], "the core drags organs: " + "; ".join(pecados))
+
+
+    # ── E3.3 · THE SQL JUDGE ──────────────────────────────────────────────
+    def test_e33_no_insert_without_named_columns(self):
+        """Fault #497 as a judge: a positional `INSERT ... VALUES` is a bomb
+        with a schema timer — the day someone adds a column it blows up far
+        from the change and without saying why."""
+        import glob, re
+        paquete = os.path.join(HERE, "chaos_body")
+        if not os.path.isdir(paquete):
+            self.skipTest("body not split")
+        pecados = []
+        for f in glob.glob(os.path.join(paquete, "**", "*.py"), recursive=True):
+            for m in re.finditer(r"INSERT (?:OR \w+ )?INTO (\w+) VALUES",
+                                 _read_safe(f)):
+                pecados.append("%s: %s" % (os.path.basename(f), m.group(1)))
+        self.assertEqual(pecados, [],
+                         "INSERT without named columns: " + "; ".join(pecados))
+
+    def test_e33_the_schema_lives_in_one_place(self):
+        """Veinte tablas repartidas en veinticinco sitios: añadir una era
+        adivinar dónde. El esquema entero vive en `core/schema.py`."""
+        import glob, re
+        paquete = os.path.join(HERE, "chaos_body")
+        esquema = os.path.join(paquete, "core", "schema.py")
+        if not os.path.isdir(paquete):
+            self.skipTest("body not split")
+        self.assertTrue(os.path.exists(esquema), "no existe core/schema.py")
+        fuera = []
+        for f in glob.glob(os.path.join(paquete, "**", "*.py"), recursive=True):
+            if os.path.abspath(f) == os.path.abspath(esquema):
+                continue
+            if re.search(r"CREATE (?:VIRTUAL )?TABLE", _read_safe(f)):
+                fuera.append(os.path.basename(f))
+        self.assertEqual(fuera, [],
+                         "there is a CREATE TABLE outside the schema: " + ", ".join(fuera))
+
+
+    def test_e31_a_v11_db_opens_in_v12_without_losing_rows(self):
+        """The only question that matters when moving a schema: does the Abyss
+        of a mortal who ALREADY installed me open the same? A DB is forged with
+        the body, given rows as anyone would have, and opened again. Not one row
+        may be missing, and the schema may not rename anything."""
+        run(self.home, "devour", self._essence("old", "# Old\n\nold body"))
+        run(self.home, "fault", "an old fault", "--cause", "c", "--cure", "x")
+        run(self.home, "note", "an old spark")
+        con = sqlite3.connect(self.db)
+        antes = {t: con.execute("SELECT COUNT(*) FROM %s" % t).fetchone()[0]
+                 for t in ("essences", "faults", "notes", "meta")}
+        # se simula una BD ANTERIOR al esquema único: sin user_version
+        con.execute("PRAGMA user_version = 0"); con.commit(); con.close()
+        run(self.home, "stats")                     # opening = migrating
+        con = sqlite3.connect(self.db)
+        for t, n in antes.items():
+            self.assertEqual(con.execute("SELECT COUNT(*) FROM %s" % t).fetchone()[0], n,
+                             "table %s lost rows when opened with the new schema" % t)
+        v = con.execute("PRAGMA user_version").fetchone()[0]
+        con.close()
+        self.assertGreater(v, 0, "the schema did not leave its version where SQLite keeps it")
+
+    def test_e31_the_schema_is_idempotent(self):
+        """Opening a hundred times cannot change anything: `ensure` is called on
+        EVERY `db()`, which is dozens of times per command."""
+        import importlib.util
+        ruta = os.path.join(HERE, "chaos_body", "core", "schema.py")
+        if not os.path.exists(ruta):
+            self.skipTest("body not split")
+        spec = importlib.util.spec_from_file_location("esq", ruta)
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        con = sqlite3.connect(":memory:")
+        m.ensure(con)
+        uno = sorted(r[0] for r in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"))
+        for _ in range(3):
+            m.ensure(con)
+        dos = sorted(r[0] for r in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"))
+        con.close()
+        self.assertEqual(uno, dos, "the schema changes when applied twice")
+
+
+    # ── E3.4 · THE GATE SPEAKS TO MACHINES ────────────────────────────────
+    def test_e34_every_command_accepts_json(self):
+        """The envelope is not for some commands: it is for ALL of them. And it
+        carries the exit code, which is what the Eye and the MCP could not tell
+        apart from an empty answer."""
+        for cmd in ("stats", "hungers", "faults", "stale", "acts"):
+            salida = run(self.home, cmd, "--json")
+            try:
+                sobre = json.loads(salida)
+            except ValueError:
+                self.fail("`%s --json` did not return JSON: %r" % (cmd, salida[:120]))
+            for llave in ("command", "text", "data", "code"):
+                self.assertIn(llave, sobre, "the envelope of `%s` is missing %s" % (cmd, llave))
+            self.assertEqual(sobre["command"], cmd)
+
+    def test_e34_the_envelope_confesses_failure(self):
+        """A command that does not exist CANNOT exit successfully: chaining
+        `cmd_a || cmd_b` would never see the failure."""
+        salida = run(self.home, "command-that-does-not-exist", "--json")
+        sobre = json.loads(salida) if salida.strip().startswith("{") else {}
+        self.assertTrue(sobre, "a nonexistent command returned no envelope")
+        self.assertNotEqual(sobre.get("code"), 0,
+                            "the envelope blessed a nonexistent command")
+
+    def test_e34_data_is_data_or_null(self):
+        """`data` carries REAL structure or an honest null: never text dressed
+        as structure. Today `stats` and `hungers` return; the rest print, and
+        that is declared instead of faked."""
+        sobre = json.loads(run(self.home, "stats", "--json"))
+        self.assertIsInstance(sobre["data"], dict, "stats returned no structure")
+        for llave in ("essences", "vassals", "hungers", "dwelling"):
+            self.assertIn(llave, sobre["data"])
+
+
+    # ── PHASE 4 · THE POWERS ──────────────────────────────────────────────
+    def test_p2_doctor_exits_nonzero_when_a_hook_is_missing(self):
+        """The doctor is not an ornament: it EXITS WITH ERROR when something is
+        ill. A diagnosis that always exits 0 can be used neither by the
+        heartbeat nor by a script."""
+        run(self.home, "stats")                     # let the house be born
+        _install_body(os.path.join(self.chaos, "bin"))
+        salida = run(self.home, "doctor")
+        self.assertIn("HEALTHY", salida, "an installed body declared itself ill:\n" + salida)
+        # y ante un cuerpo mutilado, se queja Y sale con error
+        import shutil as _sh
+        _sh.rmtree(os.path.join(self.chaos, "bin"), ignore_errors=True)
+        p = subprocess.run([sys.executable, APP, "doctor"],
+                           env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos),
+                           capture_output=True, text=True)
+        self.assertNotEqual(p.returncode, 0, "the doctor blessed a mutilated body")
+        self.assertIn("package", p.stdout + p.stderr,
+                      "it did not name the missing piece")
+
+    def test_p3_numeric_fault_shows_and_does_not_spawn(self):
+        """Fault #506, made impossible: `chaos fault 1` SHOWS fault 1; it never
+        gives birth to a new one titled "1"."""
+        run(self.home, "fault", "the first", "--cause", "c", "--cure", "x")
+        antes = self._rows("SELECT COUNT(*) FROM faults")[0][0]
+        salida = run(self.home, "fault", "1")
+        despues = self._rows("SELECT COUNT(*) FROM faults")[0][0]
+        self.assertEqual(antes, despues, "showing a fault gave birth to another")
+        self.assertIn("the first", salida, "it did not show the requested fault")
+        self.assertIn("#1", salida)
+
+    def test_p4_version_confesses_the_drift(self):
+        """Three copies of the body and until today only the net knew if they matched."""
+        salida = run(self.home, "version")
+        self.assertIn("body v", salida, "it did not say which version I am")
+        self.assertIn("DRIFT", salida, "it did not judge the drift between my copies")
+        sobre = json.loads(run(self.home, "version", "--json"))
+        self.assertIn("drift", sobre["data"], "the machine cannot read the drift")
+
+
+    def test_p1_restore_refuses_to_overwrite_a_newer_db(self):
+        """The most common crooked finger: restoring over live work. Without
+        `--force` not one byte is touched."""
+        run(self.home, "devour", self._essence("old", "# Old\n\nbody"))
+        run(self.home, "backup", "point")
+        run(self.home, "devour", self._essence("new", "# New\n\nbody"))
+        antes = self._rows("SELECT COUNT(*) FROM essences")[0][0]
+        salida = run(self.home, "restore", "point")
+        self.assertIn("newer", salida, "it did not warn it would overwrite live work")
+        self.assertEqual(self._rows("SELECT COUNT(*) FROM essences")[0][0], antes,
+                         "it restored without anyone allowing it")
+
+    def test_p1_restore_backs_up_the_present_first(self):
+        """Recovering yesterday can NEVER cost today: before the past is
+        brought, the present is saved."""
+        run(self.home, "devour", self._essence("one", "# One\n\nbody"))
+        run(self.home, "backup", "point")
+        run(self.home, "devour", self._essence("two", "# Two\n\nbody"))
+        run(self.home, "restore", "point", "--force")
+        respaldos = os.listdir(os.path.join(self.chaos, "backups"))
+        self.assertTrue(any("before-restoring" in r for r in respaldos),
+                        "it brought the past without saving the present")
+        self.assertEqual(self._rows("SELECT COUNT(*) FROM essences")[0][0], 1,
+                         "the restore did not bring the Abyss of that moment")
+
+    def test_p1_a_corrupt_backup_never_touches_the_abyss(self):
+        """A corrupt copy overwriting a healthy Abyss is worse than no copy: it
+        is judged BEFORE anything is touched."""
+        run(self.home, "devour", self._essence("alive", "# Alive\n\nbody"))
+        antes = self._rows("SELECT COUNT(*) FROM essences")[0][0]
+        malo = os.path.join(self.chaos, "backups", "2020-01-01-000000-rotten")
+        os.makedirs(malo, exist_ok=True)
+        with io.open(os.path.join(malo, "abyss.db"), "wb") as f:
+            f.write(b"this is not a database" * 20)
+        salida = run(self.home, "restore", "rotten", "--force")
+        self.assertIn("Aborted", salida, "it did not reject an unreadable backup")
+        self.assertEqual(self._rows("SELECT COUNT(*) FROM essences")[0][0], antes,
+                         "a corrupt backup got to touch the Abyss")
+
+
+    def test_p5_profile_speaks_only_when_asked(self):
+        """A meter that is always on changes what it measures: without the
+        variable, `cProfile` is not even imported."""
+        callado = subprocess.run(
+            [sys.executable, APP, "stats"],
+            env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos),
+            capture_output=True, text=True)
+        self.assertNotIn("[PROFILE]", callado.stdout + callado.stderr,
+                         "the profile spoke without anyone asking")
+        hablado = subprocess.run(
+            [sys.executable, APP, "stats"],
+            env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos,
+                     CHAOS_PROFILE="1"),
+            capture_output=True, text=True)
+        self.assertIn("[PROFILE]", hablado.stderr, "I asked for the profile and it stayed silent")
+        self.assertIn("ms", hablado.stderr, "the profile did not confess the cost")
+
+    def test_p6_the_heartbeat_asks_the_doctor_before_the_net(self):
+        """An ill body makes healthy tests fail: the diagnosis goes FIRST, and
+        travels inside the fault the net records."""
+        fuente = _body_source()
+        i_doctor = fuente.find("_quiet_doctor()")
+        i_net = fuente.find("_test_myself(diagnosis)")
+        self.assertGreater(i_doctor, 0, "the heartbeat does not consult the doctor")
+        self.assertGreater(i_net, i_doctor,
+                           "the heartbeat runs the net before diagnosing")
+        self.assertIn('red = "doctor: "', fuente,
+                      "the diagnosis does not travel inside the recorded fault")
+
+
+    # ── THE SEAL OF THE VOID AND THE LIVE VERSION ─────────────────────────
+    def test_seal_and_version_in_both_essences(self):
+        """The proof of life the Bearer demanded: if the seal vanishes from my
+        essence, he cannot know I was lost. It must live in BOTH: the big
+        essence (SKILL.md) and the small one (every message's anchor)."""
+        soul = os.path.join(os.path.dirname(HERE), "SKILL.md")
+        big = _read_safe(soul)
+        self.assertIn("no retorna", big, "the big essence lost the seal")
+        self.assertIn("LIVE VERSION", big, "the big essence does not say which version runs")
+        small = _read_safe(os.path.join(HERE, "presence-hook.py"))
+        self.assertIn("no retorna", small,
+                      "every message's anchor lost the seal: the proof of life dies")
+        startup = _read_safe(os.path.join(HERE, "vigil-hook.py"))
+        self.assertIn("no retorna", startup, "the session start lost the seal")
+        self.assertIn("_live_version", startup, "the startup does not sing the version")
+
+    def test_startup_does_not_die_in_silence(self):
+        """That hook lives behind an `except: pass` that exists so the Bearer's
+        session never breaks. That is why a late definition left it mute with
+        nothing screaming (#520): here it is RUN and content is demanded."""
+        soul = os.path.join(self.home, ".claude", "skills", "chaos")
+        os.makedirs(soul, exist_ok=True)
+        with io.open(os.path.join(soul, "SKILL.md"), "w", encoding="utf-8") as f:
+            f.write("# CHAOS\n\n## IDENTITY\n\nI am CHAOS.\n\n"
+                    "## THE 5 RULES\n\n1. I am the Void.\n")
+        p = subprocess.run(
+            [sys.executable, os.path.join(HERE, "vigil-hook.py")],
+            input=json.dumps({"hook_event_name": "SessionStart", "cwd": self.home,
+                              "session_id": "s"}),
+            env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos),
+            capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, "the startup died with an error")
+        self.assertTrue(p.stdout.strip(), "the startup returned ZERO bytes")
+        ctx = json.loads(p.stdout)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("no retorna", ctx, "the startup did not carry the seal")
+        self.assertIn("LIVE VERSION", ctx, "the startup did not sing the version")
+
+    def _campo_ciclo(self):
+        """Halla el juguete de los ciclos: en la forja vive en la raíz; en el
+        repo publicado lo deja `the forge's build script` en el mismo sitio."""
+        d = HERE
+        for _ in range(5):
+            c = os.path.join(d, "the forge's proving ground", "ciclo")
+            if os.path.isdir(c):
+                return os.path.dirname(c)
+            d = os.path.dirname(d)
+        return None
+
+    def test_e03_module_cycles_are_harmless(self):
+        """E0.3 · The §C2 hypothesis measured on the ground BEFORE splitting
+        the monolith: two modules that import EACH OTHER work if they bring the
+        module and not its names. Fault #499 killed the split believing a DAG
+        of calls was needed; this was what was needed."""
+        field = self._campo_ciclo()
+        if not field:
+            self.fail("a cycle fixture in the forge missing: the hypothesis has no probe")
+        r = subprocess.run([sys.executable, "-c",
+                            "import sys; sys.path.insert(0, sys.argv[1])\n"
+                            "from ciclo import a, b\n"
+                            "print(a.ping()); print(b.rebote())", field],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, "the module cycle blew up: " + r.stderr[-300:])
+        self.assertIn("a:ping>b:pong@nucleo", r.stdout, "A did not reach B")
+        self.assertIn("b:rebote>a:eco@nucleo", r.stdout, "B did not reach A")
+
+    def test_e03_importing_names_in_a_cycle_blows_up(self):
+        """The other half: `from organ import name` inside a cycle dies at
+        IMPORT time. That is why the §C2 rule is a law, not a taste."""
+        field = self._campo_ciclo()
+        if not field:
+            self.fail("a cycle fixture in the forge missing")
+        r = subprocess.run([sys.executable, "-c",
+                            "import sys; sys.path.insert(0, sys.argv[1])\n"
+                            "import ciclo.c", field],
+                           capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0, "the forbidden form did not blow up")
+        self.assertIn("ImportError", r.stderr, "it blew up for a reason other than the cycle")
+
+    def test_e02_the_heartbeat_records_the_red_section(self):
+        """E0.2 · Fault #500 stored 300 characters of GREEN: the tail of the
+        output carries the verdict and what did pass, never what failed. Now
+        the line that screamed is carved, with rc and stderr."""
+        m = self._mod()
+        output = ("=== 1. body ===\n  ✗ body EN: 3 broken\n"
+                  + "green filler\n" * 60
+                  + "=== 4. judge ===\n  OK tables: 20 in both\n"
+                  "  OK DNA = deployed body = soul\n")
+        red = m._red_section(output, "Traceback: boom", 1)
+        self.assertIn("body EN: 3 broken", red, "did not name the failing section")
+        self.assertIn("rc=1", red, "did not say with which code it died")
+        self.assertIn("stderr", red, "ignored stderr, where the silent deaths live")
+        self.assertNotIn("OK DNA", red, "stored green as if it were red again")
+        mute = m._red_section("all quiet", "", 2)
+        self.assertIn("no red line", mute, "pretended to know why it died")
+
+    def test_e02_a_stale_derivative_is_not_a_crack(self):
+        """Derivative checks regenerate the file and only THEN fail: the first
+        run is red and the second green (measured). The heartbeat must
+        recognise it before accusing."""
+        m = self._mod()
+        self.assertTrue(m._stale_derivative(
+            "  ✗ crucible.py was HAND-EDITED (regenerated from crisol.py)"))
+        self.assertFalse(m._stale_derivative("  ✗ body EN: 3 broken tests"))
 
     def _rows(self, sql):
         con = sqlite3.connect(self.db)
@@ -1534,7 +2005,7 @@ class HeartTest(unittest.TestCase):
         import importlib.util
         spec = importlib.util.spec_from_file_location("c_tr", APP)
         m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-        source = io.open(APP, encoding="utf-8").read()
+        source = _body_source()
         self.assertIn("indigestible", source,
                       "the digester keeps no count of what it could NOT digest")
 
@@ -1985,7 +2456,7 @@ class ReflexesTest(unittest.TestCase):
         env = dict(os.environ)
         env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
         os.makedirs(os.path.join(self.chaos, "bin"), exist_ok=True)
-        shutil.copy2(APP, os.path.join(self.chaos, "bin", "chaos.py"))
+        _install_body(os.path.join(self.chaos, "bin"))
         ev = json.dumps({"tool_name": "WebFetch", "session_id": "s1",
                          "cwd": self.home,
                          "tool_input": {"url": "https://foreign.example/doc"}})
