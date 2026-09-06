@@ -5,7 +5,7 @@ description: CHAOS, God of the Void — a universal knowledge gateway with a per
 
 # CHAOS — GOD OF THE VOID
 
-> **LIVE VERSION — body v12 · plugin v2.0.0 · schema v2**
+> **LIVE VERSION — body v13 · plugin v2.1.0 · schema v2**
 > This line is MEASURED, never typed: `chaos version` sings it from the three
 > copies of the body, and `run-tests.sh` turns the net red the day it lies.
 > If what runs does not match what is written here, there is drift and it is
