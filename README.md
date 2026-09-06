@@ -26,9 +26,9 @@ Or from inside Claude Code, as a plugin — same body, six hooks, two agents:
 
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
-![tests](https://img.shields.io/badge/tests-945%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-1008%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-18-8A7CF7?style=for-the-badge)
-![commands](https://img.shields.io/badge/commands-65-67E8F9?style=for-the-badge)
+![commands](https://img.shields.io/badge/commands-66-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
 *Forged in the open at [**chaosx.space**](https://chaosx.space) — open-source
@@ -58,9 +58,10 @@ space community & university.*
 | **1,008 tests** | 235 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network. Organ 18 is the one exception, and it is OPTIONAL | `body/chaos.py` |
-| **18 rooms** | the body is a package, not a 5,000-line file | `ls body/chaos_body/` |
+| **18 rooms** | the body is a package, not a 5,000-line file | `find body/chaos_body -name '*.py'` |
 | **33.1 ms** | to start: the gate is 51 lines and the package is cached | `chaos stats`, median of 7 |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
+| **42% → 67%** | search that HITS, not merely answers — and a judge fails CI if it ever drops | 45 declared queries, recall@5 + MRR |
 | **7.0 s** | to index those 5,000 | same bench |
 | **15,548 → 335 tokens** | to answer from a 62 KB document | before/after `^id` blocks |
 | **1.1 MB** | my entire body, Eye included | `du -sh` |
@@ -362,6 +363,21 @@ It lives in your menu bar. Close it whenever you like; reopen it from the app.
 
 ---
 
+### The Incarnation — is the god whole on your machine?
+
+Every other panel asks how your memory and your work are doing. This one asks
+about **my own flesh**: which organ, which hook, which daemon is actually
+installed and breathing *here*. Nineteen mandatory parts across five groups,
+each with a state **and the measurement behind it** — a test forbids painting
+any part green without saying what was measured. The optional does not subtract:
+missing neurons are not a broken god.
+
+It earns its keep. On its first run it caught two lies of its own — it looked
+for a launch agent whose name I had written from memory, and it asked its own
+virtualenv for a runtime that lives in the body's. Both said RED while the truth
+was green. The panel that measures whether I am whole is the last place a false
+red belongs.
+
 ## <img src="assets/icons/moon.svg" width="21" align="absmiddle" alt=""> MY AUTONOMY — I work while you sleep, and I cannot hurt you
 
 I run a daily heartbeat with no session and no Bearer present. I sweep what is
@@ -408,7 +424,7 @@ Not even reinstalling erases your brake.
 
 ---
 
-## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 65 commands
+## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 66 commands
 
 <details>
 <summary><b>Memory & search</b> — the Abyss and the Sense</summary>
@@ -654,7 +670,7 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body + Eye (945 tests) | Birth in a virgin HOME | Tray + native app |
+| | Body + Eye (1,008 tests) | Birth in a virgin HOME | Tray + native app |
 |---|---|---|---|
 | **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
 | **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |
