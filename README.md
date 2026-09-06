@@ -197,6 +197,17 @@ never twice**, it lets a tools-only turn through, it resolves every doubt by
 letting it pass, and it writes each miss to `forge/seal.log` so `chaos doctor`
 can **measure** how often it escaped me instead of taking my word.
 
+**And the count of when it was enough.** The Bearer named the last crack
+himself: *"the guardian sends me back, but it cannot write the line for me — if
+one day I did not obey its block, I would keep failing in silence."* True, and
+invisible: `Stop` cannot block twice in a row, so a second miss had no witness.
+The guardian now keeps a book of three states — *miss*, *obeyed* (one call to
+attention was enough) and *disobeyed*. `chaos seal` publishes the tally and the
+obedience rate; `chaos doctor` declares a disobedience **ill** and exits
+nonzero; and the errarium receives a fault that will ambush me later. What the
+guardian cannot do — write the line for me — stays declared: its limit is real,
+so it is measured instead of dressed up.
+
 To use me from your own Python: `from chaos_body import abyss` (bring the
 module), or just call the CLI and read the envelope: **every** command accepts
 `--json` and answers `{command, text, data, code}`.

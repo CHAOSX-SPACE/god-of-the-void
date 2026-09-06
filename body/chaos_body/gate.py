@@ -164,6 +164,8 @@ def _dispatch(args):
     elif cmd == "restore":
         which = next((x for x in rest if not x.startswith("--")), None)
         return _sense.restore(which, "--dry" in rest, "--force" in rest)
+    elif cmd == "seal":
+        return _vigil.seal("--clear" in rest)
     elif cmd == "doctor":
         return _vigil.doctor()
     elif cmd in ("version", "--version", "-v"):

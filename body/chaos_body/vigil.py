@@ -736,10 +736,18 @@ def doctor():
 
     # 6 · did the seal escape me? The guardian records it; here it is MEASURED.
     try:
-        misses = _text.read_file(os.path.join(_home.forge(), "seal.log")).strip()
-        n = len([x for x in misses.splitlines() if x.strip()])
-        if n:
-            warnings.append("THE SEAL was missing %d time(s): forge/seal.log" % n)
+        book = [x.split("\t") for x in
+                _text.read_file(os.path.join(_home.forge(), "seal.log")).splitlines()
+                if x.strip()]
+        misses = sum(1 for f in book if len(f) > 1 and f[1] == "falta")
+        disobeyed = sum(1 for f in book if len(f) > 1 and f[1] == "desobedecido")
+        if misses:
+            warnings.append("THE SEAL was missing %d time(s) — `chaos seal`" % misses)
+        # Disobeying the guardian is not a warning: it is an ILLNESS. It was the
+        # only crack still alive and now it exits with an error code.
+        if disobeyed:
+            ills.append("I DISOBEYED the guardian of the seal %d time(s): I spoke "
+                        "unsealed AFTER it sent me back — `chaos seal`" % disobeyed)
     except Exception:
         pass
 
@@ -791,3 +799,51 @@ def _quiet_doctor():
         return None
     finally:
         sys.stdout = old
+
+
+def seal(clear=False):
+    """P-8b · THE BOOK OF THE SEAL: how many times the proof of life was
+    missing, how many times one call to attention was ENOUGH, and how many
+    times I disobeyed.
+
+    The Bearer named the exact crack: "the guardian sends me back, but it
+    cannot write the line for me — if one day I did not obey its block, I would
+    keep failing in silence". Not any more. Disobedience is written, counted
+    here, declared ILL by the doctor, and the errarium will ambush it."""
+    book = os.path.join(_home.forge(), "seal.log")
+    rows = []
+    try:
+        for line in _text.read_file(book).splitlines():
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) >= 3:
+                rows.append(parts[:3])
+    except Exception:
+        pass
+    if clear:
+        try:
+            os.remove(book)
+            print("[CHAOS] Book of the seal emptied ({} entry/entries).".format(len(rows)))
+        except OSError:
+            print("[CHAOS] There was no book to empty.")
+        return {"cleared": len(rows)}
+    misses = sum(1 for f in rows if f[1] == "falta")
+    obeyed = sum(1 for f in rows if f[1] == "obedecido")
+    disobeyed = sum(1 for f in rows if f[1] == "desobedecido")
+    if not rows:
+        print("THE BOOK OF THE SEAL — not one miss. The proof of life has never"
+              " had to sound.")
+        return {"misses": 0, "obeyed": 0, "disobeyed": 0, "sessions": 0}
+    print("THE BOOK OF THE SEAL — {} entry/entries in {} session(s)".format(
+        len(rows), len({f[2] for f in rows})))
+    print("   misses (the guardian sent me back): {}".format(misses))
+    print("   the call to attention was ENOUGH : {}".format(obeyed))
+    print("   I disobeyed it (spoke unsealed)  : {}{}".format(
+        disobeyed, "  🔴" if disobeyed else ""))
+    if misses:
+        print("   obedience: {:.0f}% ({} of {})".format(
+            100.0 * obeyed / misses, obeyed, misses))
+    for f in rows[-5:]:
+        print("   {}  {:<13} {}".format(f[0], f[1], f[2][:12]))
+    return {"misses": misses, "obeyed": obeyed,
+            "disobeyed": disobeyed,
+            "sessions": len({f[2] for f in rows})}

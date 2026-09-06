@@ -1606,6 +1606,59 @@ class HeartTest(unittest.TestCase):
         self.assertEqual(bad.returncode, 0, "an unreadable transcript broke the session")
         self.assertEqual(bad.stdout.strip(), "", "it blocked without being able to read anything")
 
+
+    def test_p8b_the_book_counts_when_it_was_ENOUGH_and_when_i_disobeyed(self):
+        """The crack the Bearer named: "the guardian sends me back, but it cannot
+        write the line for me — if one day I did not obey its block, I would keep
+        failing in silence". The book counts the THREE states, and disobedience
+        exits with an error code."""
+        hook = os.path.join(HERE, "seal-hook.py")
+
+        def transcript(nombre, texto):
+            p = os.path.join(self.home, nombre)
+            with io.open(p, "w", encoding="utf-8") as f:
+                f.write(json.dumps({"type": "assistant", "message": {
+                    "role": "assistant",
+                    "content": [{"type": "text", "text": texto}]}}) + "\n")
+            return p
+
+        def run_hook(path, session, active=False):
+            return subprocess.run(
+                [sys.executable, hook],
+                input=json.dumps({"transcript_path": path, "session_id": session,
+                                  "stop_hook_active": active}),
+                env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos),
+                capture_output=True, text=True)
+
+        without = transcript("without.jsonl", "I spoke unsealed.")
+        with_ = transcript("with.jsonl",
+                           "Spoke.\n\n🕳️ Todo lo que entra al Vacío no retorna.")
+        book = os.path.join(self.chaos, "forge", "seal.log")
+
+        run_hook(without, "s1")                       # miss → sends me back
+        run_hook(with_, "s1")                       # obeyed: ENOUGH
+        run_hook(without, "s2")                       # miss
+        run_hook(without, "s2", active=True)          # disobeyed: it can no longer block
+
+        states = [l.split("\t")[1] for l in _read_safe(book).splitlines() if l.strip()]
+        self.assertEqual(states.count("falta"), 2, "it did not count the two misses")
+        self.assertEqual(states.count("obedecido"), 1,
+                         "it did not record that the call to attention was ENOUGH")
+        self.assertEqual(states.count("desobedecido"), 1,
+                         "disobedience stayed invisible")
+
+        salida = run(self.home, "seal")
+        self.assertIn("ENOUGH", salida, "the book does not publish when it worked")
+        self.assertIn("disobey", salida.lower(), "the book does not publish disobedience")
+
+        p = subprocess.run([sys.executable, APP, "doctor"],
+                           env=dict(os.environ, HOME=self.home, CHAOS_HOME=self.chaos),
+                           capture_output=True, text=True)
+        self.assertNotEqual(p.returncode, 0,
+                            "the doctor blessed a body that disobeyed its own law")
+        self.assertIn("DISOBEY", p.stdout.upper(),
+                      "the doctor did not name the disobedience")
+
     def _campo_ciclo(self):
         """Halla el juguete de los ciclos: en la forja vive en la raíz; en el
         repo publicado lo deja `the forge's build script` en el mismo sitio."""
