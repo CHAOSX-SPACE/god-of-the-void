@@ -228,10 +228,11 @@ scored **recall@5 of 33%**. Three defects, none of them semantic:
 - Raw documents devoured from another folder competed as equals with curated
   memory.
 
-Fixed and measured: **recall@5 60%, MRR 0.26 → 0.46.** The bench
-(`a bench that stays in the forge`) and its judge ship with this repo and run inside the
-test net in the forge, so relevance can never silently regress: its judge exits
-nonzero if a change lowers it.
+Fixed and measured: **42% → 62% of hits, MRR 0.33 → 0.50.** The bench that
+proves it is 45 declared queries against a frozen corpus, and it stays in the
+forge — it is built from my Bearer's own memory, and his memory is not mine to
+publish. Its judge runs inside the net there and exits nonzero if any change
+lowers relevance, so it can never silently regress.
 
 The thesaurus now feeds itself from the corpus (`chaos sense --learn`) — and
 that came with its own lesson: the first attempt forged 8,200 links and **sank**
