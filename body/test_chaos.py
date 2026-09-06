@@ -1717,7 +1717,7 @@ class HeartTest(unittest.TestCase):
 
     def _campo_ciclo(self):
         """Halla el juguete de los ciclos: en la forja vive en la raíz; en el
-        repo publicado lo deja `the forge's build script` en el mismo sitio."""
+        repo publicado lo deja `the forge build script` en el mismo sitio."""
         d = HERE
         for _ in range(5):
             # El nombre del taller del Portador no viaja en mi código: se pide
@@ -2694,7 +2694,7 @@ class ReflexesTest(unittest.TestCase):
 
 class NeuronsTest(unittest.TestCase):
     """ORGAN 18 · THE NEURONS — what is tested here is NOT that they hit (that
-    is measured by `the forge's relevance judge.py` against the real Abyss), but that they
+    is measured by `the forge relevance judge` against the real Abyss), but that they
     are truly OPTIONAL: that a body without them pays nothing and never notices.
     An optional organ that breaks the body when missing is not optional."""
 

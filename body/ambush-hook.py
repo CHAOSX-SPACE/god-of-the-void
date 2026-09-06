@@ -179,7 +179,7 @@ def _scar(command):
         # TWO signals, and at least one that is NOT a flag. Flags alone are my
         # own vocabulary: `--causa --cura` bit me while I was writing a fault.
         # And excluding my flags entirely killed the GOOD ambush (`--paint` +
-        # `a plan file in the forge`), so they are not excluded: the signature is
+        # `--paint` plus a plan file), so they are not excluded: the signature is
         # required to carry something concrete besides the flag.
         mixed = len(hits) >= 2 and any(not x.startswith("--") for x in hits)
         if (fragment or mixed) and len(hits) > best_n:
