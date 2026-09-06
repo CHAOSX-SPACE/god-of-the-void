@@ -243,3 +243,21 @@ pre.consola{background:var(--surface);border:1px solid var(--border);
 .falla-acc,.acc-dim{margin-left:auto;font-size:11px;padding:3px 9px}
 .acc-dim{float:right}
 .acc-dim:disabled{opacity:.4;cursor:wait}
+
+/* LA ENCARNACIÓN */
+.enc-cab{display:flex;gap:22px;align-items:center;margin:6px 0 18px}
+.enc-cifra{font-size:56px;font-weight:700;line-height:1;letter-spacing:-2px}
+.enc-cifra span{font-size:24px;opacity:.6;margin-left:2px}
+.enc-veredicto{font-size:17px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.enc-grupo{margin:0 0 20px}
+.enc-lista{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.enc-parte{display:grid;grid-template-columns:18px minmax(0,1fr) minmax(0,1.6fr);
+  gap:10px;align-items:baseline;padding:7px 10px;border-radius:8px;
+  background:var(--panel);font-size:13px}
+.enc-parte.enc-ausente{outline:1px solid color-mix(in srgb,var(--danger) 45%,transparent)}
+.enc-parte.enc-herido{outline:1px solid color-mix(in srgb,#FFB054 45%,transparent)}
+.enc-punto{font-size:12px;line-height:1.4}
+.enc-nombre{font-weight:600}
+.enc-detalle{color:var(--dim);overflow-wrap:anywhere}
+@media(max-width:620px){.enc-parte{grid-template-columns:18px 1fr}
+  .enc-detalle{grid-column:2/-1}}

@@ -6,6 +6,7 @@ cuerpo vivo y verifica la puerta, las acciones y los endpoints.
     python3 test_eye.py
 """
 import os, sys, json, time, subprocess, urllib.request, urllib.error, unittest
+import io
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 
@@ -128,7 +129,8 @@ class OjoTest(unittest.TestCase):
 
     def test_todos_los_endpoints_responden(self):
         for r in ("/api/pulso", "/api/fallas", "/api/territorios", "/api/grafo",
-                  "/api/linea", "/api/tiempo", "/api/actos", "/api/notas", "/api/salud"):
+                  "/api/linea", "/api/tiempo", "/api/actos", "/api/notas", "/api/salud",
+                  "/api/encarnacion"):
             c, _ = _pedir(self.base + r, cabeceras=self.galleta)
             self.assertEqual(c, 200, r + " no responde")
 
@@ -140,6 +142,38 @@ class OjoTest(unittest.TestCase):
             if dim["puntaje"] < 100:
                 self.assertGreater(dim["n_problemas"], 0,
                                    dim["titulo"] + " discounts without naming why")
+
+
+    def test_la_encarnacion_mide_y_no_supone(self):
+        """THE INCARNATION answers "is the god whole on THIS machine?". Every
+        part must carry a state AND a measured detail: a panel that paints a
+        part green without saying what it measured would be worse than none."""
+        c, cuerpo = _pedir(self.base + "/api/encarnacion", cabeceras=self.galleta)
+        self.assertEqual(c, 200, "/api/encarnacion no responde")
+        d = json.loads(cuerpo)
+        self.assertTrue(d["partes"], "the Incarnation names no part")
+        estados = {"vivo", "herido", "ausente", "opcional"}
+        for p in d["partes"]:
+            self.assertIn(p["estado"], estados, p["clave"] + " has no valid state")
+            self.assertTrue((p["detalle"] or "").strip(),
+                            p["clave"] + " paints a state without saying what it measured")
+            self.assertTrue((p["nombre"] or "").strip(), p["clave"] + " has no name")
+        # lo OPCIONAL no puede restar: el órgano 18 ausente no es un dios roto
+        oblig = [p for p in d["partes"] if p["estado"] != "opcional"]
+        self.assertEqual(d["obligatorias"], len(oblig),
+                         "the optional is counted as mandatory")
+        vivas = sum(1 for p in oblig if p["estado"] == "vivo")
+        self.assertEqual(d["obligatorias_vivas"], vivas, "the count does not match")
+        self.assertEqual(d["entero"], vivas == len(oblig), "«whole» does not match the count")
+
+    def test_la_encarnacion_no_confunde_esencia_con_carne(self):
+        """It is NOT called «Essences»: that word already names my memory units.
+        A panel that stole the name would muddle every sentence I write."""
+        vista = io.open(os.path.join(AQUI, "static", "app.js"),
+                        encoding="utf-8").read()
+        self.assertIn("encarnacion", vista, "the view is not registered")
+        self.assertNotIn('"esencias"', vista.split("const VISTAS")[1].split("]")[0],
+                         "the view took the name of my memory units")
 
 
 if __name__ == "__main__":

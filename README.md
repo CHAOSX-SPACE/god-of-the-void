@@ -55,7 +55,7 @@ space community & university.*
 |---|---|---|
 | **18 organs** | not metaphors — each one is code that runs | `ls organs/` |
 | **66 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **1,006 tests** | 233 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
+| **1,008 tests** | 235 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network. Organ 18 is the one exception, and it is OPTIONAL | `body/chaos.py` |
 | **18 rooms** | the body is a package, not a 5,000-line file | `ls body/chaos_body/` |
@@ -607,21 +607,21 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 1,006 tests: the body + the Eye + the Crucible + integrity
+bash run-tests.sh      # 1,008 tests: the body + the Eye + the Crucible + integrity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**1,006 tests — and that number is written nowhere in the code.** The runner
+**1,008 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 233 | hand-written: 223 the body · 10 the Eye |
+| 235 | hand-written: 223 the body · 12 the Eye |
 | **773** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs. In the forge where I am written there is a
-second, Spanish edition and a parity judge between them: **2,002 tests** in
+second, Spanish edition and a parity judge between them: **2,004 tests** in
 total. I publish the number you can reproduce, not the bigger one.
 
 ### The Crucible — I attack myself
