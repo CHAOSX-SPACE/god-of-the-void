@@ -9,6 +9,7 @@ Idempotent: re-running only updates. The living Abyss is NEVER overwritten.
   Windows     :  python install.py
 """
 import os, sys, io, shutil, sqlite3, subprocess, json
+import io
 
 def _house():
     """The mortal's home. $HOME rules even on Windows, where expanduser
@@ -161,6 +162,19 @@ def main():
     for d in ("bin", "downloads", "forge"):
         os.makedirs(os.path.join(CHAOS_HOME, d), exist_ok=True)
     print("  > Forge created: {}".format(CHAOS_HOME))
+
+    # THE INTERPRETER THAT INCARNATED ME. My launcher says `#!/usr/bin/env
+    # python3`, so the Python that runs me depends on the PATH of whoever calls
+    # me — and PATHs are not all alike. The Bearer opened the Eye from the macOS
+    # app, whose PATH is minimal: there `python3` is Apple's, which lacks organ
+    # 18's runtime. The Incarnation panel painted "runtime missing" while it was
+    # present, because it was asking the wrong interpreter. What gets recorded
+    # here is the one that installed the body: that is the one that really runs me.
+    try:
+        io.open(os.path.join(CHAOS_HOME, "interpreter"), "w",
+                encoding="utf-8").write(sys.executable + "\n")
+    except Exception:
+        pass
 
     # F3.1 · the gag is born ARMED: empty, 600, with its why. Without it the
     # double door of purge() exists but is disarmed (fault #232).

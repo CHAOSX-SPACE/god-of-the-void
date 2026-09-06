@@ -751,6 +751,27 @@ def _skill_dir():
     return None
 
 
+
+def _interprete():
+    """El Python que de VERDAD corre el cuerpo, no el que yo tenga a mano.
+
+    Yo vivo en mi propio venv y la app de macOS me arranca con un PATH mínimo
+    donde `python3` es el de Apple. Preguntarle a cualquiera de los dos por el
+    runtime del órgano 18 da un NO falso: el panel dijo «falta el runtime»
+    teniéndolo, y el Portador lo vio antes que yo porque yo lo probé desde una
+    terminal con el PATH entero. `install.py` graba el intérprete que encarnó
+    al cuerpo; ese es el único que responde por él."""
+    try:
+        p = io.open(os.path.join(CHAOS_HOME, "interprete" if ES else "interpreter"),
+                    encoding="utf-8").read().strip()
+        if p and os.path.exists(p):
+            return p
+    except Exception:
+        pass
+    import shutil
+    return shutil.which("python3") or sys.executable
+
+
 def api_encarnacion():
     P = []
     G1 = _t("EL CUERPO", "THE BODY")
@@ -908,8 +929,7 @@ def api_encarnacion():
         # va a usar el modelo, y ese es el cuerpo.
         runtime = False
         try:
-            r = subprocess.run([sys.executable if not os.path.exists(CHAOS_APP)
-                                else "python3", CHAOS_APP,
+            r = subprocess.run([_interprete(), CHAOS_APP,
                                 "neuronas" if ES else "neurons", "--json"],
                                capture_output=True, text=True, timeout=20)
             runtime = bool((json.loads(r.stdout or "{}").get("datos") or {}).get("runtime"))
