@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""THE SCHEMA — the Abyss's 20 tables, in ONE room.
+"""THE SCHEMA — the Abyss's 21 tables, in ONE room.
 
 They used to live in twenty-five places: some in `db()`, others hidden
 inside the function that used them. Adding a table meant guessing where,
@@ -14,7 +14,7 @@ base ready for migrations that apply themselves.
 import sqlite3
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 def ensure(con):
@@ -112,9 +112,19 @@ def ensure(con):
     if not row:
         con.execute("CREATE VIRTUAL TABLE blocks USING fts5(content,"
                     " slug UNINDEXED, block_id UNINDEXED, " + TOK + ")")
+    # ══ ORGAN 18 · THE VECTORS (optional) ════════════════════════════════
+    # It lives here even though the organ is optional: an empty table weighs
+    # nothing and judge E3.3 forbids a CREATE TABLE outside this room. If the
+    # neurons are never installed, this stays empty forever and nobody notices.
+    # `fingerprint` is what makes indexing incremental: what did not change is
+    # not thought again.
+    con.execute("CREATE TABLE IF NOT EXISTS vectors("
+                "slug TEXT, block_id TEXT, fingerprint TEXT, dim INTEGER, vec BLOB,"
+                " PRIMARY KEY(slug, block_id))")
     # C6 · schema version: an honest base for future migrations
     v = con.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
-    if not v:
+    if not v or v[0] != str(SCHEMA_VERSION):
+        # It was born and never rose: a v2 Abyss still said 2 after migrating.
         con.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', ?)",
                     (str(SCHEMA_VERSION),))
         con.commit()

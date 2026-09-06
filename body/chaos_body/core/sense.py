@@ -195,7 +195,7 @@ POISON = re.compile(
                       # Front 15: the Eye compares and, if it runs ahead,
                       # SAYS SO with the exact command. Degrading in
                       # silence is lying by omission.
-SCHEMA_VERSION = 2   # C6: migrations stop guessing by sniffing SQL
+SCHEMA_VERSION = _schema.SCHEMA_VERSION   # UNA sola fuente: la copia de aquí ya se quedó atrás una vez
 
 _GAG_CACHE = None
 

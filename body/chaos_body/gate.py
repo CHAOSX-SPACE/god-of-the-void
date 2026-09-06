@@ -77,6 +77,8 @@ Usage:
   chaos version                                       P-4 · my versions and the drift between my three copies
   chaos restore [<backup>] [--dry] [--force]          P-1 · the inverse of backup, with four guards
   chaos fault <id>                                    P-3 · SHOWS a fault (creating demands a text title)
+  chaos neurons [install|index|off|on|uninstall]       ORGAN 18 · OPTIONAL: one seat of the Sense for a model with world knowledge (~135 MB)
+  chaos neurons resident [on|off|auto yes/no|life N]   THE RESIDENT: model kept warm on a 0600 socket (419->92 ms); born alone, dies when your session closes
 """
 import os, sys
 import time
@@ -114,6 +116,13 @@ def _dispatch(args):
     elif cmd == "search" and rest:
         brief = "--brief" in rest
         return _abyss.search(" ".join(x for x in rest if x != "--brief"), brief)
+    elif cmd == "neurons":
+        # ORGAN 18 · the only command that imports the organ, and only when it
+        # is called: the core never drags 118 MB of model along for a `stats`.
+        from chaos_body import neurons as _neurons
+        return _neurons.neurons(rest[0] if rest else None,
+                                rest[1] if len(rest) > 1 else None,
+                                rest[2] if len(rest) > 2 else None)
     elif cmd == "sense" and "--learn" in rest:
         return _sense.sense_learn("--dry" in rest)
     elif cmd == "sense":                 return _sense.sense(rest[0] if rest else None, rest[1:] if len(rest) > 1 else None)

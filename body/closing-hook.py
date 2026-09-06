@@ -10,6 +10,8 @@ been failing for DAYS (508 unsedimented lines).
                 which the Presence of the next session will bring to light.
 Fail-safe: it never breaks the closing."""
 import sys, os, json, sqlite3, datetime
+import signal
+import io
 
 # E1.3 · ONE truth about where the god lives: the leaf `home.py`, which
 # travels next to this hook in `bin/`. Before, each hook copied the rule.
@@ -80,10 +82,44 @@ def record_debt(session, n, paths):
         pass
 
 
+def release_the_resident(event):
+    """WHEN THE SESSION CLOSES, THE RESIDENT LEAVES. (organ 18)
+
+    The neurons' resident holds four hours without visitors so that a coffee
+    does not cost the Bearer another 506 ms search. Four hours of a live process
+    would be a loose daemon... if nobody cut them. This cuts them: when the
+    Bearer closes his session, the ~200 MB are handed straight back.
+
+    I do not measure his working day to guess when he finished — I obey the
+    boundary HE ALREADY DRAWS by closing. And I do not import organ 18 to do it:
+    I read its pid and send the signal. A hook that dragged 118 MB of model
+    along to kill a process would break that very organ's law.
+    """
+    if event != "SessionEnd":
+        return False
+    house = os.path.join(_home.root(), "neurons")
+    killed = False
+    try:
+        pid = int(io.open(os.path.join(house, "resident.pid"),
+                          encoding="utf-8").read().strip())
+        os.kill(pid, signal.SIGTERM)
+        killed = True
+    except Exception:
+        pass          # already dead: its remains still have to be swept, and
+                      # not left behind as I left them the first time I wrote this
+    for p in ("resident.sock", "resident.pid", "resident.being-born"):
+        try:
+            os.remove(os.path.join(house, p))
+        except OSError:
+            pass
+    return killed
+
+
 def main():
     ev = json.load(sys.stdin)
     event = ev.get("hook_event_name", "")
     session = ev.get("session_id", "") or ""
+    release_the_resident(event)
     n, paths, gazes, devourings = pending(session)
 
     # O-1 · THE LAW OF SEDIMENT, CHARGED. Researching and not sedimenting

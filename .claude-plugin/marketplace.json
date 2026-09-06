@@ -9,8 +9,8 @@
     {
       "name": "god-of-the-void",
       "source": ".",
-      "version": "2.3.0",
-      "description": "17 organs, persistent SQLite memory, an errarium that stops mistakes from repeating, a two-way Purge, and an Ambush that warns before you act. Zero dependencies.",
+      "version": "2.4.0",
+      "description": "18 organs, persistent SQLite memory, an errarium that stops mistakes from repeating, a two-way Purge, and an Ambush that warns before you act. Zero dependencies.",
       "category": "productivity",
       "keywords": [
         "memory",

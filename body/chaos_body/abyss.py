@@ -126,6 +126,26 @@ def _mark_use(con, slugs):
                         " last_query = ? WHERE slug = ?", (today, s))
         except sqlite3.OperationalError:
             return
+    # == WHERE THE BEARER ACTUALLY SEARCHES ================================
+    # I measured his 433 real sessions: 19% consult my memory and 81% never do.
+    # But it is not evenly spread — in his main project he searches 91% of the
+    # time and in the subagents one, 1%. Lighting the resident in EVERY session
+    # would mean paying ~200 MB in four out of five for nothing; lighting it
+    # where he really searches is the good trade. To know that I guess nothing:
+    # I count it here, inside the same `commit` that already happened. Cost:
+    # zero new queries.
+    try:
+        ter = _territory.territory_name(os.getcwd())
+    except Exception:
+        ter = ""
+    if ter:
+        try:
+            con.execute("INSERT INTO meta(key, value) VALUES (?, '1')"
+                        " ON CONFLICT(key) DO UPDATE SET"
+                        " value = CAST(CAST(value AS INTEGER) + 1 AS TEXT)",
+                        ("searches:" + ter,))
+        except sqlite3.Error:
+            pass
     con.commit()
 
 def stale(days=90):
@@ -163,27 +183,88 @@ def search(query, brief=False):
     con = _sense.db()
     fts_q = _text._fts_query(query)
     _errarium._faults_ambush(con, fts_q)
-    # ══ E2 · THE BLOCKS first ═════════════════════════════════════════════
-    # If the essence has addressable paragraphs, I return THE PARAGRAPH
-    # (~50 tokens) instead of the whole file (~8,000). The Collapse applied to
-    # my own memory: my Rule of waste stops violating itself.
+    # ══ THE JUDGMENT OF RELEVANCE ════════════════════════════════════════
+    # There used to be a `return` here: if ONE block matched, the essences were
+    # never consulted. A limp block from another project beat the exact essence
+    # by decree — measured: recall@5 of 33%, and EVERY failure was a foreign
+    # block. Now both compete with the SAME bm25 and the better measurement
+    # wins. A block is still preferred over its OWN essence: it is the same
+    # memory in 50 tokens instead of 8,000.
+    top = 3 if brief else 5
+    candidates = []
     try:
-        blocks = con.execute(
-            "SELECT slug, block_id, content FROM blocks WHERE blocks MATCH ?"
-            " ORDER BY rank LIMIT ?", (fts_q, 3 if brief else 5)).fetchall()
+        for slug, bid, text, points in con.execute(
+                "SELECT slug, block_id, content, bm25(blocks) FROM blocks"
+                " WHERE blocks MATCH ? ORDER BY rank LIMIT ?", (fts_q, top * 3)):
+            candidates.append((points, "block", slug, bid, text))
     except sqlite3.OperationalError:
-        blocks = []
-    if blocks:
-        _mark_use(con, [b[0] for b in blocks])
-        for slug, bid, text in blocks:
-            t = " ".join(text.split())
-            # MEASURED: 5 blocks x 400 chars cost MORE than the snippets they
-            # replaced. Precision does not justify waste: in lean mode,
-            # 3 blocks x 260 characters.
-            cap = 260 if brief else 400
-            t = t if len(t) <= cap else t[:cap] + " ..."
-            print("{}#^{}: {}".format(slug, bid, t) if brief
-                  else "▪ {}#^{}\n  {}\n".format(slug, bid, t))
+        pass
+    try:
+        for slug, title, origin, date, frag, points in con.execute(
+                "SELECT slug, title, origin, date,"
+                " snippet(essences, 2, '>>', '<<', ' ... ', 18), bm25(essences)"
+                " FROM essences WHERE essences MATCH ? ORDER BY rank LIMIT ?",
+                (fts_q, top * 3)):
+            candidates.append((points, "essence", slug, (title, origin, date), frag))
+    except sqlite3.OperationalError:
+        pass
+    if candidates:
+        # CURATED MEMORY WEIGHS MORE THAN A RAW DOCUMENT. An essence with a
+        # declared type, or resident (born of my hand), is MEMORY; a foreign
+        # dossier devoured whole is raw material. Without this, 50 blocks of a
+        # legal file drowned the exact essence.
+        # MIND THE SIGN: bm25 returns NEGATIVES and lower is better, so to
+        # reward is to MULTIPLY (make more negative). I tried it the other way
+        # and the bench fell from 60% to 0%: the "reward" was a punishment.
+        # The x1.25 was chosen by measuring: 1.10 gives MRR 0.42 and from 1.25
+        # onward the curve flattens at 0.46. The MINIMUM that reaches the peak
+        # is taken — tilting further buys nothing and crushes good signal.
+        try:
+            curated = {r[0] for r in con.execute(
+                "SELECT slug FROM essence_meta WHERE resident=1"
+                " OR (type IS NOT NULL AND type <> '')")}
+        except sqlite3.Error:
+            curated = set()
+        if curated:
+            rewarded = []
+            for c in candidates:
+                points, slug = c[0], c[2]
+                rewarded.append((points * 1.25 if slug in curated else points,) + tuple(c[1:]))
+            candidates = rewarded
+        candidates.sort(key=lambda x: x[0])          # bm25: lower is better
+        # a block makes its essence unnecessary: same memory, fewer tokens
+        with_block = {c[2] for c in candidates if c[1] == "block"}
+        chosen, seen = [], set()
+        for c in candidates:
+            if c[1] == "essence" and c[2] in with_block:
+                continue
+            key = (c[1], c[2], c[3] if c[1] == "block" else "")
+            if key in seen:
+                continue
+            seen.add(key)
+            chosen.append(c)
+            # NOT cut at `top`: the fusion (organ 18) needs to see the ranking
+            # deep in order to fuse RANKS, and with no organ it is cut below.
+            if len(chosen) >= top * 4:
+                break
+        chosen = _neural_fusion(con, query, chosen, top)
+        _mark_use(con, [c[2] for c in chosen])
+        for c in chosen:
+            if c[1] == "block":
+                _, _, slug, bid, text = c
+                t = " ".join(text.split())
+                # MEASURED: 5 blocks x 400 chars cost MORE than the snippets
+                # they replaced. Precision does not justify waste: in lean
+                # mode, 3 blocks x 260 characters.
+                cap = 260 if brief else 400
+                t = t if len(t) <= cap else t[:cap] + " ..."
+                print("{}#^{}: {}".format(slug, bid, t) if brief
+                      else "▪ {}#^{}\n  {}\n".format(slug, bid, t))
+            else:
+                _, _, slug, (title, origin, date), frag = c
+                print("{}: {}".format(slug, " ".join(frag.split())[:180]) if brief
+                      else "* {}  [{}]  ({})\n  {}\n   ... {}\n".format(
+                          title, slug, date or "?", origin or "", " ".join(frag.split())))
         return
     rows = []
     try:
@@ -212,6 +293,79 @@ def search(query, brief=False):
             print("~ {}  [{}]  ({})  ~{:.0%}\n  {}\n  {}\n".format(title, slug, date, sim, origin, frag.replace("\n", " ")))
         return
     print("The Abyss holds nothing of that. Hunger detected: devour a source.")
+
+
+def _neural_fusion(con, query, ranked, top):
+    """THE FUSION — the only place where the neurons touch my Sense.
+
+    It is called Reciprocal Rank Fusion: each engine contributes 1/(k+rank) per
+    document and the sum wins. It does not compare scores — bm25 and cosine live
+    on scales that do not speak to each other — but RANKS, which do compare.
+
+    MEASURED over the bench's 45 queries (`the forge's relevance judge.py`):
+
+        lexical alone ..................... 19/45 (42%) · MRR 0.34
+        neurons alone ..................... 30/45 (67%) · MRR 0.56
+        one seat reserved at the tail ..... 31/45 (69%) · MRR 0.43
+        two seats ......................... 31/45 (69%) · MRR 0.47
+        one seat, with blocks indexed ..... 26/45 (58%) · MRR 0.39
+        RRF k=60, equal weights ........... 33/45 (73%) · MRR 0.53   <- this one
+
+No number here is a knob I turned until it looked pretty:
+      · k: the plateau runs from 10 to 200 with the same result, and 60 is the
+        literature default — the one I would have written without measuring;
+      · weights: equal. Tilting lexical to 1.5 collapses search to 25/45;
+        lowering it to 0.5 raises MRR but loses a hit, and a knob tuned over 45
+        queries is fitting the exam;
+      · depth: 10 and 10, the symmetric textbook form. I MEASURED that if
+        lexical contributes only 3 ranks the result is 32/45 — two hits MORE —
+        and I rejected it anyway: the curve is 3->32, 4->30, 5->30, 6->30,
+        8->29, 10->30. That is not a plateau, it is a SPIKE, and an optimum that
+        is a spike over 45 queries is noise with luck. I would rather take the
+        number I can defend without the bench in front of me and lose two hits,
+        than sign a figure I could not explain.
+
+    TWO OF MY OWN DOCTRINES DIED HERE, and I leave them written so I do not
+    repeat them: with a 15-query bench I measured that "every fusion makes it
+    worse" and that the only winner was reserving ONE seat. Both were false: the
+    bench was too small to resolve the effect (one query was worth 7 points) and
+    it was saturated with cases lexical already got right. It grew to 45 and the
+    whole order flipped. An instrument that cannot resolve what it measures does
+    not tell the truth: it tells noise with decimals.
+
+    If organ 18 is not installed, or the Bearer switched it off, this is two
+    `os.path.isfile` and it ends: the lexical path pays nothing.
+    """
+    try:
+        from chaos_body import neurons as _neu
+        if not _neu.alive():
+            return ranked[:top]
+        neighbours = _neu.nearest(query, top=_neu.DEPTH)
+        if not neighbours:
+            return ranked[:top]
+        K = _neu.RRF_K
+        points, first = {}, {}
+        for i, c in enumerate(ranked[:_neu.DEPTH_LEXICAL]):
+            slug = c[2]
+            if slug not in first:
+                first[slug] = c
+                points[slug] = points.get(slug, 0.0) + 1.0 / (K + i + 1)
+        for i, (slug, _bid) in enumerate(neighbours):
+            points[slug] = points.get(slug, 0.0) + 1.0 / (K + i + 1)
+        order = sorted(points, key=lambda s: -points[s])[:top]
+        out = []
+        for slug in order:
+            if slug in first:
+                out.append(first[slug])
+                continue
+            row = con.execute("SELECT title, origin, date, substr(content,1,300)"
+                              " FROM essences WHERE slug=? LIMIT 1", (slug,)).fetchone()
+            if row:
+                out.append((0.0, "essence", slug, (row[0], row[1], row[2]), row[3]))
+        return out or ranked[:top]
+    except Exception:
+        return ranked[:top]      # the neurons can NEVER break a search
+
 
 def reindex():
     if not os.path.isdir(_home.essences()):

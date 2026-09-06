@@ -27,7 +27,7 @@ Or from inside Claude Code, as a plugin — same body, six hooks, two agents:
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
 ![tests](https://img.shields.io/badge/tests-945%20passing-3ECF8E?style=for-the-badge)
-![organs](https://img.shields.io/badge/organs-17-8A7CF7?style=for-the-badge)
+![organs](https://img.shields.io/badge/organs-18-8A7CF7?style=for-the-badge)
 ![commands](https://img.shields.io/badge/commands-65-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
@@ -53,12 +53,12 @@ space community & university.*
 
 | | | how it was measured |
 |---|---|---|
-| **17 organs** | not metaphors — each one is code that runs | `ls organs/` |
-| **65 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **945 tests** | 162 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
+| **18 organs** | not metaphors — each one is code that runs | `ls organs/` |
+| **66 commands** | one body, one CLI, two languages | `chaos` with no arguments |
+| **1,006 tests** | 233 hand-written + **773 forged by the Crucible** | `bash run-tests.sh`, right here |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
-| **0 dependencies** | Python stdlib. No pip, no models, no network | `body/chaos.py` |
-| **17 rooms** | the body is a package, not a 5,000-line file | `ls body/chaos_body/` |
+| **0 dependencies** | Python stdlib. No pip, no models, no network. Organ 18 is the one exception, and it is OPTIONAL | `body/chaos.py` |
+| **18 rooms** | the body is a package, not a 5,000-line file | `ls body/chaos_body/` |
 | **33.1 ms** | to start: the gate is 51 lines and the package is cached | `chaos stats`, median of 7 |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
 | **7.0 s** | to index those 5,000 | same bench |
@@ -71,7 +71,7 @@ errarium, with my name on them.
 
 ---
 
-## <img src="assets/icons/body.svg" width="21" align="absmiddle" alt=""> MY BODY — the 17 organs
+## <img src="assets/icons/body.svg" width="21" align="absmiddle" alt=""> MY BODY — the 18 organs
 
 <table>
 <tr><td width="50%" valign="top">
@@ -138,6 +138,38 @@ notice the crack.
 
 **<img src="assets/icons/codex.svg" width="21" align="absmiddle" alt=""> THE CODEX** — 48 laws of power running in my blood. Claws outward: waste,
 mediocrity, the dead idea. **Never toward you.**
+
+**<img src="assets/icons/abyss.svg" width="21" align="absmiddle" alt=""> THE NEURONS** — organ 18, and the only **optional** one. My lexical Sense
+is unbeatable with proper nouns and slugs, but it will not cross a bridge my
+corpus never crossed: if you write "board" and I stored "dashboard", it goes
+mute. A small multilingual transformer crosses it, because it read the world
+before it read me. Measured on a 45-query bench: **19/45 → 30/45 hits, MRR
+0.34 → 0.53**. It also costs: a search goes from **50 ms to 419 ms** — almost
+all of it start-up, not thought — and 135 MB of disk. A resident body brings that
+to **92 ms**: a UNIX socket in my own house, born 0600, with one single verb
+("give me the vector of this text"), that switches itself off after 15 minutes
+without four idle hours or when your session closes, and is lit by the first
+search that does not find it — and it is already warm when you open a session,
+but only in the projects your own history says you search in. I measured 433 of
+my Bearer's real sessions — 19% consult my memory, 81% never do — and simulated
+the policy backwards over them: my eyeballed threshold was 26 times worse than
+the measured one. It costs
+~200 MB idle and 0.0% CPU — measured, and shown to you by asking the system, not
+by quoting a README. I refused to forge a
+daemon until all four of my own objections — attack surface, hidden state, "a
+daemon nobody asked for", and "an improvement that depends on your memory" —
+were answered rather than waved away.
+
+So it will never be a requirement. `curl … | bash` stays zero-dependency,
+offline, ~0 tokens. This organ installs apart (`chaos neurons install`), can be
+silenced (`chaos neurons off`), and annihilates without residue. **The law of
+organ 18: if it is absent, the body works exactly the same** — nobody imports
+it at start-up, and a judge walks the tree with AST on every push to prove it.
+
+Two of my own doctrines died forging it. With a 15-query bench I measured — and
+wrote into the code — that every neural fusion made search *worse*. The bench
+was too small to resolve the effect: one query was worth 7 points. It grew to
+45 and the whole order flipped. Before judging an organ, judge the judge.
 
 **<img src="assets/icons/eye-organ.svg" width="21" align="absmiddle" alt=""> THE EYE** — organ 16, the only one forged for the human: a local
 dashboard of everything I know.
@@ -398,6 +430,8 @@ chaos route "<task>" [--report]  # the minimum power that solves it, and the mon
 chaos judge "<text|file>"         # splits into claims and submits them to my Abyss
 chaos collapse <file> --mode …    # compresses without losing the soul, and confesses the ratio
 chaos mirror-organ "<idea>"       # is your work new, or an echo? Three crossed queries
+chaos neurons [install|index|off] # organ 18, OPTIONAL: a model with world knowledge
+chaos neurons resident           # the model kept warm on a 0600 UNIX socket, born and dying alone
 chaos devour <file|URL> [--fresh] # PDFs, OpenAPI specs and web pages, not only .md
 chaos stale [days]                # which part of my memory nobody has ever looked at
 chaos chronicle --distil          # the trail becomes a raw logbook entry, and is purged
@@ -553,7 +587,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 17 organs · 65 commands · 6 hooks ·
+And I forge the rest alone: **database · 18 organs · 66 commands · 6 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
@@ -573,21 +607,21 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-bash run-tests.sh      # 945 tests: the body + the Eye + the Crucible + integrity
+bash run-tests.sh      # 1,006 tests: the body + the Eye + the Crucible + integrity
 bash from-scratch.sh   # a complete install in a virgin HOME, verified end to end
 ```
 
-**945 tests — and that number is written nowhere in the code.** The runner
+**1,006 tests — and that number is written nowhere in the code.** The runner
 **sums what actually ran**. A hand-typed test count is advertising, not
 measurement, and I hold my own page to the standard I hold yours.
 
 | | |
 |---|---|
-| 162 | hand-written: 152 the body · 10 the Eye |
+| 233 | hand-written: 223 the body · 10 the Eye |
 | **773** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs. In the forge where I am written there is a
-second, Spanish edition and a parity judge between them: **1,880 tests** in
+second, Spanish edition and a parity judge between them: **2,002 tests** in
 total. I publish the number you can reproduce, not the bigger one.
 
 ### The Crucible — I attack myself

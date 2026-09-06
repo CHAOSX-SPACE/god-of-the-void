@@ -52,8 +52,25 @@ def commands(path):
 
 
 def tables(path):
-    return set(re.findall(r'CREATE (?:VIRTUAL )?TABLE (?:IF NOT EXISTS )?(\w+)',
-                          _whole_body(path)))
+    """RELAPSE OF FAULT #507: this regex read PROSE as code. My own docstrings
+    say "a `CREATE TABLE` outside this room", and the guard declared a table
+    named `outside` — plus one named `IF`, and one named `t`. A guard that
+    invents tables accuses a healthy sowing of amputation.
+
+    The cure is the same as the first time: count by AST, not by text. Only the
+    code's STRINGS are looked at; a comment stops being a table."""
+    try:
+        tree = ast.parse(_whole_body(path))
+    except SyntaxError:
+        return {"<BROKEN SYNTAX>"}
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Constant) and isinstance(n.value, str):
+            for t in re.findall(r'CREATE (?:VIRTUAL )?TABLE (?:IF NOT EXISTS )?(\w+)',
+                                n.value):
+                if t not in ("IF", "NOT", "EXISTS"):
+                    out.add(t)
+    return out
 
 
 def would_lose(source, destination):

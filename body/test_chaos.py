@@ -9,7 +9,7 @@ cycle, census, Vigil, trail.
 
   python3 test_chaos.py            (or: python3 -m unittest test_chaos -v)
 """
-import os, sys, io, json, time, shutil, sqlite3, tempfile, subprocess, unittest
+import os, sys, io, json, time, shutil, sqlite3, tempfile, subprocess, unittest, ast
 
 def _read_safe(path, encoding='utf-8'):
     """Reads and closes the descriptor: no ResourceWarning."""
@@ -2667,6 +2667,406 @@ class ReflexesTest(unittest.TestCase):
             "s1", self.home, "Bash")
         self.assertEqual(len(_read_safe(self.trail).strip().split("\n")), 1,
                          "a multiline work was split into several")
+
+
+class NeuronsTest(unittest.TestCase):
+    """ORGAN 18 · THE NEURONS — what is tested here is NOT that they hit (that
+    is measured by `the forge's relevance judge.py` against the real Abyss), but that they
+    are truly OPTIONAL: that a body without them pays nothing and never notices.
+    An optional organ that breaks the body when missing is not optional."""
+
+    def setUp(self):
+        self.home = tempfile.mkdtemp(prefix="chaos_neu_")
+        self.chaos = os.path.join(self.home, ".chaos")
+
+    def tearDown(self):
+        shutil.rmtree(self.home, ignore_errors=True)
+
+    def _neurons(self):
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import neurons
+            return neurons
+        finally:
+            sys.path.pop(0)
+
+    def test_n1_no_model_means_not_alive_and_no_blowup(self):
+        """The hot path's question is a file. Without it: False, and no
+        exception — not even with a home that does not exist."""
+        os.environ["CHAOS_HOME"] = os.path.join(self.home, "does-not-exist")
+        n = self._neurons()
+        self.assertFalse(n.alive(), "claims to be alive with no model on disk")
+        self.assertEqual(n.nearest("whatever"), [],
+                         "with no model it returned something instead of yielding")
+
+    def test_n2_the_body_searches_the_same_without_the_organ(self):
+        """The law of organ 18: absent, the body works identically."""
+        run(self.home, "devour", "-", "--title", "The disk backups")
+        out = run(self.home, "search", "backups", "--brief")
+        self.assertNotIn("Traceback", out, "search blew up without the organ")
+        self.assertNotIn("neuron", out.lower(),
+                         "the body mentions an organ it does not have")
+
+    def test_n3_nobody_imports_it_at_startup(self):
+        """If a module imported it at the top, a body WITHOUT neurons would pay
+        that import on every order — and with it, 118 MB of model it lacks."""
+        pkg = os.path.join(HERE, "chaos_body")
+        guilty = []
+        for root, _, files in os.walk(pkg):
+            if "__pycache__" in root:
+                continue
+            for f in sorted(files):
+                if not f.endswith(".py") or f == "neurons.py":
+                    continue
+                tree = ast.parse(io.open(os.path.join(root, f),
+                                         encoding="utf-8").read())
+                for node in tree.body:
+                    names = []
+                    if isinstance(node, ast.Import):
+                        names = [a.name for a in node.names]
+                    elif isinstance(node, ast.ImportFrom):
+                        names = [a.name for a in node.names] + [node.module or ""]
+                    if any((x or "").split(".")[-1] == "neurons" for x in names):
+                        guilty.append(f)
+        self.assertEqual(guilty, [],
+                         "organ 18 is imported at startup in: %s" % guilty)
+
+    def test_n4_the_state_confesses_the_price(self):
+        """An organ that costs 8 times more per search and does not say so is
+        selling, not informing."""
+        out = run(self.home, "neurons")
+        self.assertIn("OPTIONAL", out, "does not declare itself optional")
+        self.assertIn("price", out.lower(), "hides what it costs")
+        self.assertIn("gain", out.lower(), "hides what it adds")
+
+    def test_n5_it_does_not_install_dependencies_behind_the_Bearer(self):
+        """Putting 50 MB on the Bearer's machine is his word, not mine: the code
+        can never call pip."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Call):
+                flat = ast.dump(node)
+                self.assertNotIn("'pip'", flat,
+                                 "the organ installs dependencies on its own")
+
+    def test_n6_the_vector_table_is_born_with_the_schema(self):
+        """Empty it weighs nothing, and that way `uninstall` does not blow up in
+        a body that never had neurons."""
+        run(self.home, "stats")
+        con = sqlite3.connect(os.path.join(self.chaos, "abyss.db"))
+        row = con.execute("SELECT name FROM sqlite_master WHERE name='vectors'").fetchone()
+        con.close()
+        self.assertIsNotNone(row, "the `vectors` table is not born with the schema")
+
+    def test_n7_packing_a_vector_round_trips_exactly(self):
+        n = self._neurons()
+        v = [0.5, -0.25, 0.125, 0.0]
+        there = n._pack(v)
+        self.assertEqual(len(there), len(v) * 4, "a float32 does not take 4 bytes")
+        self.assertEqual(n._unpack(there), v, "the vector does not come back intact")
+
+    def test_n8_the_fingerprint_betrays_the_change(self):
+        """Without a fingerprint indexing cannot be incremental: it would
+        re-think 1,116 documents every time."""
+        n = self._neurons()
+        self.assertEqual(n._fingerprint("same text"), n._fingerprint("same text"))
+        self.assertNotEqual(n._fingerprint("one text"), n._fingerprint("another text"))
+
+    # -- THE RESIDENT · the cage -------------------------------------------
+    def test_n9_the_resident_speaks_at_home_and_never_over_the_network(self):
+        """A daemon that opens a port is a door into the Bearer's machine. This
+        one only speaks over a UNIX socket inside my house: if anyone wrote
+        AF_INET here, the network would reach it."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        for forbidden in ("AF_INET", "SOCK_DGRAM", "0.0.0.0", "bind((",
+                          "socketserver", "http.server"):
+            self.assertNotIn(forbidden, source,
+                             "the resident opens the network: %s" % forbidden)
+        self.assertIn("AF_UNIX", source, "the resident does not use a UNIX socket")
+
+    def test_n10_the_resident_has_a_single_verb(self):
+        """A server that only knows how to embed a text can only be tricked into
+        embedding a text. No paths, commands, files or pickle."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        body = source.split("def serve(")[1].split("\ndef ")[0]
+        # These never, on any line of the resident:
+        for weapon in ("eval(", "exec(", "pickle", "subprocess", "os.system",
+                       "__import__"):
+            self.assertNotIn(weapon, body,
+                             "the resident knows something dangerous: %s" % weapon)
+        # And in what touches FOREIGN BYTES — from `accept()` to `close()` — no
+        # opening files either. This test used to look at the whole function and
+        # it caught the PID's `io.open`: written once, at boot, with a fixed
+        # path, before anyone has spoken. The test said "the function" when it
+        # meant "what touches what comes from outside"; the test is corrected to
+        # assert what it means, not so that it passes.
+        # From `accept()` to the final cleanup: that, and only that, is what
+        # runs on bytes I did not write.
+        serving = body.split("srv.accept()")[1].split("\n    finally:")[0]
+        for weapon in ("open(", "os.remove", "os.path.join"):
+            self.assertNotIn(weapon, serving,
+                             "while serving a request it touches files: %s" % weapon)
+        self.assertIn("_embed(", serving, "the resident does not embed: what does it serve?")
+
+    def test_n11_the_resident_is_born_private_and_dies_alone(self):
+        """0600 on the socket, 0700 on the directory, and a clock that kills it:
+        the two objections I raised myself before forging it."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        body = source.split("def serve(")[1].split("\ndef ")[0]
+        self.assertIn("umask(0o177)", body, "the socket is not born private")
+        self.assertIn("0o700", body, "the resident's directory is not private")
+        self.assertIn("_life()", body, "the resident does not consult its life")
+        self.assertIn("settimeout(", body, "the resident is eternal")
+        self.assertIn("socket.timeout", body, "it does not switch itself off")
+
+    def test_n12_without_a_resident_the_body_does_not_wait(self):
+        """The resident being absent cannot cost a single millisecond of
+        waiting: `_ask` looks at the file BEFORE trying to speak."""
+        os.environ["CHAOS_HOME"] = os.path.join(self.home, "nothing-here")
+        n = self._neurons()
+        t = time.time()
+        self.assertIsNone(n._ask("whatever"))
+        self.assertLess(time.time() - t, 0.5,
+                        "with no resident, asking for the vector made us wait")
+
+    def test_n13_nothing_depends_on_the_resident_being_alive(self):
+        """Search asks the resident and, if it does not answer, loads the model.
+        That `if q is None` is the only reason I can afford a daemon at all: its
+        death is not my death."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        body = source.split("def nearest(")[1].split("\ndef ")[0]
+        self.assertIn("_ask(query)", body, "search does not use the resident")
+        self.assertIn("if q is None:", body,
+                      "search has no path without the resident")
+
+    def test_n14_consent_is_assumed_on_install_and_can_be_revoked(self):
+        """Downloading 135 MB of model IS asking for fast searches. But the
+        Bearer can revoke it with one order, and then it NEVER lights itself."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        os.environ["CHAOS_HOME"] = self.chaos
+        n = self._neurons()
+        self.assertTrue(n._auto(), "consent is not assumed on install")
+        io.open(os.path.join(house, "RESIDENT-NO"), "w",
+                encoding="utf-8").write("no\n")
+        self.assertFalse(n._auto(), "the revocation is not respected")
+        self.assertFalse(n._light_itself(),
+                         "it lit itself despite being revoked")
+
+    def test_n15_with_no_model_it_never_lights_anything(self):
+        """Consent applies to the installed organ. With no model on disk there
+        is nothing to light and no process is thrown into the void."""
+        os.environ["CHAOS_HOME"] = os.path.join(self.chaos, "virgin")
+        n = self._neurons()
+        self.assertFalse(n._light_itself(),
+                         "it launched a resident with no model to serve")
+
+    def test_n16_the_brake_prevents_a_rain_of_processes(self):
+        """A model that fails to start would make EVERY search give birth to
+        another resident. The brake reduces it to one a minute."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        io.open(os.path.join(house, "model.onnx"), "w").write("x")
+        io.open(os.path.join(house, "resident.being-born"), "w").write("0")
+        os.environ["CHAOS_HOME"] = self.chaos
+        n = self._neurons()
+        self.assertFalse(n._light_itself(),
+                         "it bore a second resident while one was being born")
+
+    def test_n17_the_daemon_announces_itself_once_and_only_once(self):
+        """A daemon that appears saying nothing is exactly what I objected to
+        before forging it. It says so ONCE in the life of the Abyss."""
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        body = source.split("def _light_itself(")[1].split("\ndef ")[0]
+        self.assertIn("resident.announced", body, "it leaves no mark of announcing")
+        self.assertIn("stderr", body, "the notice would dirty the search's output")
+
+    def test_n18_what_is_automated_is_the_birth_not_the_life(self):
+        """The resident still dies alone: automatic lighting does not make it
+        eternal, which was half of my objection."""
+        n = self._neurons()
+        # The law is NOT "900 seconds" — the Bearer moved that number. The law
+        # is that it DIES ALONE, and that its life has a ceiling: a resident
+        # with no cap would be the eternal daemon I objected to.
+        self.assertTrue(0 < n._life() <= 86400,
+                        "the resident stopped dying alone, or lost its ceiling")
+        source = io.open(os.path.join(HERE, "chaos_body", "neurons.py"),
+                         encoding="utf-8").read()
+        body = source.split("def nearest(")[1].split("\ndef ")[0]
+        self.assertLess(body.index("_embed("), body.index("_light_itself("),
+                        "it lights BEFORE thinking: both load the model at once")
+
+    def test_n19_the_closing_session_releases_the_resident(self):
+        """Four hours of a live process would be a loose daemon if nobody cut
+        them. The session close cuts them: I do not measure the Bearer's working
+        day, I obey the boundary he already draws."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+        io.open(os.path.join(house, "resident.pid"), "w",
+                encoding="utf-8").write(str(child.pid))
+        io.open(os.path.join(house, "resident.sock"), "w", encoding="utf-8").write("")
+        env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
+        subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
+                       input='{"hook_event_name":"SessionEnd","session_id":"s",'
+                             '"cwd":"%s"}' % self.home,
+                       text=True, env=env, capture_output=True)
+        time.sleep(0.5)
+        alive = child.poll() is None
+        try:
+            child.kill()
+        except Exception:
+            pass
+        self.assertFalse(alive, "the resident survived the session close")
+        self.assertEqual(os.listdir(house), [],
+                         "the close left the resident's remains behind")
+
+    def test_n20_precompact_does_not_kill_the_resident(self):
+        """Compacting the context is not closing the session: the Bearer is
+        still working and killing it there would charge him 506 ms for nothing."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+        io.open(os.path.join(house, "resident.pid"), "w",
+                encoding="utf-8").write(str(child.pid))
+        env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
+        subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
+                       input='{"hook_event_name":"PreCompact","session_id":"s",'
+                             '"cwd":"%s"}' % self.home,
+                       text=True, env=env, capture_output=True)
+        time.sleep(0.4)
+        alive = child.poll() is None
+        try:
+            child.kill()
+        except Exception:
+            pass
+        self.assertTrue(alive, "PreCompact killed the resident: it is not a close")
+
+    def test_n21_the_closing_hook_does_not_drag_the_organ(self):
+        """Importing 118 MB of model to send a signal would break organ 18's law
+        from the place that runs most often."""
+        source = io.open(os.path.join(HERE, "closing-hook.py"), encoding="utf-8").read()
+        self.assertNotIn("neurons import", source)
+        self.assertNotIn("import neurons", source)
+        self.assertIn("signal.SIGTERM", source, "it does not kill the resident by signal")
+
+    def test_n22_the_residents_life_is_declared_and_bounded(self):
+        """Four hours by default, from a minute to a day if the Bearer orders
+        it, and never a number without a ceiling."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        os.environ["CHAOS_HOME"] = self.chaos
+        n = self._neurons()
+        self.assertEqual(n._life(), 14400, "the default life is not 4 h")
+        io.open(os.path.join(house, "resident.life"), "w").write("30")
+        self.assertEqual(n._life(), 1800, "it disobeys the life it is given")
+        io.open(os.path.join(house, "resident.life"), "w").write("999999")
+        self.assertEqual(n._life(), 86400, "it accepts a life with no ceiling")
+        io.open(os.path.join(house, "resident.life"), "w").write("garbage")
+        self.assertEqual(n._life(), 14400, "an unreadable life does not fall back")
+
+    def test_n23_startup_does_not_warm_where_you_do_not_search(self):
+        """MEASURED over the Bearer's 433 real sessions: only 19% consult my
+        memory. Lighting in EVERY session would charge him ~200 MB four times
+        out of five for nothing."""
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        io.open(os.path.join(house, "model.onnx"), "w").write("x")
+        env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
+        subprocess.run([sys.executable, os.path.join(HERE, "vigil-hook.py")],
+                       input='{"hook_event_name":"SessionStart","cwd":"%s",'
+                             '"session_id":"s"}' % self.home,
+                       text=True, env=env, capture_output=True)
+        time.sleep(0.8)
+        self.assertFalse(os.path.exists(os.path.join(house, "resident.sock")),
+                         "it warmed the resident in a territory nobody searches")
+
+    def test_n24_startup_respects_the_revocation(self):
+        """Even where the territory searches a lot, the Bearer's word rules:
+        `resident auto no` and `neurons off` close this door."""
+        source = io.open(os.path.join(HERE, "vigil-hook.py"),
+                         encoding="utf-8").read()
+        body = source.split("def warm_the_resident(")[1].split("\ndef ")[0]
+        self.assertIn("RESIDENT-NO", body, "it ignores the resident's revocation")
+        self.assertIn('"OFF"', body, "it ignores the neurons being switched off")
+        self.assertIn("atexit", body,
+                      "it lights during the hook instead of at the end: that costs")
+        self.assertIn("< 3", body, "it demands no search history")
+
+    def test_n25_startup_never_breaks_the_presence(self):
+        """A hook that blows up erases the Bearer's whole Presence: this entire
+        door lives inside a `try` that returns False."""
+        source = io.open(os.path.join(HERE, "vigil-hook.py"),
+                         encoding="utf-8").read()
+        body = source.split("def warm_the_resident(")[1].split("\ndef ")[0]
+        self.assertIn("except Exception:", body, "it can break the Presence")
+        self.assertEqual(body.rstrip().splitlines()[-1].strip(), "return False",
+                         "it does not degrade to False on the unexpected")
+
+    def _startup_rule(self, searches, sessions):
+        """Runs the hook with a REAL cwd (not a cwd inside the JSON: this hook
+        decides by its directory, like the rest of it — my first test passed it
+        through the event and that is why it always lit)."""
+        import sqlite3 as _sq
+        house = os.path.join(self.chaos, "neurons")
+        os.makedirs(house, exist_ok=True)
+        io.open(os.path.join(house, "model.onnx"), "w").write("x")
+        run(self.home, "stats")                      # the Abyss is born
+        ter = os.path.basename(self.home)
+        con = _sq.connect(os.path.join(self.chaos, "abyss.db"))
+        con.execute("INSERT OR REPLACE INTO meta VALUES (?,?)",
+                    ("searches:" + ter, str(searches)))
+        con.execute("INSERT OR REPLACE INTO meta VALUES (?,?)",
+                    ("sessions:" + ter, str(sessions)))
+        con.commit(); con.close()
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_PROJECT_DIR"}
+        env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
+        log = os.path.join(house, "resident.log")
+        subprocess.run([sys.executable, os.path.join(HERE, "vigil-hook.py")],
+                       input='{"hook_event_name":"SessionStart","session_id":"s"}',
+                       text=True, env=env, capture_output=True, cwd=self.home)
+        time.sleep(0.6)
+        # THE LOG IS WATCHED, NOT THE SOCKET. This test's model is fake (a file
+        # with an "x"): the resident would start and die without binding
+        # anything, so the socket would say "did not light" EVERY time and I
+        # would have believed the rule worked when only the model was broken.
+        # The log is created by `_launch` at the instant of birth, whatever
+        # happens after.
+        return os.path.exists(log)
+
+    def test_n26_does_not_warm_where_you_barely_search(self):
+        """`subagents`: 327 sessions and FOUR searches in its whole life. With my
+        eyeballed threshold ("3 searches") I would have lit 202 times for
+        nobody — measured over the Bearer's 433 real sessions."""
+        self.assertFalse(self._startup_rule(4, 300),
+                         "it lit with 4 searches across 300 sessions")
+
+    def test_n27_does_not_warm_without_evidence(self):
+        """Two searches do not declare a territory: the floor is three."""
+        self.assertFalse(self._startup_rule(2, 1),
+                         "it lit with only 2 searches")
+
+    def test_n28_warms_where_you_really_search(self):
+        """One search per session on average is the edge, and the edge lights."""
+        self.assertTrue(self._startup_rule(6, 6),
+                        "it did not light at a rate of exactly 1.0")
+
+    def test_n29_the_threshold_is_not_a_bare_count(self):
+        """A bare count glues itself to a fact of today: if `subagents` searched
+        twice more, `count>=5` jumps from 8 vain lightings to 210. The RATE does
+        not collapse. Both conditions must be there."""
+        source = io.open(os.path.join(HERE, "vigil-hook.py"),
+                         encoding="utf-8").read()
+        body = source.split("def warm_the_resident(")[1].split("\ndef ")[0]
+        self.assertIn("searches < 3", body, "it lost the evidence floor")
+        self.assertIn("< 1.0", body, "it lost the rate: it is an eyeballed number again")
+        self.assertIn("sessions:", body, "it does not count sessions: the rate would be fixed")
 
 
 if __name__ == "__main__":
