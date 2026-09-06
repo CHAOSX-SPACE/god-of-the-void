@@ -1659,6 +1659,62 @@ class HeartTest(unittest.TestCase):
         self.assertIn("DISOBEY", p.stdout.upper(),
                       "the doctor did not name the disobedience")
 
+
+    # ── THE SENSE THAT HITS ───────────────────────────────────────────────
+    def test_r1_an_exact_essence_beats_a_weak_block(self):
+        """There was a `return` that made blocks ABSOLUTE winners: if a block
+        matched in passing, essences were never consulted. Measured on the
+        bench: recall@5 of 33%, and EVERY failure was a foreign block."""
+        # una esencia que habla EXACTAMENTE del tema
+        run(self.home, "devour", self._essence(
+            "guia-telescopio", "# Telescopio\n\nEl telescopio refractor y sus lentes."))
+        # y otra, larga y ajena, que apenas lo roza y SÍ tiene bloques
+        run(self.home, "devour", self._essence(
+            "diario-ajeno", "# Diario\n\n**Lunes**\n\nHoy vi un telescopio de lejos.\n\n"
+            "**Martes**\n\nNada.\n\n**Miércoles**\n\nTampoco."))
+        run(self.home, "blockify", "--all")
+        salida = run(self.home, "search", "telescopio refractor lentes", "--brief")
+        primera = [l for l in salida.splitlines() if l.strip() and not l.startswith("⚠")][:1]
+        self.assertTrue(primera, "the search returned nothing")
+        self.assertIn("guia-telescopio", primera[0],
+                      "a weak block beat the exact essence:\n" + salida[:300])
+
+    def test_r2_the_sense_learns_from_its_own_abyss(self):
+        """The thesaurus was filled by hand — 114 terms against a vocabulary of
+        21,367. Now it is derived from the corpus: an essence's title is tied
+        to the distinctive words of its body."""
+        # A REAL corpus: different topics. In four texts about the same topic no
+        # word is distinctive — "halconero" appears in all of them — and the
+        # filter is right to stay quiet. Distinction needs contrast.
+        topics = [("cetreria", "halconero azor senuelo"), ("altaneria", "halconero azor vuelo"),
+                 ("alfareria", "torno arcilla horno"), ("ceramica", "torno arcilla esmalte"),
+                 ("herreria", "yunque fragua martillo"), ("forja", "yunque fragua acero"),
+                 ("nautica", "sextante brujula estrella"), ("navegacion", "sextante brujula rumbo"),
+                 ("apicultura", "colmena abeja panal"), ("miel", "colmena abeja cera")]
+        for n, words in topics:
+            run(self.home, "devour",
+                self._essence(n, "# " + n + "\n\nText about " + words + " and its craft."),
+                "--title", n)
+        vivas = self._rows("SELECT COUNT(*) FROM essences")[0][0]
+        self.assertGreaterEqual(vivas, len(topics),
+                                "the essences overwrote each other: there is no corpus to learn from")
+        antes = run(self.home, "sense")
+        salida = run(self.home, "sense", "--learn")
+        self.assertIn("link", salida.lower(), "no dijo cuántos lazos forjó")
+        despues = run(self.home, "sense")
+        self.assertNotEqual(antes, despues, "the Sense did not grow with a corpus that shares words")
+
+    def test_r3_a_dry_learn_never_touches_the_thesaurus(self):
+        """`--dry` says what it would do and writes nothing: the law of every
+        hand of mine."""
+        run(self.home, "devour", self._essence(
+            "alfareria", "# Alfarería\n\nEl torno y la arcilla cocida en el horno."))
+        antes = run(self.home, "sense")
+        salida = run(self.home, "sense", "--learn", "--dry")
+        self.assertIn("dry", salida.lower(), "it did not declare it was a dry run")
+        self.assertEqual(antes, run(self.home, "sense"),
+                         "the dry run wrote into the thesaurus")
+
     def _campo_ciclo(self):
         """Halla el juguete de los ciclos: en la forja vive en la raíz; en el
         repo publicado lo deja `the forge's build script` en el mismo sitio."""

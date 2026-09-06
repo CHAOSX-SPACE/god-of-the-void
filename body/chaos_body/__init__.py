@@ -12,7 +12,7 @@ _CUERPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _CUERPO not in sys.path:
     sys.path.append(_CUERPO)
 
-BODY_VERSION = 14
+BODY_VERSION = 15
 
 # The Windows console opens in cp1252 and my voice carries arrows and
 # a black hole. Without this, half the CLI died with UnicodeEncodeError.

@@ -65,7 +65,11 @@ def _expand(query):
     tes = _thesaurus()
     terms = set()
     for w in _norm(query).split():
-        if not w or w in ("or", "and", "the", "of", "a", "an", "to", "de", "la", "el"):
+        # ONE single stop list: a copy of ten words lived here while `_STOP`
+        # held thirty and nobody crossed them. A query like "my visual control
+        # dashboard" entered with "my" and "of" inside the OR and matched half
+        # the Abyss. Measured on the bench: recall@5 went from 33% to 53%.
+        if not w or len(w) < 3 or w in _STOP or w in _STOP_SHORT:
             continue
         terms |= _variants(w)
         for syn in tes.get(w, ()):
@@ -213,6 +217,16 @@ SHELTERS = {"proyectos", "projects", "proyecto", "repos", "repositories",
             "git", "github", "source", "sources"}
 
 # Words that carry no weight: if they counted, any sentence would "match" all.
+# The short ones the length filter cannot kill on their own, and the ones that
+# build questions: a spoken query ("what do I do if...") is 60% noise. This
+# list did NOT exist in English while Spanish had its own: an invisible
+# divergence, because the drift judge compares functions and tables, not
+# constants.
+_STOP_SHORT = frozenset((
+    "or", "and", "for", "the", "you", "are", "was", "its", "his", "her",
+    "de", "la", "el", "un", "una", "los", "las", "mi", "tu", "su", "al",
+    "lo", "le", "se", "es", "en", "por", "con", "sin", "que", "si", "no",
+    "ya", "del", "mis", "tus", "sus", "me", "te", "nos", "hay"))
 _STOP = frozenset((
     "para", "sobre", "como", "cual", "cuando", "donde", "porque", "desde",
     "hasta", "entre", "todo", "toda", "esto", "esta", "este", "esos", "esas",

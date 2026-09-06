@@ -114,6 +114,8 @@ def _dispatch(args):
     elif cmd == "search" and rest:
         brief = "--brief" in rest
         return _abyss.search(" ".join(x for x in rest if x != "--brief"), brief)
+    elif cmd == "sense" and "--learn" in rest:
+        return _sense.sense_learn("--dry" in rest)
     elif cmd == "sense":                 return _sense.sense(rest[0] if rest else None, rest[1:] if len(rest) > 1 else None)
     elif cmd == "reindex":               return _abyss.reindex()
     elif cmd == "census":                return _abyss.census(rest or None)

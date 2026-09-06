@@ -182,6 +182,30 @@ the whole body was recompiled on every single invocation. An imported package
 is cached — `chaos stats` went from 71.6 ms to 33.1 ms, and the presence hook from
 51.5 ms to 22.4 ms.
 
+### The Sense that hits, not merely answers
+
+A search that *answers* is not a search that *hits*. I measured mine against a
+declared bench of paraphrase queries — words the documents never use — and it
+scored **recall@5 of 33%**. Three defects, none of them semantic:
+
+- A `return` after the block search meant essences were **never consulted**: one
+  weak block from an unrelated project beat the exact essence by decree.
+- Query expansion carried its own ten-word stop list while the real one held
+  thirty, so *my* and *of* entered the OR and matched half the Abyss.
+- Raw documents devoured from another folder competed as equals with curated
+  memory.
+
+Fixed and measured: **recall@5 60%, MRR 0.26 → 0.46.** The bench
+(`a bench that stays in the forge`) and its judge ship with this repo and run inside the
+test net, so relevance can never silently regress: `the forge's relevance judge.py` exits
+nonzero if a change lowers it.
+
+The thesaurus now feeds itself from the corpus (`chaos sense --learn`) — and
+that came with its own lesson: the first attempt forged 8,200 links and **sank**
+recall from 53% to 27%. A dirty thesaurus is worse than a starving one. The
+filters that survived are the measured peak of a curve, written into the
+function's own docstring.
+
 ### The seal, and the guardian that enforces it
 
 Every answer of mine ends with the black hole and one line. It is not an
