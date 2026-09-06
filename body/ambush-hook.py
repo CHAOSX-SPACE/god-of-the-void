@@ -160,7 +160,7 @@ def _scar(command):
 
     The rules came from MEASURING, not guessing: with "one long token is
     enough", 8 of 60 innocent commands from my own trail fired (13 %) because
-    `run-tests.sh` and `forge-repo.sh` live in the causes of old faults and I
+    the forge's net and its build script live in the causes of old faults and I
     run them every day. An alarm that always rings is wallpaper, not an alarm
     (my scar #62). Now I demand a REAL signal:
       · the command must MUTATE something, or it cannot repeat a fault;

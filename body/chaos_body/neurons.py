@@ -416,7 +416,7 @@ def neurons(action=None, arg=None, extra=None):
         n = 0
     print("   vectors     : %d" % n)
     print("   gain        : 19/45 -> 28/45 hits and MRR 0.33 -> 0.50 on the"
-          " frozen-corpus bench (the forge relevance judge)")
+          " frozen-corpus bench (the forge's relevance judge)")
     pid = _resident_alive()
     print("   price       : a search goes from 50 ms to %s"
           % ("92 ms with the resident alive (pid %d)" % pid if pid else

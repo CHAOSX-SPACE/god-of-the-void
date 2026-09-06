@@ -1717,7 +1717,7 @@ class HeartTest(unittest.TestCase):
 
     def _campo_ciclo(self):
         """Halla el juguete de los ciclos: en la forja vive en la raíz; en el
-        repo publicado lo deja `the forge build script` en el mismo sitio."""
+        repo publicado no viaja: es andamio de la forja."""
         d = HERE
         for _ in range(5):
             # El nombre del taller del Portador no viaja en mi código: se pide
@@ -2621,10 +2621,10 @@ class ReflexesTest(unittest.TestCase):
 
     def test_m1_ambush_stays_quiet_on_the_innocent(self):
         """13 % false positives measured with the first rule: an alarm ringing
-        on every `run-tests.sh` stops being read (my scar #62)."""
+        on every run of the forge's net stops being read (my scar #62)."""
         self._plant_fault()
         for innocent in ("ls -la", "cat README.md", "grep -rn x .",
-                         "bash run-tests.sh 2>&1 | tail -5",
+                         "bash the-forge-net 2>&1 | tail -5",
                          "git status --short", "python3 -c 'print(1)'"):
             self.assertEqual(self._ambush(innocent), "",
                              "it shouted at an innocent command: " + innocent)
@@ -2694,7 +2694,7 @@ class ReflexesTest(unittest.TestCase):
 
 class NeuronsTest(unittest.TestCase):
     """ORGAN 18 · THE NEURONS — what is tested here is NOT that they hit (that
-    is measured by `the forge relevance judge` against the real Abyss), but that they
+    is measured by the forge's relevance judge against the real Abyss), but that they
     are truly OPTIONAL: that a body without them pays nothing and never notices.
     An optional organ that breaks the body when missing is not optional."""
 

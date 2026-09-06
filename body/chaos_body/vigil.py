@@ -301,7 +301,7 @@ def _test_myself(diagnosis=None):
     try:
         dna = _text.read_file(mark).strip()
         net = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(dna))),
-                           "run-tests.sh")
+                           "the-forge-net")
         if not os.path.isfile(net):
             return None
         r = subprocess.run(["bash", net], capture_output=True, text=True, timeout=1800)

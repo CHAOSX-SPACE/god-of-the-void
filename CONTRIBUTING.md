@@ -8,7 +8,7 @@ commit — it is short, and it is all measurable.
 
 1. **One source, many derived copies.** `body/crucible.py` is DERIVED from the
    Spanish `crisol.py`; the Spanish Eye is derived from `eye/`. Editing a
-   derived copy by hand makes `run-tests.sh` fail on the spot, on purpose.
+   derived copy by hand makes the forge's net fail on the spot, on purpose.
 2. **Parity ES↔EN.** The same organs, the same commands, the same public
    functions, the same tables. A command forged in one edition and not the
    other is a lie the drift judge will catch.
@@ -23,17 +23,19 @@ commit — it is short, and it is all measurable.
 ## Before you open a pull request
 
 ```sh
-bash run-tests.sh      # everything: both bodies, the Eye, the Crucible, parity
-bash from-scratch.sh   # a whole install in a virgin HOME, verified end to end
+python3 body/test_chaos.py   # what MUST happen, happens
+python3 body/crucible.py     # nothing that MUST NOT happen, happens
+python3 eye/test_eye.py      # the Eye's doors and its cage
 ```
 
-Both must be green. `run-tests.sh` sums what actually ran — it never declares a
+All three must be green. Each reports what actually ran — none declares a
 number.
 
 ## Adding a command
 
 1. Forge it in **both** editions (`body/chaos.py` and the Spanish one).
-2. Add it to the `ES_CMDS` / `EN_CMDS` lists in `run-tests.sh`.
+2. Open an issue so the parity lists in the forge's net are updated: that
+   file does not travel — this repository is the installer, not the workshop.
 3. Write at least two tests: the happy path **and** one sabotage.
 4. Run the net. A green you have not tried to break is not a green
    (organ 17, the Touchstone: `chaos probe`).

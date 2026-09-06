@@ -308,14 +308,14 @@ def sense_learn(dry=False, top=3):
     texts already relate; a word I never wrote, it does not know.
 
     Three filters against noise, because a dirty thesaurus makes search WORSE
-    and that is measured by `the forge relevance judge`:
+    and that is measured by the forge's relevance judge:
       · the term must appear in 2 or more essences (once is a typo);
       · and in fewer than 4% (more than that is filler);
       · the title word may not appear in more than 8% of essences (floor: 3);
       · and at most 3 links per essence.
 
     Those four numbers are NOT taste: they are the peak of a curve measured with
-    `the forge relevance judge` over 15 paraphrase queries. The first attempt forged
+    the forge's relevance judge over 15 paraphrase queries. The first attempt forged
     8,200 links and SANK relevance from 53% to 27%: a dirty thesaurus is worse
     than a starving one, because every query expands until it matches
     everything. The measured curve:
@@ -366,7 +366,7 @@ def sense_learn(dry=False, top=3):
             # essences is 0.24, so EVERY word fell outside and the learning did
             # nothing. The percentage rules when there is a corpus; the floor,
             # when there is not one yet. These numbers are the measured peak of
-            # `the forge relevance judge`: 8,200 links sank recall from 53% to 27%.
+            # the forge's relevance judge: 8,200 links sank recall from 53% to 27%.
             if df.get(c, 0) > max(3, n * 0.08):
                 continue                     # la head también puede ser relleno
             target = base.setdefault(c, [])
