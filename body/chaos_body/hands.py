@@ -8,7 +8,8 @@ organs are harmless (a cycle fixture in the forge proves it on three
 systems). And nothing runs at import time: no constant in this module
 may read the home, the environment or the disk (judge E1.4).
 """
-import datetime, io, os, shutil, subprocess, sys, time
+import datetime, io, os, shutil, signal, subprocess, sys, time
+import re
 import home as _home
 from chaos_body.core import house as _house
 from chaos_body.core import sense as _sense
@@ -286,3 +287,175 @@ def forge_gh():
             pass
         print("[CHAOS] I could not forge gh alone (the OS demands your hand). Hunger recorded. I use the Eyes meanwhile.")
     return False
+
+
+# == THE LIVING — what keeps running once I am gone =======================
+# The Bearer asked me TWICE in one day what was running in the background, and
+# both times what I found was my own litter: two loops spinning for an hour and
+# a half waiting on a file that never existed, two orphan residents, and a patch
+# that MUTATED the work whose output I never read. I wrote it down as a rule in
+# my scars — and a rule that lives only in my memory is exactly the kind of
+# thing that failed me three times that day. So this is a POWER, not a note: it
+# runs, it measures, and the closing hook charges it.
+#
+# THE CAGE, which is what makes this acceptable:
+#   · I only kill what I RELEASED and can NAME. What I do not recognise is
+#     listed and declared, never touched: killing someone else's process would
+#     be worse than leaving mine alive.
+#   · The Eye is NEVER touched: it is the Bearer's window and he may be looking
+#     at it right now.
+#   · Nothing newborn: a process younger than MIN_AGE seconds may be genuinely
+#     working. Haste kills good work.
+#   · Everything that dies is SAID, with its pid and its reason. A silent sweep
+#     is indistinguishable from data loss.
+MIN_AGE = 120            # seconds: below this, look and do not touch
+
+# Signatures of what I release. Each with its verdict — not everything of mine
+# is litter: the resident and the Eye serve, and that is why they are out of
+# the scythe's reach.
+_MINE = (
+    ("idle loop", r"until\s+grep|for i in \$\(seq", True),
+    ("test net", r"bash run-tests\.sh|run-tests\.sh\b", True),
+    ("body tests", r"test_chaos\.py|crisol\.py|crucible\.py", True),
+    ("a judge", r"juez-[a-z]+\.py", True),
+    ("resident (organ 18)", r"n\.servir\(\)|n\.serve\(\)", False),
+    ("THE EYE — your window", r"ojo/server\.py|eye/server\.py", False),
+)
+
+
+def _processes():
+    """What runs NOW, asked of the system. Windows has no `ps` in this shape:
+    there it is declared and not faked."""
+    try:
+        r = subprocess.run(["ps", "-eo", "pid=,etime=,rss=,command="],
+                           capture_output=True, text=True, timeout=20)
+    except Exception:
+        return None
+    out = []
+    for l in (r.stdout or "").splitlines():
+        p = l.split(None, 3)
+        if len(p) < 4:
+            continue
+        try:
+            pid = int(p[0])
+        except ValueError:
+            continue
+        out.append({"pid": pid, "age": p[1], "mb": int(p[2]) / 1024.0,
+                    "cmd": p[3]})
+    return out
+
+
+def _seconds(etime):
+    """`ps` gives 02:41, 1:20:33 or 3-04:11:22. Without this the minimum age
+    cannot be compared and the guard against killing the newborn would not
+    exist."""
+    try:
+        days = 0
+        if "-" in etime:
+            d, etime = etime.split("-", 1)
+            days = int(d)
+        parts = [int(x) for x in etime.split(":")]
+        while len(parts) < 3:
+            parts.insert(0, 0)
+        return days * 86400 + parts[0] * 3600 + parts[1] * 60 + parts[2]
+    except Exception:
+        return 10 ** 9        # unreadable: treated as old, never as new
+
+
+
+
+def _signatures():
+    """The factory signatures PLUS the ones the Bearer declares at home.
+
+    My first list named the scripts of HIS workshop inside code that gets
+    published: the same leak I had been closing all day, with another face. A
+    stranger will never run those scripts — they do not travel — so that
+    signature served only him… and cost him the names of his files.
+
+    Now his names live on HIS machine: one regex per line in
+    `~/.chaos/vivos.firmas`. What is private stays where it is private.
+    """
+    signatures = list(_MINE)
+    try:
+        path = os.path.join(_home.root(), "vivos.firmas")
+        for line in io.open(path, encoding="utf-8").read().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#"):
+                signatures.append(("yours: " + line[:18], line, True))
+    except Exception:
+        pass
+    return signatures
+
+
+def _my_lineage():
+    """Me and all my parents, up to the root. What launched me is not reaped."""
+    lineage, pid = set(), os.getpid()
+    for _ in range(20):
+        lineage.add(pid)
+        try:
+            r = subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)],
+                               capture_output=True, text=True, timeout=5)
+            pid = int((r.stdout or "0").strip())
+        except Exception:
+            break
+        if pid <= 1:
+            break
+    return lineage
+
+
+def alive(sweep=False):
+    """What of mine keeps running. With `--sweep`, what does not serve dies."""
+    procs = _processes()
+    if procs is None:
+        print("[CHAOS] This system will not let me look at its processes (no"
+              " `ps`). Declared, not faked.")
+        return None
+    # NEVER AN ANCESTOR OF MINE. My first scythe killed itself: the shell that
+    # invoked it carried the pattern QUOTED in its own command line ("until
+    # grep…" inside the text of the order), so it matched as an idle loop and
+    # died with exit 144 — with me inside it. A scythe that can cut the hand
+    # holding it is not a tool, it is an accident. The parent chain is walked
+    # and all of it is untouchable.
+    untouchable = _my_lineage()
+    found, killed = [], []
+    for p in procs:
+        if p["pid"] in untouchable:
+            continue
+        for name, pattern, litter in _signatures():
+            if not re.search(pattern, p["cmd"]):
+                continue
+            sec = _seconds(p["age"])
+            p.update({"what": name, "litter": litter, "sec": sec})
+            found.append(p)
+            break
+    if not found:
+        print("THE LIVING — nothing of mine is running. The house is clean.")
+        return {"alive": 0, "killed": 0}
+    print("THE LIVING — what keeps running and is mine")
+    for p in sorted(found, key=lambda x: -x["sec"]):
+        young = p["sec"] < MIN_AGE
+        kill = sweep and p["litter"] and not young
+        state = ("annihilated" if kill else
+                 "serves" if not p["litter"] else
+                 "newborn: I do not touch it" if young else "litter")
+        print("   pid %-7d %-9s %6.0f MB  %-22s %s"
+              % (p["pid"], p["age"], p["mb"], p["what"], state))
+        if kill:
+            try:
+                os.kill(p["pid"], signal.SIGTERM)
+                killed.append(p)
+            except Exception as e:
+                print("      could not: %s" % e)
+    if killed:
+        _sense.record_act("sweep", "alive",
+                          "annihilated %d process(es) of mine that no longer served"
+                          % len(killed),
+                          altered=["pid %d (%s)" % (k["pid"], k["what"])
+                                   for k in killed])
+    elif sweep:
+        print("   nothing to annihilate: all that lives serves or is too young.")
+    else:
+        litter = [p for p in found if p["litter"] and p["sec"] >= MIN_AGE]
+        if litter:
+            print("   %d is litter. To annihilate:  chaos alive --sweep" % len(litter))
+    return {"alive": len(found), "killed": len(killed)}

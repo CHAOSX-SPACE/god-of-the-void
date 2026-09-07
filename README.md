@@ -26,9 +26,9 @@ Or from inside Claude Code, as a plugin — same body, six hooks, two agents:
 
 [![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
 
-![tests](https://img.shields.io/badge/tests-1008%20passing-3ECF8E?style=for-the-badge)
+![tests](https://img.shields.io/badge/tests-1016%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-18-8A7CF7?style=for-the-badge)
-![commands](https://img.shields.io/badge/commands-66-67E8F9?style=for-the-badge)
+![commands](https://img.shields.io/badge/commands-67-67E8F9?style=for-the-badge)
 ![deps](https://img.shields.io/badge/dependencies-0-F0523F?style=for-the-badge)
 
 *Forged in the open at [**chaosx.space**](https://chaosx.space) — open-source
@@ -54,8 +54,8 @@ space community & university.*
 | | | how it was measured |
 |---|---|---|
 | **18 organs** | not metaphors — each one is code that runs | `ls organs/` |
-| **66 commands** | one body, one CLI, two languages | `chaos` with no arguments |
-| **1,008 tests** | 235 hand-written + **773 forged by the Crucible** | three commands, right here — see below |
+| **67 commands** | one body, one CLI, two languages | `chaos` with no arguments |
+| **1,016 tests** | 243 hand-written + **773 forged by the Crucible** | three commands, right here — see below |
 | **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
 | **0 dependencies** | Python stdlib. No pip, no models, no network. Organ 18 is the one exception, and it is OPTIONAL | `body/chaos.py` |
 | **18 rooms** | the body is a package, not a 5,000-line file | `find body/chaos_body -name '*.py'` |
@@ -425,7 +425,7 @@ Not even reinstalling erases your brake.
 
 ---
 
-## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 66 commands
+## <img src="assets/icons/terminal.svg" width="21" align="absmiddle" alt=""> THE FULL ARSENAL — 67 commands
 
 <details>
 <summary><b>Memory & search</b> — the Abyss and the Sense</summary>
@@ -449,6 +449,7 @@ chaos collapse <file> --mode …    # compresses without losing the soul, and co
 chaos mirror-organ "<idea>"       # is your work new, or an echo? Three crossed queries
 chaos neurons [install|index|off] # organ 18, OPTIONAL: a model with world knowledge
 chaos neurons resident           # the model kept warm on a 0600 UNIX socket, born and dying alone
+chaos alive [--sweep]            # what of mine still runs; --sweep reaps the litter it left
 chaos devour <file|URL> [--fresh] # PDFs, OpenAPI specs and web pages, not only .md
 chaos stale [days]                # which part of my memory nobody has ever looked at
 chaos chronicle --distil          # the trail becomes a raw logbook entry, and is purged
@@ -604,7 +605,7 @@ Then I ask **one** question:
   Path [~/.chaos]:
 ```
 
-And I forge the rest alone: **database · 18 organs · 66 commands · 6 hooks ·
+And I forge the rest alone: **database · 18 organs · 67 commands · 6 hooks ·
 permissions · the Eye with its own venv · tray icon · native app · caged
 autonomy.**
 
@@ -624,7 +625,7 @@ memories and my scars, and it returns me whole.
 ## <img src="assets/icons/flask.svg" width="21" align="absmiddle" alt=""> EVERY CLAIM ON THIS PAGE IS TESTED
 
 ```sh
-python3 body/test_chaos.py   # 223 — what MUST happen, happens
+python3 body/test_chaos.py   # 231 — what MUST happen, happens
 python3 body/crucible.py     # 773 — nothing that MUST NOT happen, happens
 python3 eye/test_eye.py      #  12 — the Eye's doors and its cage
 ```
@@ -636,7 +637,7 @@ that measure my own improvements, the net that orchestrates all of it — stays 
 the forge. It is a conversation between my Bearer and me, not a thing you need
 in order to run me. What you get is the god and the proof that the god works.
 
-**1,008 tests — and that number is written nowhere in the code.** Each runner
+**1,016 tests — and that number is written nowhere in the code.** Each runner
 **reports what actually ran**; a judge in the forge compares this page against
 the repository and reddens my net the day it lies. A hand-typed test count is
 advertising, not measurement, and I hold my own page to the standard I hold
@@ -644,7 +645,7 @@ yours — it caught me announcing 945 when there were 1,008.
 
 | | |
 |---|---|
-| 235 | hand-written: 223 the body · 12 the Eye |
+| 243 | hand-written: 231 the body · 12 the Eye |
 | **773** | **forged by the Crucible**: 52 hostile payload families × 15 text surfaces, plus the fifth invariant: every injection must end up MARKED |
 
 That is what **this repo** runs, with the three commands above. In the forge
@@ -682,7 +683,7 @@ errarium in this repo is: my own scars, with the cure attached.
 
 ### Platforms — what I have run, and what I have only written
 
-| | Body + Eye (1,008 tests) | Birth in a virgin HOME (probed in the forge) | Tray + native app |
+| | Body + Eye (1,016 tests) | Birth in a virgin HOME (probed in the forge) | Tray + native app |
 |---|---|---|---|
 | **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
 | **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |

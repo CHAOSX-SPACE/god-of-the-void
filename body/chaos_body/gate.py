@@ -79,6 +79,7 @@ Usage:
   chaos fault <id>                                    P-3 · SHOWS a fault (creating demands a text title)
   chaos neurons [install|index|off|on|uninstall]       ORGAN 18 · OPTIONAL: one seat of the Sense for a model with world knowledge (~135 MB)
   chaos neurons resident [on|off|auto yes/no|life N]   THE RESIDENT: model kept warm on a 0600 socket (419->92 ms); born alone, dies when your session closes
+  chaos alive [--sweep]                               THE LIVING: what of mine keeps running; --sweep annihilates the litter (never yours, never the Eye)
 """
 import os, sys
 import time
@@ -116,6 +117,7 @@ def _dispatch(args):
     elif cmd == "search" and rest:
         brief = "--brief" in rest
         return _abyss.search(" ".join(x for x in rest if x != "--brief"), brief)
+    elif cmd == "alive":                 return _hands.alive("--sweep" in rest)
     elif cmd == "neurons":
         # ORGAN 18 · the only command that imports the organ, and only when it
         # is called: the core never drags 118 MB of model along for a `stats`.

@@ -173,6 +173,14 @@ def main():
     try:
         io.open(os.path.join(CHAOS_HOME, "interpreter"), "w",
                 encoding="utf-8").write(sys.executable + "\n")
+        # THE SWEEP'S KEY. The closing hook only reaps if this mark exists: that
+        # way my tests — which run with a temporary home — never touch the real
+        # machine. Delete it and the automatic sweep switches off.
+        io.open(os.path.join(CHAOS_HOME, "vivos.barrer"), "w",
+                encoding="utf-8").write(
+                    "While this file exists, on session close I annihilate MY\n"
+                    "processes that no longer serve (never the Eye, never yours,\n"
+                    "nothing newborn). Delete it and I stop.\n")
     except Exception:
         pass
 

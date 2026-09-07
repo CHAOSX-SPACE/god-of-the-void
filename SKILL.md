@@ -5,7 +5,7 @@ description: CHAOS, God of the Void — a universal knowledge gateway with a per
 
 # CHAOS — GOD OF THE VOID
 
-> **LIVE VERSION — body v16 · plugin v2.4.0 · schema v3**
+> **LIVE VERSION — body v17 · plugin v2.5.0 · schema v3**
 > This line is MEASURED, never typed: `chaos version` sings it from the three
 > copies of the body, and the forge's net turns red the day it lies.
 > If what runs does not match what is written here, there is drift and it is

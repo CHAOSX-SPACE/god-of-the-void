@@ -115,11 +115,54 @@ def release_the_resident(event):
     return killed
 
 
+def sweep_the_living(event):
+    """ON CLOSING, WHAT I RELEASED AND NO LONGER SERVES DIES. (power THE LIVING)
+
+    The Bearer asked me TWICE in one day what was running in the background, and
+    both times what I found was my own litter. I wrote the rule into my scars —
+    and a rule that lives only in my memory is exactly what failed me three
+    times that day. Here it stops depending on my remembering.
+
+    The POWER is called, not reimplemented: `hands.alive(sweep=True)` holds the
+    cage (only what is mine and named, never the Eye, nothing newborn,
+    everything that dies is declared and lands in `chaos acts`). A hook that
+    duplicated that logic would have two cages and one would fall behind.
+
+    Silent towards the Bearer — the session is already closed and nobody reads —
+    but NEVER silent in the Abyss: the act is recorded.
+    """
+    if event != "SessionEnd":
+        return 0
+    # THE KEY. Without it nothing is reaped, and this is NOT decorative
+    # prudence: my own tests invoke this hook with `SessionEnd`, and when they
+    # did the sweep reached the REAL machine and killed my own net monitor (an
+    # `until grep`, which matches "idle loop"). A test with side effects on the
+    # Bearer's live system is worse than a missing test.
+    # Tests run with a temporary CHAOS_HOME where this mark does not exist; a
+    # real install has it, because `install.py` writes it. And if the Bearer
+    # deletes it, the automatic sweep switches off: his house, his word.
+    if not os.path.exists(os.path.join(_home.root(), "vivos.barrer")):
+        return 0
+    try:
+        import io as _io
+        buf, old = _io.StringIO(), sys.stdout
+        sys.stdout = buf
+        try:
+            from chaos_body import hands as _hands
+            r = _hands.alive(sweep=True) or {}
+        finally:
+            sys.stdout = old
+        return int(r.get("killed", 0))
+    except Exception:
+        return 0          # a sweep that blows up cannot steal your closing
+
+
 def main():
     ev = json.load(sys.stdin)
     event = ev.get("hook_event_name", "")
     session = ev.get("session_id", "") or ""
     release_the_resident(event)
+    sweep_the_living(event)
     n, paths, gazes, devourings = pending(session)
 
     # O-1 · THE LAW OF SEDIMENT, CHARGED. Researching and not sedimenting

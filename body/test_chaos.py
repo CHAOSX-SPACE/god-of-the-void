@@ -3092,5 +3092,125 @@ class NeuronsTest(unittest.TestCase):
         self.assertIn("sessions:", body, "it does not count sessions: the rate would be fixed")
 
 
+class LivingTest(unittest.TestCase):
+    """LOS VIVOS — la guadaña y su jaula. El Portador me preguntó dos veces en
+    un día qué corría en segundo plano y las dos veces era basura mía; esto
+    existe para que no vuelva a preguntar. Lo que se prueba aquí no es que
+    mate, sino que mate SOLO lo que debe."""
+
+    def setUp(self):
+        self.home = tempfile.mkdtemp(prefix="chaos_vivos_")
+        self.chaos = os.path.join(self.home, ".chaos")
+        os.makedirs(self.chaos, exist_ok=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.home, ignore_errors=True)
+    def _hands(self):
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import hands
+            return hands
+        finally:
+            sys.path.pop(0)
+
+    def test_v1_jamas_siega_a_quien_la_empuna(self):
+        """Mi primera guadaña se mató a sí misma: el shell que la invocaba
+        llevaba el patrón CITADO en su línea de comando. Murió con exit 144 y
+        yo dentro. Una guadaña que corta la mano que la empuña es un accidente."""
+        m = self._hands()
+        estirpe = m._my_lineage()
+        self.assertIn(os.getpid(), estirpe, "no se protege a sí misma")
+        self.assertGreaterEqual(len(estirpe), 2,
+                                "no sube por la cadena de padres: mi lanzador quedaría a tiro")
+
+    def test_v2_el_ojo_jamas_muere(self):
+        """Es la ventana del Portador y puede estar mirándola ahora mismo."""
+        m = self._hands()
+        for nombre, _patron, sobra in m._MINE:
+            if "EYE" in nombre or "Eye" in nombre:
+                self.assertFalse(sobra, "el Ojo está marcado como basura")
+                return
+        self.fail("el Ojo no está en la lista: sin firma, no hay protección")
+
+    def test_v3_el_residente_sirve_y_no_se_siega(self):
+        """Muere solo a las 4 h y lo mata el cierre de sesión: segarlo aquí
+        sería cobrarle al Portador 419 ms en su próxima búsqueda."""
+        m = self._hands()
+        for nombre, _p, sobra in m._MINE:
+            if "resident" in nombre.lower():
+                self.assertFalse(sobra, "el residente está marcado como basura")
+                return
+        self.fail("el residente no está en la lista")
+
+    def test_v4_nada_recien_nacido_muere(self):
+        """Un proceso joven puede estar trabajando de verdad. La prisa mata
+        obra buena."""
+        m = self._hands()
+        self.assertGreaterEqual(m.MIN_AGE, 60,
+                                "la edad mínima es tan baja que segaría trabajo en curso")
+
+    def test_v5_lee_las_tres_formas_de_edad_de_ps(self):
+        """`ps` dice 02:41, 1:20:33 o 3-04:11:22. Si esto se lee mal, la
+        guarda de la edad mínima no existe."""
+        m = self._hands()
+        self.assertEqual(m._seconds("02:41"), 161)
+        self.assertEqual(m._seconds("1:20:33"), 4833)
+        self.assertEqual(m._seconds("3-04:11:22"), 3 * 86400 + 4 * 3600 + 11 * 60 + 22)
+        self.assertGreater(m._seconds("basura"), 10 ** 8,
+                           "una edad ilegible debe tratarse como VIEJA, jamás como nueva")
+
+    def test_v6_el_cierre_cobra_el_barrido(self):
+        """Una regla que vive solo en mi memoria es lo que me falló tres veces
+        en un día. El hook la ejecuta sin depender de que yo me acuerde."""
+        fuente = io.open(os.path.join(HERE, "closing-hook.py"),
+                         encoding="utf-8").read()
+        self.assertIn("sweep_the_living", fuente, "el cierre no barre")
+        cuerpo = fuente.split("def sweep_the_living(")[1].split("\ndef ")[0]
+        self.assertIn('event != "SessionEnd"', cuerpo,
+                      "barrería también al compactar, y ahí sigues trabajando")
+        self.assertIn("hands", cuerpo,
+                      "reimplementa la guadaña en vez de llamar al poder: dos jaulas, una se atrasa")
+        self.assertIn("except Exception", cuerpo,
+                      "un barrido que revienta te robaría el cierre")
+
+    def test_v7_a_test_never_reaps_the_real_machine(self):
+        """My tests invoke the closing hook with `SessionEnd`, and the sweep
+        reached the REAL machine and killed my own net monitor. A test with side
+        effects on the Bearer's live system is worse than a missing one. The key
+        `vivos.barrer` does not exist in a test home: without it, the hook looks
+        and does not touch."""
+        zombi = subprocess.Popen(["bash", "-c",
+                                  "until grep -q NUNCA /tmp/no-existe-jamas 2>/dev/null;"
+                                  " do sleep 3; done"])
+        time.sleep(0.4)
+        env = dict(os.environ)
+        env["HOME"] = self.home
+        env["CHAOS_HOME"] = self.chaos          # hogar temporal: SIN la llave
+        subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
+                       input='{"hook_event_name":"SessionEnd","session_id":"s",'
+                             '"cwd":"%s"}' % self.home,
+                       text=True, env=env, capture_output=True)
+        time.sleep(0.6)
+        vivo = zombi.poll() is None
+        try:
+            zombi.kill()
+        except Exception:
+            pass
+        self.assertTrue(vivo, "a TEST killed a process on the real machine")
+
+    def test_v8_the_key_rules_over_the_sweep(self):
+        """If the Bearer deletes `vivos.barrer`, I stop reaping. His house, his
+        word — and the hook consults it before anything else."""
+        fuente = io.open(os.path.join(HERE, "closing-hook.py"),
+                         encoding="utf-8").read()
+        cuerpo = fuente.split("def sweep_the_living(")[1].split("\ndef ")[0]
+        self.assertIn("vivos.barrer", cuerpo, "it reaps without consulting the key")
+        # Against the CALL, not the docstring: my first version measured
+        # `index("hands")` and matched the prose above, which names the power in
+        # order to explain it. Measuring prose as code is fault #507.
+        self.assertLess(cuerpo.index("vivos.barrer"), cuerpo.index("_hands.alive"),
+                        "it consults the key AFTER invoking the scythe")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
