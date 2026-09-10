@@ -68,8 +68,13 @@ def _nombre():
 
 
 NOMBRE = None            # se resuelve en main(): depende del idioma vivo
-ICONO_PNG = os.path.join(AQUI, "static", "icon-blanco.png")
-FUENTE = os.path.join(AQUI, "static", "icon-fuente.png")   # SIEMPRE del repo
+# EL NOMBRE SE VERIFICA, NO SE ADIVINA (mi Regla 1, roto por mí otra vez). Estos
+# dos decían `icon-*` y los archivos que `gen-assets.py` FORJA se llaman `icono-*`
+# — como los nombran también `tray.py` y `index.html`. Resultado medido: ningún
+# icono se forjaba nunca, ni el `.icns` de macOS ni el `.ico` de Windows, y el
+# `.app` nacía sin cara. Se declaraba con honestidad, y era igual de falso.
+ICONO_PNG = os.path.join(AQUI, "static", "icono-blanco.png")
+FUENTE = os.path.join(AQUI, "static", "icono-fuente.png")   # SIEMPRE del repo
 LANZA = os.path.join(AQUI, "tray.py")
 
 

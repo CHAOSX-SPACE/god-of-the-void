@@ -1,74 +1,76 @@
 {
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" ambush-hook.py"
-        }
-      ]
-    }
-  ],
-  "PostToolUse": [
-    {
-      "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" trail-hook.py"
-        }
-      ]
-    }
-  ],
-  "SessionStart": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" vigil-hook.py"
-        }
-      ]
-    }
-  ],
-  "UserPromptSubmit": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" presence-hook.py"
-        }
-      ]
-    }
-  ],
-  "SessionEnd": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
-        }
-      ]
-    }
-  ],
-  "PreCompact": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
-        }
-      ]
-    }
-  ],
-  "Stop": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" seal-hook.py"
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" ambush-hook.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" trail-hook.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" vigil-hook.py"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" presence-hook.py"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" seal-hook.py"
+          }
+        ]
+      }
+    ]
+  }
 }

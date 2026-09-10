@@ -21,10 +21,5 @@
     "sqlite",
     "zero-dependencies"
   ],
-  "skills": ".",
-  "agents": [
-    "./agents/legion.md",
-    "./agents/judge.md"
-  ],
-  "hooks": "./hooks/hooks.json"
+  "skills": "."
 }

@@ -182,5 +182,50 @@ class OjoTest(unittest.TestCase):
                          "the view took the name of my memory units")
 
 
+class IconosTest(unittest.TestCase):
+    """LOS ICONOS QUE NOMBRO TIENEN QUE EXISTIR.
+
+    `install-app.py` pedía `icon-fuente.png` y `icon-blanco.png`, y los archivos
+    que `gen-assets.py` FORJA se llaman `icono-*` — como los nombran también
+    `tray.py` y `index.html`. Resultado medido en macOS y en Windows: ningún icono
+    se forjaba nunca, ni el `.icns` ni el `.ico`, y el `.app` nacía sin cara. Se
+    declaraba con honestidad («el .app funciona igual») y era igual de falso: mi
+    Regla 1 dice que un nombre se VERIFICA, no se adivina.
+    """
+
+    def test_todo_icono_nombrado_existe_en_el_disco(self):
+        import re
+        faltan = []
+        for f in ("install-app.py", "instalar-app.py", "tray.py", "bandeja.py",
+                  os.path.join("static", "index.html")):
+            ruta = os.path.join(AQUI, f)
+            if not os.path.exists(ruta):
+                continue                      # cada edición trae sus nombres
+            src = io.open(ruta, encoding="utf-8").read()
+            for m in re.finditer(r'["\'/]([a-z0-9\-]*icon[a-z0-9\-]*\.png)', src):
+                png = os.path.join(AQUI, "static", m.group(1))
+                if not os.path.isfile(png):
+                    faltan.append("%s -> static/%s" % (f, m.group(1)))
+        self.assertEqual(faltan, [],
+                         "el código nombra iconos que no existen: %s" % faltan)
+
+    def test_el_generador_forja_los_que_el_instalador_pide(self):
+        """Y no basta con que existan hoy: quien los FORJA tiene que escribir esos
+        mismos nombres, o el próximo `gen-assets.py` los deja huérfanos otra vez."""
+        gen = os.path.join(AQUI, "gen-assets.py")
+        if not os.path.exists(gen):
+            self.skipTest("el generador no viaja en esta disposición")
+        forjados = io.open(gen, encoding="utf-8").read()
+        for app in ("install-app.py", "instalar-app.py"):
+            ruta = os.path.join(AQUI, app)
+            if not os.path.exists(ruta):
+                continue
+            src = io.open(ruta, encoding="utf-8").read()
+            import re
+            for m in re.finditer(r'"static", "([a-z0-9\-]*icon[a-z0-9\-]*\.png)"', src):
+                self.assertIn(m.group(1), forjados,
+                              "%s pide `%s` y el generador no lo forja" % (app, m.group(1)))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

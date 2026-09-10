@@ -3301,7 +3301,20 @@ class ThreeWorldsTest(unittest.TestCase):
         if not os.path.exists(hp):
             self.skipTest("no plugin hooks in this layout")
         cfg = json.load(io.open(hp, encoding="utf-8"))
-        cmds = [h["command"] for entries in cfg.values()
+        # THE SHAPE, and only then the content. The events must live INSIDE a
+        # "hooks" object; declared at the top level the host installs the plugin
+        # and then REFUSES TO LOAD IT: «hooks.json declares PreToolUse at its top
+        # level, outside the "hooks" object». Measured with a real
+        # `plugin install` — and `plugin validate` had said «passed». So the
+        # plugin route never worked, and not for the reason I had already fixed.
+        self.assertIn("hooks", cfg,
+                      "the events are at the top level: the host will not load the plugin")
+        eventos = cfg["hooks"]
+        self.assertNotIn("hooks", eventos, "double nesting: `hooks.hooks`")
+        for ev in ("PreToolUse", "PostToolUse", "SessionStart", "SessionEnd",
+                   "UserPromptSubmit", "Stop", "PreCompact"):
+            self.assertIn(ev, eventos, "the plugin lost its %s hook" % ev)
+        cmds = [h["command"] for entries in eventos.values()
                 for e in entries for h in e.get("hooks", [])]
         self.assertGreaterEqual(len(cmds), 6, "the plugin lost its hooks")
         for c in cmds:
@@ -3725,6 +3738,63 @@ class ThreeWorldsTest(unittest.TestCase):
         self.assertLess(cuerpo.index('os.environ.get("CHAOS_NO_SCHEDULE")'),
                         cuerpo.index('"schtasks", "/Delete"'),
                         "it touches the scheduler BEFORE consulting the safeguard")
+
+    def test_w25_the_manifest_does_not_redeclare_the_standard_hooks_file(self):
+        """`hooks/hooks.json` is loaded AUTOMATICALLY by convention. Declaring it in
+        `plugin.json` makes it a duplicate and the host refuses to load the whole
+        plugin: «Duplicate hooks file detected … the standard hooks/hooks.json is
+        loaded automatically, so manifest.hooks should only reference ADDITIONAL
+        hook files». Found by a real `plugin install`, after `plugin validate` had
+        said «passed» — twice in a row the real install found what no manifest
+        check could."""
+        pj = os.path.join(self.REPO, ".claude-plugin", "plugin.json")
+        if not os.path.exists(pj):
+            self.skipTest("no plugin manifest in this layout")
+        man = json.load(io.open(pj, encoding="utf-8"))
+        # `hooks/hooks.json` and `agents/` are loaded BY CONVENTION. Naming them in
+        # the manifest does not add them: it breaks them. Measured with three real
+        # installs in a row — the duplicate hooks file made the host refuse the
+        # WHOLE plugin, and the explicit agents list made it load ZERO agents while
+        # reporting success. `plugin validate` said «passed» every single time.
+        self.assertNotIn("hooks", man,
+                         "the manifest re-declares the standard hooks file")
+        self.assertNotIn("agents", man,
+                         "declaring the agents makes the host load ZERO of them")
+        # And what the convention looks for must exist, because nobody declares it.
+        self.assertTrue(os.path.isfile(os.path.join(self.REPO, "hooks", "hooks.json")),
+                        "there is no hooks/hooks.json for the convention to find")
+        agentes = os.path.join(self.REPO, "agents")
+        self.assertTrue(os.path.isdir(agentes), "there is no agents/ for the convention")
+        self.assertTrue([f for f in os.listdir(agentes) if f.endswith(".md")],
+                        "agents/ is empty: the Legion and the Judge would not load")
+
+    def test_w24_one_version_and_the_marketplace_agrees(self):
+        """FOUR sources for one version. `claude plugin validate` caught it with
+        its own words: «Entry declares version "2.5.0" but plugin.json says "2.6.0"
+        — at install time plugin.json wins and the entry version is SILENTLY
+        ignored». I had bumped one and not the other. The official CLI validates
+        this agreement in `plugin tag`; here it is a test, so the forge cannot
+        publish the disagreement."""
+        raiz = self.REPO
+        pj = os.path.join(raiz, ".claude-plugin", "plugin.json")
+        mj = os.path.join(raiz, ".claude-plugin", "marketplace.json")
+        if not (os.path.exists(pj) and os.path.exists(mj)):
+            self.skipTest("no plugin manifests in this layout")
+        v_plugin = json.load(io.open(pj, encoding="utf-8")).get("version")
+        entradas = json.load(io.open(mj, encoding="utf-8")).get("plugins", [])
+        self.assertTrue(entradas, "the marketplace declares no plugin")
+        for e in entradas:
+            if e.get("name") == "god-of-the-void":
+                self.assertEqual(e.get("version"), v_plugin,
+                                 "the marketplace entry and plugin.json disagree: marketplace=%s plugin=%s"
+                                 % (e.get("version"), v_plugin))
+        cuerpo = io.open(os.path.join(HERE, "chaos_body", "__init__.py"),
+                         encoding="utf-8").read()
+        import re
+        m = re.search(r"BODY_VERSION = (\d+)", cuerpo)
+        self.assertTrue(m, "the package declares no version")
+        mayor = str(v_plugin or "").split(".")[0]
+        self.assertTrue(mayor.isdigit(), "the plugin version is not a number")
 
     def test_w9_no_test_builds_json_by_gluing_a_path(self):
         """A path with backslashes inside hand-glued JSON is INVALID JSON:
