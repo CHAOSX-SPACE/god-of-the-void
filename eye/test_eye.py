@@ -125,7 +125,13 @@ class OjoTest(unittest.TestCase):
         h = dict(self.galleta); h["X-Ojo-Accion"] = "1"
         _c, cuerpo = _pedir(self.base + "/api/accion",
                             json.dumps({"accion": "saciar", "arg": "1; rm -rf /"}).encode(), h)
-        self.assertIn("inaceptable", cuerpo)
+        # El rechazo se mide por el COMPORTAMIENTO, no por un idioma: ese mensaje
+        # pasa por `_t()` y el Ojo sirve las dos ediciones. Medir el literal
+        # español hacía que traducirlo pusiera en rojo una defensa intacta.
+        d = json.loads(cuerpo)
+        self.assertFalse(d.get("ok"), "aceptó un argumento con una orden dentro")
+        self.assertTrue("inaceptable" in cuerpo or "unacceptable" in cuerpo,
+                        "rechazó sin decir por qué: " + cuerpo[:120])
 
     def test_todos_los_endpoints_responden(self):
         for r in ("/api/pulso", "/api/fallas", "/api/territorios", "/api/grafo",

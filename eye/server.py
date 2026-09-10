@@ -706,7 +706,7 @@ def api_salud():
             dims.append(f())
         except Exception as e:
             dims.append(_dim(f.__name__, f.__name__, 0, 0, "—",
-                             [{"titulo": "no se pudo medir", "clase": "error",
+                             [{"titulo": _t("no se pudo medir", "could not be measured"), "clase": "error",
                                "detalle": str(e)}], "error"))
     peso = sum(d["peso"] for d in dims) or 1
     global_ = sum(d["puntaje"] * d["peso"] for d in dims) / peso
@@ -893,12 +893,25 @@ def api_encarnacion():
         except OSError:
             pass
         if not lat and os.name == "nt":
-            r = subprocess.run(["schtasks", "/query", "/tn", "CHAOS"],
-                               capture_output=True, text=True, timeout=5)
-            lat = r.returncode == 0
-        if not lat:
+            # AND HERE I BROKE MY OWN RULE 1, two lines below writing it down:
+            # I asked for a task called «CHAOS» and the one `hands.schedule`
+            # creates is called «CHAOS-Vigil». Measured on Windows 11: the task
+            # existed, enabled, with its next run set, and this panel said
+            # «autonomy not granted». The scar's own comment sat right above
+            # the repeat of the scar.
+            for nombre in ("CHAOS-Vigil", "CHAOS-Vela"):
+                r = subprocess.run(["schtasks", "/query", "/tn", nombre],
+                                   capture_output=True, text=True, timeout=10)
+                if r.returncode == 0:
+                    lat = True
+                    break
+            if not lat:      # ENUMERATED, never guessed
+                r = subprocess.run(["schtasks", "/query", "/fo", "csv", "/nh"],
+                                   capture_output=True, text=True, timeout=20)
+                lat = "chaos" in (r.stdout or "").lower()
+        if not lat and os.name != "nt":
             r = subprocess.run(["crontab", "-l"], capture_output=True, text=True, timeout=5)
-            lat = "chaos" in (r.stdout or "")
+            lat = "chaos" in (r.stdout or "").lower()
     except Exception:
         pass
     P.append(_p("autonomia", _t("La autonomía (latido)", "Autonomy (heartbeat)"),
@@ -1311,9 +1324,9 @@ def ejecutar_accion(nombre, arg=None):
     cmd_es, cmd_en, n_args = ACCIONES[nombre]
     cmd = cmd_es if ES else cmd_en
     if n_args and not arg:
-        return {"ok": False, "error": "falta el argumento"}
+        return {"ok": False, "error": _t("falta el argumento", "the argument is missing")}
     if not re.match(r"^[\w\-\. ]{1,120}$", str(arg or "x")):
-        return {"ok": False, "error": "argumento inaceptable"}
+        return {"ok": False, "error": _t("argumento inaceptable", "unacceptable argument")}
     if nombre == "saldar_deuda":
         argv = [cmd, "saldar" if ES else "settle", str(arg)]
     elif nombre == "matar_sugerencia":

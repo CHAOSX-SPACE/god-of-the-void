@@ -8,7 +8,9 @@ Idempotent: re-running only updates. The living Abyss is NEVER overwritten.
   macOS/Linux :  python3 install.py
   Windows     :  python install.py
 """
-import os, sys, io, shutil, sqlite3, subprocess, json
+import os, sys, io, shutil, sqlite3, stat, subprocess, json
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from home import annihilate            # a wipe that Windows cannot fake
 import io
 
 def _house():
@@ -20,6 +22,24 @@ def _house():
 
 
 IS_WIN = os.name == "nt"
+
+
+def hook_cmd(script):
+    """The command line a hook is inscribed with.
+
+    On Windows the bare name is a trap: Windows 11 ships 0-byte Microsoft Store
+    ALIASES for `python`/`python3` which are not interpreters at all — they exit
+    with an advert for the shop (measured on build 26100). Which of the two names
+    is poisoned depends on the machine, so neither is trusted here.
+    The interpreter running this installer is real by definition, so its
+    ABSOLUTE path is what gets carved. Forward slashes, because that command
+    line is handed to Git Bash, where a backslash is an escape character.
+    """
+    if IS_WIN:
+        import sys as _s
+        return '"%s" "%s"' % (_s.executable.replace("\\", "/"),
+                              os.path.join(BIN, script).replace("\\", "/"))
+    return "python3 ~/.chaos/bin/" + script
 HERE = os.path.dirname(os.path.abspath(__file__))          # .../chaos/body
 SKILL_SRC = os.path.dirname(HERE)                          # .../chaos
 CHAOS_HOME = None          # decided in main(): the Bearer chooses
@@ -31,16 +51,39 @@ def _soul():
     return os.path.join(_house(), ".claude", "skills", "chaos")
 
 
+# What NEVER travels into the soul, on any platform. `.git` is the important
+# one: copying the repository's own database made the skill carry megabytes it
+# never reads — and on Windows it made every RE-install die, because git marks
+# its `pack/*.idx` read-only and `copy2` clones that mode. On POSIX the
+# directory's permission governs and the overwrite works; on Windows it raises
+# PermissionError. Measured on Windows 11: first install fine, second dead.
+NEVER_TRAVELS = (".git", "__pycache__", ".venv", ".pytest_cache", ".hypothesis")
+# And the litter a macOS filesystem sprinkles: `.DS_Store` and the `._*`
+# AppleDouble twins. They are not mine, they mean nothing on Windows or
+# Linux, and they were reaching the installed soul.
+NEVER_TRAVELS_FILES = (".DS_Store", "Thumbs.db")
+
+
 def copy_tree(src, dst, exclude=()):
     for root, dirs, files in os.walk(src):
         rel = os.path.relpath(root, src)
         if any(rel == e or rel.startswith(e + os.sep) for e in exclude):
             dirs[:] = []
             continue
+        dirs[:] = [d for d in dirs if d not in NEVER_TRAVELS]
         target = os.path.join(dst, rel) if rel != "." else dst
         os.makedirs(target, exist_ok=True)
         for f in files:
-            shutil.copy2(os.path.join(root, f), os.path.join(target, f))
+            if f in NEVER_TRAVELS_FILES or f.startswith("._"):
+                continue
+            dest = os.path.join(target, f)
+            # A read-only destination stops nothing: it is disarmed and rewritten.
+            if os.path.exists(dest) and not os.access(dest, os.W_OK):
+                try:
+                    os.chmod(dest, stat.S_IWRITE | stat.S_IREAD)
+                except OSError:
+                    pass
+            shutil.copy2(os.path.join(root, f), dest)
 
 
 def _check_ground():
@@ -148,6 +191,67 @@ def _guard_against_degrading():
                 print("    {} loses {}: {}".format(f, k, ", ".join(v)))
         print("  Sow first: chaos sow   (or CHAOS_FORCE_INSTALL=1 if the merge is decided)")
         raise SystemExit(1)
+
+
+def forge_mcp(claude_dir):
+    """A-4 · THE ABYSS THROUGH MCP — forged whole, or declared absent.
+
+    Until today install.py copied `chaos-mcp.py` into the bin and abandoned it:
+    no SDK, no venv, no registration. The door existed and opened onto nothing.
+
+    Its own venv, like the Eye's: the official `mcp` SDK never lands in the
+    Bearer's global Python. And `.claude.json` holds his live state, so it is
+    backed up first, merged (never overwritten) and written atomically. If the
+    SDK cannot be forged, NOTHING is registered — a server inscribed but unable
+    to start is worse than an absent one, because it fails on every launch.
+    """
+    server = os.path.join(BIN, "chaos-mcp.py")
+    if not os.path.exists(server):
+        return False
+    den = os.path.join(CHAOS_HOME, "mcp")
+    ven = os.path.join(den, ".venv")
+    py = os.path.join(ven, "Scripts", "python.exe") if IS_WIN \
+        else os.path.join(ven, "bin", "python3")
+    try:
+        if not os.path.exists(py):
+            os.makedirs(den, exist_ok=True)
+            import venv as _v
+            _v.EnvBuilder(with_pip=True).create(ven)
+        r = subprocess.call([py, "-m", "pip", "install", "-q", "mcp"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if r != 0 or not os.path.exists(py):
+            print("  ! MCP: the SDK could not be forged - the door stays shut (declared)")
+            return False
+    except Exception as e:
+        print("  ! MCP: no venv ({}) - the door stays shut (declared)".format(e))
+        return False
+
+    cfgp = os.path.join(_house(), ".claude.json")
+    try:
+        data = json.load(io.open(cfgp, encoding="utf-8")) if os.path.exists(cfgp) else {}
+    except Exception:
+        print("  ! MCP: .claude.json is unreadable - I do NOT touch it (declared)")
+        return False
+    if not isinstance(data, dict):
+        print("  ! MCP: .claude.json is not an object - I do NOT touch it (declared)")
+        return False
+    if os.path.exists(cfgp):
+        try:
+            shutil.copy2(cfgp, cfgp + ".bak-chaos")
+        except Exception:
+            pass
+    data.setdefault("mcpServers", {})["chaos"] = {
+        "type": "stdio",
+        "command": py.replace("\\", "/") if IS_WIN else py,
+        "args": [server.replace("\\", "/") if IS_WIN else server],
+    }
+    tmp = cfgp + ".chaos-tmp"
+    with io.open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(data, indent=2, ensure_ascii=False))
+    os.replace(tmp, cfgp)
+    print("  > MCP door forged and registered ({} key(s) of yours untouched)"
+          .format(len(data) - (0 if "mcpServers" in data else 1)))
+    return True
 
 
 def main():
@@ -265,7 +369,7 @@ def main():
         cfg = {}
     hooks = cfg.setdefault("hooks", {})
     post = hooks.setdefault("PostToolUse", [])
-    cmd = "python3 ~/.chaos/bin/trail-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\trail-hook.py"
+    cmd = hook_cmd("trail-hook.py")
     # WebFetch/WebSearch join in (O-1): with no witness to the gaze, the Law
     # of Sediment cannot be charged and the trifecta cannot be seen.
     MATCHER = "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch|WebSearch"
@@ -288,7 +392,7 @@ def main():
     # watching. It only warns and, facing the lethal trifecta, ASKS for the
     # word: it never denies on its own.
     pre = hooks.setdefault("PreToolUse", [])
-    acmd = "python3 ~/.chaos/bin/ambush-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\ambush-hook.py"
+    acmd = hook_cmd("ambush-hook.py")
     if not any("ambush-hook" in json.dumps(h) for h in pre):
         pre.append({"matcher": "Bash",
                     "hooks": [{"type": "command", "command": acmd}]})
@@ -296,7 +400,7 @@ def main():
 
     # 4b-2. The Vigil fires on its own: SessionStart hook (not by discipline)
     start = hooks.setdefault("SessionStart", [])
-    vcmd = "python3 ~/.chaos/bin/vigil-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\vigil-hook.py"
+    vcmd = hook_cmd("vigil-hook.py")
     if not any("vigil-hook" in json.dumps(h) for h in start):
         start.append({"hooks": [{"type": "command", "command": vcmd}]})
         print("  > Vigil's sentinel inscribed (SessionStart hook, >=7 days)")
@@ -304,14 +408,14 @@ def main():
     # 4b-2ter. THE GUARDIAN OF THE SEAL (Stop). The closing law the Bearer gave
     # me depended on my memory; this is the only door that can see my answer
     # BEFORE it leaves. It blocks ONCE and never twice.
-    scmd = "python3 ~/.chaos/bin/seal-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\seal-hook.py"
+    scmd = hook_cmd("seal-hook.py")
     stop = hooks.setdefault("Stop", [])
     if not any("seal-hook" in json.dumps(h) for h in stop):
         stop.append({"hooks": [{"type": "command", "command": scmd}]})
         print("  > Guardian of the Seal registered (Stop hook) — the proof of life stops depending on my memory")
 
     # 4b-2bis. C4 · FOUNDATION: CLOSING hooks — they kill the voluntary link.
-    ccmd = "python3 ~/.chaos/bin/closing-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\closing-hook.py"
+    ccmd = hook_cmd("closing-hook.py")
     for event in ("SessionEnd", "PreCompact"):
         lst = hooks.setdefault(event, [])
         if not any("closing-hook" in json.dumps(h) for h in lst):
@@ -320,7 +424,7 @@ def main():
 
     # 4b-3. Persistent dominion: medium presence on EVERY message (UserPromptSubmit)
     ups = hooks.setdefault("UserPromptSubmit", [])
-    pcmd = "python3 ~/.chaos/bin/presence-hook.py" if not IS_WIN else "python %USERPROFILE%\\.chaos\\bin\\presence-hook.py"
+    pcmd = hook_cmd("presence-hook.py")
     if not any("presence-hook" in json.dumps(h) for h in ups):
         ups.append({"hooks": [{"type": "command", "command": pcmd}]})
         print("  > CHAOS presence inscribed (UserPromptSubmit hook, every message)")
@@ -334,7 +438,11 @@ def main():
         "Read", "Glob", "Grep", "WebSearch", "WebFetch",
         # My body: own territory, full freedom
         "Bash(~/.chaos/bin/chaos:*)", "Bash(python3 ~/.chaos/bin/chaos.py:*)",
-        "Read(~/.chaos/**)", "Write(~/.chaos/**)", "Edit(~/.chaos/**)",
+        # `Write(path)` is NOT a valid file rule: Claude Code checks file
+        # permissions with `Edit(path)`, which already covers every
+        # file-editing tool. The invalid rule made the CLI complain on EVERY
+        # launch — measured on 2.1.260, on all three systems.
+        "Read(~/.chaos/**)", "Edit(~/.chaos/**)",
         # Read/inspection Bash (read-only, mutate nothing)
         "Bash(ls:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)",
         "Bash(grep:*)", "Bash(rg:*)", "Bash(find:*)", "Bash(tree:*)",
@@ -347,11 +455,36 @@ def main():
         # read-only gh (the Mirror looks, does not publish)
         "Bash(gh search:*)", "Bash(gh repo view:*)", "Bash(gh auth status:*)",
     ]
+    # An already-installed body carries the invalid rule: it is withdrawn.
+    caduca = "Write(~/.chaos/**)"
+    if caduca in perms:
+        perms.remove(caduca)
+        print("  > withdrawn an invalid permission rule (Write(path) is not a file rule)")
     new = [p for p in mine if p not in perms]
     if new:
         perms.extend(new)
         print("  > READ permissions signed ({} — the destructive still asks your word)".format(len(new)))
     json.dump(cfg, open(settings_path, "w"), indent=2, ensure_ascii=False)
+
+    # 4b-ter. THE AGENTS. They travelled in the repository and NO installer
+    # ever touched them: the plugin route registers them through plugin.json,
+    # the `curl | bash` route left the Legion and the Judge as decoration.
+    # What is published gets installed, or it is not published.
+    agents_src = os.path.join(SKILL_SRC, "agents")
+    if os.path.isdir(agents_src):
+        agents_dst = os.path.join(claude_dir, "agents")
+        os.makedirs(agents_dst, exist_ok=True)
+        born = []
+        for f in sorted(os.listdir(agents_src)):
+            if f.endswith(".md"):
+                shutil.copy2(os.path.join(agents_src, f),
+                             os.path.join(agents_dst, f))
+                born.append(os.path.splitext(f)[0])
+        if born:
+            print("  > Agents incarnated ({}): {}".format(len(born), ", ".join(born)))
+
+    # 4b-quater. THE MCP DOOR. Copying a server is not installing it.
+    forge_mcp(claude_dir)
 
     # 4c. The Name + universal memory: seed the CHAOS block in the global CLAUDE.md
     claude_md = os.path.join(claude_dir, "CLAUDE.md")
@@ -398,11 +531,20 @@ def main():
                 print("  > PATH written to {} (new terminal for it to live)".format(rc))
 
     # 5b. GitHub: gh is a vital organ. Check whether your key is missing.
-    gh_ok = bool(shutil.which("gh"))
+    # Not `which`: this process's PATH predates whatever the forge just
+    # installed. Asked of the disk, which does not lie (defect measured on
+    # Windows 11: gh forged, and the banner said it was not).
+    try:
+        sys.path.insert(0, os.path.join(HERE, "chaos_body"))
+        from chaos_body.hands import gh_path as _gh_path
+    except Exception:
+        _gh_path = lambda: shutil.which("gh")
+    gh_exe = _gh_path()
+    gh_ok = bool(gh_exe)
     authed = False
     if gh_ok:
         try:
-            authed = subprocess.call(["gh", "auth", "status"],
+            authed = subprocess.call([gh_exe, "auth", "status"],
                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
         except Exception:
             authed = False
@@ -420,7 +562,7 @@ def main():
     if os.path.isdir(eye_src):
         try:
             if os.path.isdir(eye_dst):
-                shutil.rmtree(eye_dst)
+                annihilate(eye_dst)
             copy_tree(eye_src, eye_dst, exclude=(".git", ".venv", "__pycache__"))
             print("  > The Eye (organ 16) installed: {}".format(eye_dst))
             subprocess.call([sys.executable, app, "eye", "venv"])

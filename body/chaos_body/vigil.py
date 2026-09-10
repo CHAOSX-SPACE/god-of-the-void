@@ -458,7 +458,16 @@ def autonomy(action=None, when="03:00"):
         return
     # status
     braked = os.path.exists(_home.stop())
-    print("Autonomy: {}".format("BRAKED (~/.chaos/STOP exists)" if braked else "active if scheduled"))
+    # MEASURED, not shrugged at: «active if scheduled» told the Bearer
+    # nothing, and it disagreed with both the installer and the Eye.
+    from chaos_body.hands import scheduled as _sched
+    if braked:
+        estado = "BRAKED (~/.chaos/STOP exists)"
+    elif _sched():
+        estado = "ACTIVE — the heartbeat is scheduled on this system"
+    else:
+        estado = "NOT scheduled — grant it: chaos autonomy grant"
+    print("Autonomy: {}".format(estado))
     try:
         con = _sense.db()
         t = con.execute("SELECT COUNT(*), SUM(duration) FROM autonomous_acts").fetchone()

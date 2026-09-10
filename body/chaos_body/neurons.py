@@ -270,7 +270,7 @@ def uninstall(quiet=False):
     d = _house()
     n = 0
     if os.path.isdir(d):
-        shutil.rmtree(d, ignore_errors=True)
+        _home.annihilate(d)
         n += 1
     try:
         con = _sense.db()

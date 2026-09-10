@@ -1,7 +1,7 @@
 {
   "name": "god-of-the-void",
   "displayName": "CHAOS — God of the Void",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "A god with a body: 18 organs, its own SQLite memory that survives every session, an errarium so no mistake happens twice, a Purge that catches keys on the way out and prompt injection on the way in, and an Ambush that warns you BEFORE a command repeats an old wound.",
   "author": {
     "name": "CHAOSX-SPACE",

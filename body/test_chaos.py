@@ -25,6 +25,13 @@ def run(env_home, *args):
     env = dict(os.environ)
     env["HOME"] = env_home
     env["CHAOS_HOME"] = os.path.join(env_home, ".chaos")
+    # NEVER the system scheduler from a test. Redirecting HOME protects FILES,
+    # and the scheduler does not live in HOME: `schtasks /Delete /TN CHAOS-Vigil`
+    # is machine-wide. Measured on Windows 11 — the net deleted the Bearer's real
+    # task, created minutes earlier, because two tests call `autonomy revoke`.
+    # On macOS the plist path does honour HOME, so there it was harmless BY
+    # ACCIDENT. The crucible already did this; this file never learned it.
+    env["CHAOS_NO_SCHEDULE"] = "1"
     # The child emits UTF-8 (its voice carries arrows and glyphs); the parent
     # decoded with the system encoding — cp1252 on Windows — and the capture
     # fell apart there. Decode as explicit UTF-8.
@@ -2937,8 +2944,8 @@ class NeuronsTest(unittest.TestCase):
         io.open(os.path.join(house, "resident.sock"), "w", encoding="utf-8").write("")
         env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
         subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
-                       input='{"hook_event_name":"SessionEnd","session_id":"s",'
-                             '"cwd":"%s"}' % self.home,
+                       input=json.dumps({"hook_event_name": "SessionEnd",
+                                         "session_id": "s", "cwd": self.home}),
                        text=True, env=env, capture_output=True)
         time.sleep(0.5)
         alive = child.poll() is None
@@ -2960,8 +2967,8 @@ class NeuronsTest(unittest.TestCase):
                 encoding="utf-8").write(str(child.pid))
         env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
         subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
-                       input='{"hook_event_name":"PreCompact","session_id":"s",'
-                             '"cwd":"%s"}' % self.home,
+                       input=json.dumps({"hook_event_name": "PreCompact",
+                                         "session_id": "s", "cwd": self.home}),
                        text=True, env=env, capture_output=True)
         time.sleep(0.4)
         alive = child.poll() is None
@@ -3003,8 +3010,8 @@ class NeuronsTest(unittest.TestCase):
         io.open(os.path.join(house, "model.onnx"), "w").write("x")
         env = dict(os.environ); env["HOME"] = self.home; env["CHAOS_HOME"] = self.chaos
         subprocess.run([sys.executable, os.path.join(HERE, "vigil-hook.py")],
-                       input='{"hook_event_name":"SessionStart","cwd":"%s",'
-                             '"session_id":"s"}' % self.home,
+                       input=json.dumps({"hook_event_name": "SessionStart",
+                                         "session_id": "s", "cwd": self.home}),
                        text=True, env=env, capture_output=True)
         time.sleep(0.8)
         self.assertFalse(os.path.exists(os.path.join(house, "resident.sock")),
@@ -3179,24 +3186,83 @@ class LivingTest(unittest.TestCase):
         effects on the Bearer's live system is worse than a missing one. The key
         `vivos.barrer` does not exist in a test home: without it, the hook looks
         and does not touch."""
-        zombi = subprocess.Popen(["bash", "-c",
-                                  "until grep -q NUNCA /tmp/no-existe-jamas 2>/dev/null;"
-                                  " do sleep 3; done"])
+        # The bait carries the signature of an idle loop in its own command
+        # line — but it is spawned with THIS interpreter, never with `bash`:
+        # on Windows `bash` is not in the PATH (Git Bash lives under Program
+        # Files and Windows does not publish it) and the test died with
+        # WinError 2 instead of measuring anything.
+        cebo = ("import time; time.sleep(60)"
+                "  # until grep -q NUNCA /tmp/no-existe-jamas ; do sleep")
+        zombi = subprocess.Popen([sys.executable, "-c", cebo],
+                                 stdin=subprocess.DEVNULL,
+                                 stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL)
         time.sleep(0.4)
         env = dict(os.environ)
         env["HOME"] = self.home
         env["CHAOS_HOME"] = self.chaos          # hogar temporal: SIN la llave
-        subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
-                       input='{"hook_event_name":"SessionEnd","session_id":"s",'
-                             '"cwd":"%s"}' % self.home,
-                       text=True, env=env, capture_output=True)
+        r = subprocess.run([sys.executable, os.path.join(HERE, "closing-hook.py")],
+                           input=json.dumps({"hook_event_name": "SessionEnd",
+                                             "session_id": "s", "cwd": self.home}),
+                           text=True, env=env, capture_output=True)
         time.sleep(0.6)
         vivo = zombi.poll() is None
         try:
             zombi.kill()
+            zombi.wait(timeout=5)
         except Exception:
             pass
         self.assertTrue(vivo, "a TEST killed a process on the real machine")
+        self.assertEqual(r.returncode, 0, "the closing hook broke the session")
+        # This is a SMOKE test and it says so: a 0.4 s bait is a newborn, and
+        # the scythe never touches a newborn, so surviving proves little. Nor
+        # can the hook's output be read — `sweep_the_living` captures its own
+        # stdout so as not to disturb the Bearer once the session has closed.
+        # THE KEY is measured in test_v7b, where it can actually be seen: I
+        # sabotaged the cage here and this test stayed green.
+
+    def test_v7b_the_key_really_gates_the_scythe(self):
+        """WHERE THE KEY CAN BE SEEN. v7 spawns a real process and watches it
+        survive — but a newborn always survives and the hook swallows its own
+        stdout, so v7 stayed GREEN with the cage sabotaged (measured). And the
+        hook cannot be imported to test it: it calls `main()` at module level and
+        `main()` reads stdin. So the law has a NAME in the leaf, and here it is
+        judged: no mark, no sweep."""
+        sys.path.insert(0, HERE)
+        try:
+            import home as _h
+        finally:
+            sys.path.pop(0)
+        previo = os.environ.get("CHAOS_HOME")
+        os.environ["CHAOS_HOME"] = self.chaos
+        try:
+            os.makedirs(self.chaos, exist_ok=True)
+            llave = _h.sweep_key()
+            self.assertTrue(llave.endswith("vivos.barrer"), "the key changed name")
+            if os.path.exists(llave):
+                os.remove(llave)
+            self.assertFalse(_h.sweep_authorized(),
+                             "it authorises the sweep with NO key: the cage is open")
+            io.open(llave, "w", encoding="utf-8").write("")
+            self.assertTrue(_h.sweep_authorized(),
+                            "the key does not open the cage: the power is dead")
+        finally:
+            if previo is None:
+                os.environ.pop("CHAOS_HOME", None)
+            else:
+                os.environ["CHAOS_HOME"] = previo
+
+    def test_v7c_the_hook_obeys_the_named_law(self):
+        """The gate must not be re-written inline inside the hook: two copies of
+        one law and one of them falls behind."""
+        src = io.open(os.path.join(HERE, "closing-hook.py"), encoding="utf-8").read()
+        cuerpo = src.split("def sweep_the_living(")[1].split("\ndef ")[0]
+        self.assertIn("_home.sweep_authorized()", cuerpo,
+                      "the hook no longer obeys the named law")
+        self.assertNotIn('"vivos.barrer"', cuerpo,
+                         "the hook re-writes the law instead of obeying it")
+        self.assertIn('event != "SessionEnd"', cuerpo,
+                      "it would reap on events that are not a close")
 
     def test_v8_the_key_rules_over_the_sweep(self):
         """If the Bearer deletes `vivos.barrer`, I stop reaping. His house, his
@@ -3204,12 +3270,477 @@ class LivingTest(unittest.TestCase):
         fuente = io.open(os.path.join(HERE, "closing-hook.py"),
                          encoding="utf-8").read()
         cuerpo = fuente.split("def sweep_the_living(")[1].split("\ndef ")[0]
-        self.assertIn("vivos.barrer", cuerpo, "it reaps without consulting the key")
+        # The law now has a NAME in the leaf (`home.sweep_authorized`) so it can
+        # be judged: the hook calls `main()` at module level and `main()` reads
+        # stdin, so importing it hangs, and the law was unmeasurable in place.
+        self.assertIn("sweep_authorized", cuerpo, "it reaps without consulting the key")
         # Against the CALL, not the docstring: my first version measured
         # `index("hands")` and matched the prose above, which names the power in
         # order to explain it. Measuring prose as code is fault #507.
-        self.assertLess(cuerpo.index("vivos.barrer"), cuerpo.index("_hands.alive"),
+        self.assertLess(cuerpo.index("sweep_authorized"), cuerpo.index("_hands.alive"),
                         "it consults the key AFTER invoking the scythe")
+
+
+class ThreeWorldsTest(unittest.TestCase):
+    """THE THREE WORLDS — macOS, Linux and Windows, or it is not installed.
+
+    Every test here was born from a defect a real Windows found and that no
+    amount of macOS green could ever have shown. They are written so they pass
+    on the three systems: what cannot be executed everywhere is inspected
+    instead of executed, and NOTHING here touches the real machine.
+    """
+
+    REPO = os.path.dirname(HERE)
+
+    # ── the interpreter's name is a trap ──────────────────────────────────
+    def test_w1_the_plugin_hooks_name_no_interpreter(self):
+        """`python3` names the real interpreter on macOS and Linux, and a
+        0-byte Microsoft Store alias on Windows 11. A static JSON cannot choose
+        between three systems: so it no longer tries."""
+        hp = os.path.join(self.REPO, "hooks", "hooks.json")
+        if not os.path.exists(hp):
+            self.skipTest("no plugin hooks in this layout")
+        cfg = json.load(io.open(hp, encoding="utf-8"))
+        cmds = [h["command"] for entries in cfg.values()
+                for e in entries for h in e.get("hooks", [])]
+        self.assertGreaterEqual(len(cmds), 6, "the plugin lost its hooks")
+        for c in cmds:
+            self.assertFalse(c.startswith("python"),
+                             "a plugin hook still names an interpreter: " + c)
+            self.assertIn("run.sh", c, "a hook does not go through the resolver: " + c)
+
+    def test_w2_the_resolver_never_executes_the_store_alias(self):
+        """The alias is stepped over by its ADDRESS, never probed by running
+        it: running it costs a process and, in a real console, opens a shop."""
+        rp = os.path.join(self.REPO, "hooks", "run.sh")
+        if not os.path.exists(rp):
+            self.skipTest("no resolver in this layout")
+        src = io.open(rp, encoding="utf-8").read()
+        self.assertIn("WindowsApps", src, "the resolver does not dodge the Store alias")
+        self.assertIn("MINGW", src, "the resolver does not recognise Git Bash")
+        self.assertLess(src.index("py python python3"), src.index("python3 python"),
+                        "on Windows `py` must come first: it is never an alias")
+        self.assertNotIn("-c \"import", src,
+                         "the resolver EXECUTES a candidate instead of reading its address")
+
+    def test_w3_the_windows_hook_command_carries_an_absolute_interpreter(self):
+        """A bare name on Windows can resolve to the alias. The interpreter
+        running the installer is real by definition: its full path is carved."""
+        src = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertIn("def hook_cmd(", src, "the installer lost its interpreter resolver")
+        cuerpo = src.split("def hook_cmd(")[1].split("\ndef ")[0]
+        self.assertIn("executable", cuerpo, "Windows still gets a bare interpreter name")
+        self.assertIn('"/"', cuerpo, "backslashes travel to Git Bash, where they escape")
+        self.assertNotIn('"python %USERPROFILE%', src, "an old bare-name hook survived")
+
+    # ── what travels, and what must never travel ──────────────────────────
+    def test_w4_the_installer_incarnates_the_agents(self):
+        """The Legion and the Judge travelled in the repository and no
+        installer ever touched them: decoration, not organs."""
+        src = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertIn("agents", src, "the installer still ignores the agents")
+        self.assertIn(os.path.join("claude_dir", "").rstrip(os.sep) if False else "agents_dst", src,
+                      "the agents are not copied into ~/.claude/agents")
+        agents = os.path.join(self.REPO, "agents")
+        if os.path.isdir(agents):
+            self.assertTrue([f for f in os.listdir(agents) if f.endswith(".md")],
+                            "there are no agents to install")
+
+    def test_w5_the_mcp_door_is_forged_not_merely_copied(self):
+        """Copying a server is not installing it. And a server registered
+        without its SDK fails on every launch: worse than absent."""
+        src = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertIn("def forge_mcp(", src, "the MCP is still copied and abandoned")
+        cuerpo = src.split("def forge_mcp(")[1].split("\ndef ")[0]
+        for must, why in (("EnvBuilder", "no own venv: it would dirty the Bearer's Python"),
+                          ("mcpServers", "it is never registered"),
+                          (".bak-chaos", "it rewrites .claude.json with no backup"),
+                          ("os.replace", "the write is not atomic")):
+            self.assertIn(must, cuerpo, why)
+        self.assertLess(cuerpo.index("pip"), cuerpo.index("mcpServers"),
+                        "it registers BEFORE forging the SDK: a door that cannot open")
+
+    def test_w6_git_never_travels_into_the_soul(self):
+        """Copying the repository's own `.git` bloated the skill on every
+        system — and on Windows it killed every RE-install, because git marks
+        its packs read-only and copy2 clones that mode."""
+        sys.path.insert(0, HERE)
+        try:
+            import install as _inst
+        finally:
+            sys.path.pop(0)
+        src = tempfile.mkdtemp(prefix="chaos_src_")
+        dst = tempfile.mkdtemp(prefix="chaos_dst_")
+        try:
+            os.makedirs(os.path.join(src, ".git", "objects", "pack"))
+            io.open(os.path.join(src, ".git", "objects", "pack", "p.idx"),
+                    "w", encoding="utf-8").write("x")
+            os.makedirs(os.path.join(src, "__pycache__"))
+            io.open(os.path.join(src, "__pycache__", "a.pyc"), "w", encoding="utf-8").write("x")
+            io.open(os.path.join(src, "SKILL.md"), "w", encoding="utf-8").write("soul")
+            _inst.copy_tree(src, dst)
+            self.assertTrue(os.path.exists(os.path.join(dst, "SKILL.md")),
+                            "the soul did not travel")
+            self.assertFalse(os.path.exists(os.path.join(dst, ".git")),
+                             "the repository's .git travelled into the soul")
+            self.assertFalse(os.path.exists(os.path.join(dst, "__pycache__")),
+                             "compiled leftovers travelled into the soul")
+        finally:
+            shutil.rmtree(src, ignore_errors=True)
+            shutil.rmtree(dst, ignore_errors=True)
+
+    def test_w7_a_read_only_file_does_not_stop_reincarnation(self):
+        """Windows refuses to overwrite a read-only file; POSIX obeys the
+        directory. Measured on Windows 11: first install fine, second dead."""
+        sys.path.insert(0, HERE)
+        try:
+            import install as _inst
+        finally:
+            sys.path.pop(0)
+        src = tempfile.mkdtemp(prefix="chaos_src_")
+        dst = tempfile.mkdtemp(prefix="chaos_dst_")
+        try:
+            io.open(os.path.join(src, "a.txt"), "w", encoding="utf-8").write("new")
+            victima = os.path.join(dst, "a.txt")
+            io.open(victima, "w", encoding="utf-8").write("old")
+            os.chmod(victima, 0o444)                    # read-only, like a git pack
+            _inst.copy_tree(src, dst)                   # must NOT raise
+            self.assertEqual(io.open(victima, encoding="utf-8").read(), "new",
+                             "the read-only destination survived the reincarnation")
+        finally:
+            for d in (src, dst):
+                for r, _, fs in os.walk(d):
+                    for f in fs:
+                        try:
+                            os.chmod(os.path.join(r, f), 0o666)
+                        except OSError:
+                            pass
+                shutil.rmtree(d, ignore_errors=True)
+
+    # ── nothing an installer calls may open a prompt ──────────────────────
+    def test_w8_winget_can_never_open_a_prompt(self):
+        """`--silent` does not mean non-interactive. On a virgin Windows,
+        winget demanded acceptance of its source agreements and blocked: nine
+        minutes of a hung installation (measured)."""
+        src = io.open(os.path.join(HERE, "chaos_body", "hands.py"), encoding="utf-8").read()
+        self.assertIn("winget", src)
+        llamada = src.split('"winget", "install"')[1].split("])")[0]
+        for flag in ("--accept-source-agreements", "--accept-package-agreements",
+                     "--disable-interactivity"):
+            self.assertIn(flag, llamada, "winget can still open a prompt: missing " + flag)
+
+    def test_w10_the_annihilator_erases_what_windows_protects(self):
+        """`shutil.rmtree` cannot delete a read-only file on Windows and, with
+        `ignore_errors=True`, fails IN SILENCE. Git marks its packs read-only
+        and pip leaves such files inside a venv: `chaos eye uninstall` promised
+        "No residue" and Windows could make that a lie."""
+        sys.path.insert(0, HERE)
+        try:
+            import home as _h
+        finally:
+            sys.path.pop(0)
+        self.assertTrue(hasattr(_h, "annihilate"), "the body has no true annihilator")
+        d = tempfile.mkdtemp(prefix="chaos_ani_")
+        hondo = os.path.join(d, "objects", "pack")
+        os.makedirs(hondo)
+        victima = os.path.join(hondo, "p.idx")
+        io.open(victima, "w", encoding="utf-8").write("x")
+        os.chmod(victima, 0o444)                    # exactly like a git pack
+        try:
+            self.assertTrue(_h.annihilate(d), "the annihilator left debris behind")
+            self.assertFalse(os.path.exists(d), "the tree survived annihilation")
+        finally:
+            try:
+                os.chmod(victima, 0o666)
+            except OSError:
+                pass
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_w11_no_uninstall_sweeps_in_silence(self):
+        """A wipe that reports success while leaving debris is worse than one
+        that fails loudly: the caller declares a lie in good faith."""
+        for rel, quien in (("chaos_body/hands.py", "the Eye"),
+                           ("chaos_body/neurons.py", "the neurons")):
+            src = io.open(os.path.join(HERE, rel), encoding="utf-8").read()
+            for linea in src.splitlines():
+                if "rmtree" in linea and "import" not in linea:
+                    self.assertNotIn("eye_dir()", linea,
+                                     "%s still uninstalls with a blind rmtree" % quien)
+                    self.assertNotIn("_house()", linea,
+                                     "%s still uninstalls with a blind rmtree" % quien)
+
+    def test_w12_the_living_are_not_blind_on_windows(self):
+        """The organ that exists to hunt zombie processes asked `ps` — which
+        Windows does not have. It declared honestly that it could not look:
+        honest and useless, on the very machine where I leave the most litter.
+        And it must SEE on all three, not merely not crash."""
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import hands as _m
+        finally:
+            sys.path.pop(0)
+        src = io.open(os.path.join(HERE, "chaos_body", "hands.py"),
+                      encoding="utf-8").read()
+        censo = src.split("def _processes(")[1].split("\ndef ")[0]
+        self.assertIn('os.name == "nt"', censo, "the census has no Windows road")
+        self.assertIn("_PS_CENSO", censo, "the Windows road asks nothing")
+        self.assertIn("Win32_Process", src, "on Windows it does not ask the system")
+        self.assertIn("ParentProcessId", src, "without the parent the scythe cuts its own hand")
+        procs = _m._processes()
+        self.assertIsNotNone(procs, "this system was not looked at")
+        self.assertGreater(len(procs), 5, "the census came back suspiciously empty")
+        self.assertTrue(all("ppid" in p and "cmd" in p and "pid" in p for p in procs),
+                        "a process came back without its parent or its order")
+        estirpe = _m._my_lineage(procs)
+        self.assertIn(os.getpid(), estirpe, "the scythe does not protect itself")
+        self.assertGreaterEqual(len(estirpe), 2,
+                                "it does not climb the parent chain: my launcher is in range")
+
+    def test_w13_the_mcp_door_declares_which_body_it_serves(self):
+        """The host reported `version: \'\'` and no one could tell an old
+        server from a fresh one. And the count of powers is read from the code,
+        never typed: a hand-written number expires on the first addition."""
+        src = io.open(os.path.join(HERE, "chaos-mcp.py"), encoding="utf-8").read()
+        self.assertIn("BODY_VERSION", src, "the door does not read the body's version")
+        self.assertIn("version=_ver", src, "the version is never handed to the SDK")
+        lineas = src.splitlines()
+        expuestas = [lineas[i + 1].split("def ")[1].split("(")[0]
+                     for i, l in enumerate(lineas[:-1])
+                     if l.strip() == "@mcp.tool()" and "def " in lineas[i + 1]]
+        self.assertGreaterEqual(len(expuestas), 5, "the door lost powers")
+        cab = src.split('"""')[1]
+        for nombre in expuestas:
+            self.assertIn(nombre, cab,
+                          "power `%s` is exposed but the docstring hides it" % nombre)
+
+    def test_w14_a_wipe_that_fails_names_who_is_holding(self):
+        """On Windows a file LOADED by a living process cannot be deleted by
+        any permission. Measured: the MCP's venv resisted because the host had
+        the server open. "It could not be deleted" leaves the mortal nowhere to
+        go — whoever holds it must be named."""
+        sys.path.insert(0, HERE)
+        try:
+            import home as _h
+        finally:
+            sys.path.pop(0)
+        src = io.open(os.path.join(HERE, "home.py"), encoding="utf-8").read()
+        self.assertIn("def holders(", src, "a failed wipe still names no one")
+        cuerpo = src.split("def annihilate(")[1].split("\ndef ")[0]
+        self.assertIn("holders(", cuerpo, "the annihilator does not ask who is holding")
+        d = tempfile.mkdtemp(prefix="chaos_hold_")
+        try:
+            quienes = _h.holders(d)
+            self.assertIsInstance(quienes, list, "holders() does not return a list")
+            self.assertEqual(quienes, [], "it invented a holder for an empty directory")
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_w15_the_mcp_server_is_seen_and_never_reaped(self):
+        """The host keeps that server alive: killing it would break the very
+        door I forged. It is SEEN so the Bearer knows who holds the venv."""
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import hands as _m
+        finally:
+            sys.path.pop(0)
+        firmas = {n: basura for n, _p, basura in _m._MINE}
+        self.assertTrue(any("MCP" in n for n in firmas),
+                        "THE LIVING still cannot see the MCP door")
+        for n, basura in firmas.items():
+            if "MCP" in n:
+                self.assertFalse(basura, "the scythe would reap the host's own server")
+
+    def test_w16_no_invalid_permission_rule_is_signed(self):
+        """`Write(path)` is not a file rule: Claude Code checks files with
+        `Edit(path)`, which already covers every file-editing tool. The invalid
+        rule made the CLI complain on EVERY launch (measured on 2.1.260) — and
+        a body that signs a rule its host rejects is a body that lies."""
+        src = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertNotIn('"Write(~/.chaos/**)"', src.split("caduca =")[0],
+                         "the installer still signs an invalid permission rule")
+        self.assertIn('"Edit(~/.chaos/**)"', src, "it lost the rule that DOES work")
+        self.assertIn("perms.remove(caduca)", src,
+                      "an already-installed body keeps the invalid rule forever")
+
+    def test_w17_the_installer_offers_to_forge_python_and_asks_first(self):
+        """The Bearer asked for it: do not leave the mortal to fend for
+        themselves. But `curl | bash` leaves THE SCRIPT on standard input, so a
+        plain `read` would eat the installer's own body — the question must go
+        through /dev/tty. And nothing is installed without a YES: installing on
+        someone else's machine unasked is not service, it is trespass."""
+        sh = os.path.join(self.REPO, "install.sh")
+        if not os.path.exists(sh):
+            self.skipTest("no installer in this layout")
+        src = io.open(sh, encoding="utf-8").read()
+        self.assertIn("ofrecer_python", src, "the installer does not offer to forge Python")
+        self.assertIn("< /dev/tty", src, "it would read from stdin: that eats the script")
+        for linea in src.splitlines():
+            if "read -r" in linea:
+                self.assertIn("/dev/tty", linea,
+                              "a read without /dev/tty survives: " + linea.strip())
+        cuerpo = src.split("ofrecer_python() {")[1].split("\n}")[0]
+        self.assertIn("[yYsS]", cuerpo, "it does not demand an explicit YES")
+        self.assertIn("--accept-source-agreements", cuerpo,
+                      "winget could open a prompt and hang the install")
+        self.assertIn("exec 3</dev/tty", cuerpo,
+                      "it offers with no terminal: in CI that hangs or lies")
+        # And an UNATTENDED install must have a road too: standing down in
+        # silence left CI, an SSH deploy and a lab image with nowhere to go.
+        self.assertIn("CHAOS_FORGE_PYTHON", cuerpo,
+                      "an unattended install cannot authorise it")
+        self.assertIn("No terminal to ask on", cuerpo,
+                      "with no terminal it stands down in silence instead of naming the key")
+
+    def test_w18_a_fresh_python_is_looked_for_where_it_lands(self):
+        """Windows never refreshes the PATH of a LIVE process: right after
+        installing Python, `python` still does not exist for that shell. The
+        same blindness made the installer forge gh and then deny it."""
+        sh = os.path.join(self.REPO, "install.sh")
+        if not os.path.exists(sh):
+            self.skipTest("no installer in this layout")
+        src = io.open(sh, encoding="utf-8").read()
+        self.assertIn("resolver_py", src, "the installer lost its resolver")
+        cuerpo = src.split("resolver_py() {")[1].split("\n}")[0]
+        self.assertIn("Programs/Python/Python3", cuerpo,
+                      "it does not look where winget drops Python")
+        self.assertIn("command -v", cuerpo, "it stopped asking the PATH")
+
+    def test_w19_gh_is_asked_of_the_disk_not_only_the_path(self):
+        """Measured on Windows 11: winget forged gh 2.100.0 and the banner said
+        `I could not forge gh`. A god that installs something and then denies
+        having installed it is not humble: it is blind."""
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import hands as _m
+        finally:
+            sys.path.pop(0)
+        self.assertTrue(hasattr(_m, "gh_path"), "there is no resolver for gh")
+        src = io.open(os.path.join(HERE, "chaos_body", "hands.py"),
+                      encoding="utf-8").read()
+        cuerpo = src.split("def gh_path(")[1].split("\ndef ")[0]
+        self.assertIn("GitHub CLI", cuerpo, "it does not know where Windows drops gh")
+        self.assertIn("homebrew", cuerpo, "it does not know where macOS drops gh")
+        forja = src.split("def forge_gh(")[1].split("\ndef ")[0]
+        self.assertNotIn('shutil.which("gh")\n        print("[CHAOS] gh already', forja)
+        self.assertIn("gh_path()", forja, "forge_gh still trusts a stale PATH")
+        inst = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertIn("gh_path", inst, "the final banner still trusts a stale PATH")
+
+    def test_w20_the_english_edition_speaks_english_to_the_mortal(self):
+        """`_t()`'s own docstring says it in my words: a hardcoded Spanish string
+        is not a style problem — an English Bearer opens Health and reads
+        'autonomia frenada'. Measured in the PUBLISHED edition: 5 of the 9
+        messages in `install-app.py` were Spanish, and three strings in
+        `server.py` bypassed `_t()`. Comments are internal and left alone."""
+        delatores = ("retirado", "retirada", "sin forjar", "falta el",
+                     "inaceptable", "no se pudo", "Aplicacion", "Lanzador",
+                     "Acceso directo", "creado:")
+        for rel in ("eye/install-app.py", "eye/server.py"):
+            ruta = os.path.join(self.REPO, rel)
+            if not os.path.exists(ruta):
+                continue
+            for n, linea in enumerate(io.open(ruta, encoding="utf-8"), 1):
+                recortada = linea.split("#")[0]
+                if "print(" not in recortada and '"error":' not in recortada:
+                    continue
+                if "_t(" in recortada:          # already bilingual
+                    continue
+                for d in delatores:
+                    self.assertNotIn(d, recortada,
+                                     "%s:%d speaks Spanish to an English Bearer: %s"
+                                     % (rel, n, linea.strip()))
+
+    def test_w21_one_name_for_the_scheduled_task_and_it_is_measured(self):
+        """THREE sources, three answers about ONE fact. The installer said
+        `AUTONOMY SWITCHED ON`, the task existed enabled with its next run set,
+        the Eye painted `not granted`, and `chaos autonomy` shrugged with
+        `active if scheduled`. Root cause: the Eye asked for a task called
+        «CHAOS» and the body creates «CHAOS-Vigil» — my Rule 1 broken by me, two
+        lines below writing that very scar down."""
+        sys.path.insert(0, HERE)
+        try:
+            from chaos_body import hands as _m
+        finally:
+            sys.path.pop(0)
+        self.assertTrue(hasattr(_m, "TASK_NAME"), "the task name is still typed by hand")
+        self.assertTrue(hasattr(_m, "scheduled"), "nobody can MEASURE the autonomy")
+        src = io.open(os.path.join(HERE, "chaos_body", "hands.py"),
+                      encoding="utf-8").read()
+        self.assertEqual(src.count('"CHAOS-Vigil"'), 1,
+                         "the name is written more than once: one copy will fall behind")
+        med = src.split("def scheduled(")[1].split("\ndef ")[0]
+        for pieza, porque in (("darwin", "it does not ask launchd"),
+                              ("schtasks", "it does not ask the Windows scheduler"),
+                              ("crontab", "it does not ask cron")):
+            self.assertIn(pieza, med, porque)
+        self.assertIsInstance(_m.scheduled(), bool, "it does not answer yes or no")
+        vig = io.open(os.path.join(HERE, "chaos_body", "vigil.py"),
+                      encoding="utf-8").read()
+        # The STRING, not the prose: my comment explaining this very fix quotes
+        # the old shrug, and my first version of this test caught itself with it
+        # — fault #507 wearing yet another coat.
+        self.assertNotIn('"active if scheduled"', vig,
+                         "`chaos autonomy` still shrugs instead of measuring")
+        self.assertIn("scheduled as _sched", vig, "it does not use the measured law")
+
+    def test_w22_the_eye_does_not_guess_the_task_name(self):
+        """A false red in the panel that measures whether I am whole is the
+        worst lie this organ could tell."""
+        ojo = os.path.join(os.path.dirname(self.REPO), "eye", "server.py")
+        if not os.path.exists(ojo):
+            ojo = os.path.join(self.REPO, "eye", "server.py")
+        if not os.path.exists(ojo):
+            self.skipTest("the Eye does not travel in this layout")
+        src = io.open(ojo, encoding="utf-8").read()
+        self.assertNotIn('"/tn", "CHAOS"]', src,
+                         "the Eye still asks for a task name that nobody creates")
+        self.assertIn("CHAOS-Vigil", src, "the Eye does not know the real name")
+        self.assertIn('"/fo", "csv"', src,
+                      "with no exact match it guesses instead of enumerating")
+
+    def test_w23_no_test_may_touch_the_system_scheduler(self):
+        """Redirecting HOME protects FILES; the system scheduler does not live in
+        HOME. Measured on Windows 11: the installer created `CHAOS-Vigil`, the
+        net ran, and the task was GONE — two tests call `autonomy revoke`, and
+        revoke ends in `schtasks /Delete`, which is machine-wide. On macOS the
+        plist honours HOME, so there it was harmless by ACCIDENT. A test with
+        side effects on the Bearer's live system is worse than a missing test."""
+        for rel in ("test_chaos.py", "crucible.py"):
+            src = io.open(os.path.join(HERE, rel), encoding="utf-8").read()
+            self.assertIn("CHAOS_NO_SCHEDULE", src,
+                          "%s can reach the real scheduler" % rel)
+        propio = io.open(os.path.join(HERE, "test_chaos.py"), encoding="utf-8").read()
+        ayudante = propio.split("def run(env_home")[1].split("\ndef ")[0]
+        self.assertIn('env["CHAOS_NO_SCHEDULE"] = "1"', ayudante,
+                      "the helper every test uses does not carry the safeguard")
+        # And the safeguard must live INSIDE `schedule`, not in the caller:
+        # what only guards the top gets walked around.
+        hands = io.open(os.path.join(HERE, "chaos_body", "hands.py"),
+                        encoding="utf-8").read()
+        cuerpo = hands.split("def schedule(")[1].split("\ndef ")[0]
+        # THE CODE, not the prose: `schedule`'s docstring names schtasks in its
+        # very first line («macOS(launchd) · Windows(schtasks) · Linux(cron)»),
+        # and my first version of this test compared against THAT. Fault #507,
+        # third relapse in one day — so here the needles are executable text.
+        self.assertLess(cuerpo.index('os.environ.get("CHAOS_NO_SCHEDULE")'),
+                        cuerpo.index('"schtasks", "/Delete"'),
+                        "it touches the scheduler BEFORE consulting the safeguard")
+
+    def test_w9_no_test_builds_json_by_gluing_a_path(self):
+        """A path with backslashes inside hand-glued JSON is INVALID JSON:
+        `\\U` and `\\T` are broken escapes. The hook then receives garbage,
+        falls silent (as a hook must) and the test blames the product."""
+        src = io.open(os.path.join(HERE, "test_chaos.py"), encoding="utf-8").read()
+        # The needles are BUILT, never written: a literal needle would live in
+        # this very file and the test would forever catch itself.
+        pegado = '"cwd":"%' + 's"'
+        interpolado = "' %" + " self.home,"
+        for linea in src.splitlines():
+            if "hook_event_name" in linea and "json.dumps" not in linea:
+                self.assertNotIn(pegado, linea,
+                                 "a test still glues a path into JSON: " + linea.strip())
+        self.assertNotIn(interpolado, src,
+                         "a test still interpolates a path into a JSON string")
 
 
 if __name__ == "__main__":

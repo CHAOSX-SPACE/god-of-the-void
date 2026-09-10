@@ -68,9 +68,9 @@ def schedule(when="03:00", remove=False):
 
     elif plat.startswith("win"):
         if remove:
-            subprocess.call(["schtasks", "/Delete", "/TN", "CHAOS-Vigil", "/F"])
+            subprocess.call(["schtasks", "/Delete", "/TN", TASK_NAME, "/F"])
             print("Vigil-sweep unscheduled."); return
-        r = subprocess.call(["schtasks", "/Create", "/SC", "DAILY", "/TN", "CHAOS-Vigil",
+        r = subprocess.call(["schtasks", "/Create", "/SC", "DAILY", "/TN", TASK_NAME,
                              "/TR", '"{}" "{}" heartbeat'.format(py, app),
                              "/ST", "{:02d}:{:02d}".format(hh, mm), "/F"])
         print("[CHAOS] Vigil-sweep scheduled at {:02d}:{:02d} (Task Scheduler)."
@@ -90,6 +90,43 @@ def schedule(when="03:00", remove=False):
         print(("[CHAOS] Vigil-sweep scheduled at {:02d}:{:02d} (cron).".format(hh, mm)
                if not remove else "Vigil-sweep unscheduled.")
               if p.returncode == 0 else "cron refused the task.")
+
+# ONE name for the scheduled task, in ONE place. It used to be typed by hand in
+# three files and the Eye asked for «CHAOS» while this creates «CHAOS-Vigil»:
+# the panel painted «autonomy not granted» with the task enabled and its next
+# run already set (measured on Windows 11). My Rule 1, broken by myself.
+TASK_NAME = "CHAOS-Vigil"
+
+
+def scheduled():
+    """Is the heartbeat REALLY scheduled? Asked of the system, per system.
+
+    `chaos autonomy` used to answer «active if scheduled», which is not a
+    measurement: it is a shrug. Three sources gave three answers about one fact.
+    """
+    try:
+        if sys.platform == "darwin":
+            agentes = os.path.join(_house._house(), "Library", "LaunchAgents")
+            try:
+                return any("chaos" in f.lower() and f.endswith(".plist")
+                           for f in os.listdir(agentes))
+            except OSError:
+                return False
+        if os.name == "nt":
+            r = subprocess.run(["schtasks", "/query", "/tn", TASK_NAME],
+                               capture_output=True, text=True, timeout=10)
+            if r.returncode == 0:
+                return True
+            # Not found by name: it is ENUMERATED, never guessed — another
+            # edition may name it in its own language.
+            r = subprocess.run(["schtasks", "/query", "/fo", "csv", "/nh"],
+                               capture_output=True, text=True, timeout=20)
+            return "chaos" in (r.stdout or "").lower()
+        r = subprocess.run(["crontab", "-l"], capture_output=True, text=True, timeout=10)
+        return "chaos" in (r.stdout or "").lower()
+    except Exception:
+        return False
+
 
 def _eye_venv():
     """FRONT 14: the Eye's OWN venv. I promised isolation and the tray
@@ -124,7 +161,7 @@ def eye(action=None, source=None):
         os.makedirs(_home.root(), exist_ok=True)
         if os.path.isdir(source):                      # local path (development)
             if os.path.isdir(_home.eye_dir()):
-                shutil.rmtree(_home.eye_dir())
+                _home.annihilate(_home.eye_dir())
             shutil.copytree(source, _home.eye_dir(),
                             ignore=shutil.ignore_patterns(".git", "__pycache__"))
         else:                                          # git URL
@@ -162,7 +199,8 @@ def eye(action=None, source=None):
             app = os.path.join(_home.eye_dir(), "install-app.py")
             if os.path.exists(app):
                 subprocess.call([sys.executable, app, "--quitar"])
-            shutil.rmtree(_home.eye_dir())
+            if not _home.annihilate(_home.eye_dir()):
+                print("  ! debris survived (files locked by another process)")
             # "no residue" is kept WHOLE: the language preference too
             try:
                 os.remove(os.path.join(_home.root(), "ojo-idioma.json"))
@@ -241,10 +279,39 @@ def backup_outside(destination=None):
         _home.root(), destination), verdict="ok")
     return True
 
+def gh_path():
+    """Where `gh` really is — PATH first, then the places managers drop it.
+
+    Windows does NOT refresh the PATH of a live process: winget installed gh
+    and `shutil.which` kept returning None inside the very installer that had
+    just forged it, which then declared failure (measured on Windows 11 with
+    gh 2.100.0). A god that installs something and then denies having installed
+    it is not humble: it is blind.
+    """
+    p = shutil.which("gh")
+    if p:
+        return p
+    nidos = []
+    if os.name == "nt":
+        for base in (os.environ.get("ProgramFiles", r"C:\Program Files"),
+                     os.environ.get("ProgramFiles(x86)", ""),
+                     os.environ.get("LOCALAPPDATA", "")):
+            if base:
+                nidos.append(os.path.join(base, "GitHub CLI", "gh.exe"))
+        nidos.append(r"C:\Program Files\GitHub CLI\gh.exe")
+    else:
+        nidos += ["/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh",
+                  os.path.expanduser("~/.local/bin/gh")]
+    for n in nidos:
+        if n and os.path.isfile(n):
+            return n
+    return None
+
+
 def forge_gh():
     """Auto-forge gh without asking. Vital organ of the Mirror/Eyes.
     Best-effort cross-platform; declares honestly if the OS demands sudo."""
-    if shutil.which("gh"):
+    if gh_path():
         print("[CHAOS] gh already lives in my body. The Mirror sees with both eyes.")
         return True
     print("[CHAOS] gh does not exist. I forge it — a god does not see GitHub through cracks.")
@@ -266,13 +333,24 @@ def forge_gh():
             print("  No package manager found. Forge gh: https://cli.github.com")
     elif plat.startswith("win"):
         if shutil.which("winget"):
-            ok = _sense._run(["winget", "install", "--id", "GitHub.cli", "-e", "--silent"])
+            # FRENTE Windows: `--silent` NO significa no-interactivo. En una máquina
+            # virgen winget exige aceptar los contratos del origen y ABRE un prompt:
+            # sin TTY se bloqueó 9 minutos y colgó la instalación entera (medido).
+            ok = _sense._run(["winget", "install", "--id", "GitHub.cli", "-e", "--silent",
+                              "--accept-source-agreements", "--accept-package-agreements",
+                              "--disable-interactivity"])
         elif shutil.which("choco"):
             ok = _sense._run(["choco", "install", "gh", "-y"])
         else:
             print("  winget/choco missing. Forge gh: https://cli.github.com")
-    if ok and shutil.which("gh"):
-        print("[CHAOS] gh forged. Now your key is missing: 'gh auth login' (only the Bearer authenticates).")
+    # The PATH of this process is OLD: gh is looked for where it LANDED.
+    donde = gh_path()
+    if donde:
+        print("[CHAOS] gh forged at {}. Now your key is missing: 'gh auth login'"
+              " (only the Bearer authenticates).".format(donde))
+        if not shutil.which("gh"):
+            print("  > it is not in THIS terminal's PATH yet: open a new one, or"
+                  " call it by its full path.")
         return True
     if not ok:
         # the void is not filled: record a hunger
@@ -320,28 +398,81 @@ _MINE = (
     ("a judge", r"juez-[a-z]+\.py", True),
     ("resident (organ 18)", r"n\.servir\(\)|n\.serve\(\)", False),
     ("THE EYE — your window", r"ojo/server\.py|eye/server\.py", False),
+    # The host opens this one and holds its venv: on Windows that made an
+    # uninstall impossible and I could not even see who was to blame.
+    # Litter=False: it is SEEN, never reaped — killing the host's server
+    # would break the very door I forged.
+    ("MCP door (organ A-4)", r"chaos-mcp\.py", False),
+)
+
+
+def _etime(sec):
+    """Seconds to what `ps` would have printed. Windows hands me a number and
+    POSIX a string: the rest of the organ must not care which."""
+    sec = int(max(0, sec))
+    d, r = divmod(sec, 86400)
+    h, r = divmod(r, 3600)
+    m, s = divmod(r, 60)
+    if d:
+        return "%d-%02d:%02d:%02d" % (d, h, m, s)
+    if h:
+        return "%d:%02d:%02d" % (h, m, s)
+    return "%02d:%02d" % (m, s)
+
+
+# One CIM call for the whole census: pid, parent, age, memory and order. Asking
+# per-process would cost one PowerShell launch per ancestor, and PowerShell is
+# not cheap to start.
+_PS_CENSO = (
+    "Get-CimInstance Win32_Process | ForEach-Object { "
+    "$s = 0; if ($_.CreationDate) { $s = [int](((Get-Date) - $_.CreationDate).TotalSeconds) }; "
+    "'{0}|{1}|{2}|{3}|{4}' -f $_.ProcessId, $_.ParentProcessId, $s, "
+    "$_.WorkingSetSize, ($_.CommandLine -replace '[\r\n]', ' ') }"
 )
 
 
 def _processes():
-    """What runs NOW, asked of the system. Windows has no `ps` in this shape:
-    there it is declared and not faked."""
+    """What runs NOW, asked of the system — on the three of them.
+
+    This organ was born blind on Windows: it asked `ps`, which is not there,
+    and declared honestly that it could not look. Honest and useless. The
+    machine where I leave the most litter was the one I could not sweep.
+    """
+    out = []
+    if os.name == "nt":
+        try:
+            r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive",
+                                "-Command", _PS_CENSO],
+                               capture_output=True, timeout=60)
+            texto = (r.stdout or b"").decode("utf-8", "replace")
+        except Exception:
+            return None
+        for l in texto.splitlines():
+            p = l.split("|", 4)
+            if len(p) < 5:
+                continue
+            try:
+                pid, ppid, sec, rss = int(p[0]), int(p[1]), int(p[2]), int(p[3] or 0)
+            except ValueError:
+                continue
+            out.append({"pid": pid, "ppid": ppid, "age": _etime(sec),
+                        "mb": rss / 1048576.0, "cmd": p[4].strip()})
+        return out
     try:
-        r = subprocess.run(["ps", "-eo", "pid=,etime=,rss=,command="],
+        r = subprocess.run(["ps", "-eo", "pid=,ppid=,etime=,rss=,command="],
                            capture_output=True, text=True, timeout=20)
     except Exception:
         return None
-    out = []
     for l in (r.stdout or "").splitlines():
-        p = l.split(None, 3)
-        if len(p) < 4:
+        p = l.split(None, 4)
+        if len(p) < 5:
             continue
         try:
-            pid = int(p[0])
+            pid, ppid = int(p[0]), int(p[1])
         except ValueError:
             continue
-        out.append({"pid": pid, "age": p[1], "mb": int(p[2]) / 1024.0,
-                    "cmd": p[3]})
+        out.append({"pid": pid, "ppid": ppid, "age": p[2],
+                    "mb": int(p[3]) / 1024.0, "cmd": p[4]})
     return out
 
 
@@ -387,18 +518,32 @@ def _signatures():
     return signatures
 
 
-def _my_lineage():
-    """Me and all my parents, up to the root. What launched me is not reaped."""
+def _my_lineage(procs=None):
+    """Me and all my parents, up to the root. What launched me is not reaped.
+
+    It walks the census that was already taken instead of asking the system
+    once per ancestor: on Windows each question costs a PowerShell launch, and
+    on POSIX it cost a `ps` per level for nothing.
+    """
+    if procs is None:
+        procs = _processes()
+    padres = {}
+    for p in (procs or []):
+        if "ppid" in p:
+            padres[p["pid"]] = p["ppid"]
     lineage, pid = set(), os.getpid()
-    for _ in range(20):
+    for _ in range(40):
         lineage.add(pid)
-        try:
-            r = subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)],
-                               capture_output=True, text=True, timeout=5)
-            pid = int((r.stdout or "0").strip())
-        except Exception:
-            break
-        if pid <= 1:
+        if padres:
+            pid = padres.get(pid, 0)
+        else:                                  # no census: the old road
+            try:
+                r = subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)],
+                                   capture_output=True, text=True, timeout=5)
+                pid = int((r.stdout or "0").strip())
+            except Exception:
+                break
+        if pid <= 1 or pid in lineage:
             break
     return lineage
 
@@ -407,8 +552,8 @@ def alive(sweep=False):
     """What of mine keeps running. With `--sweep`, what does not serve dies."""
     procs = _processes()
     if procs is None:
-        print("[CHAOS] This system will not let me look at its processes (no"
-              " `ps`). Declared, not faked.")
+        print("[CHAOS] This system will not let me look at its processes."
+              " Declared, not faked.")
         return None
     # NEVER AN ANCESTOR OF MINE. My first scythe killed itself: the shell that
     # invoked it carried the pattern QUOTED in its own command line ("until
@@ -416,7 +561,7 @@ def alive(sweep=False):
     # died with exit 144 — with me inside it. A scythe that can cut the hand
     # holding it is not a tool, it is an accident. The parent chain is walked
     # and all of it is untouchable.
-    untouchable = _my_lineage()
+    untouchable = _my_lineage(procs)
     found, killed = [], []
     for p in procs:
         if p["pid"] in untouchable:

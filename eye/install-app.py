@@ -24,6 +24,17 @@ def _house():
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 HOME = _house()
+
+# THE EDITION IS THE FOLDER, exactly as `server.py` decides it: `ojo` is the
+# Spanish edition and `eye` the English one. This file used to be MONOLINGUAL
+# and it is DERIVED into both, so whichever language it was written in, half the
+# Bearers read a foreign tongue.
+ES = os.path.basename(AQUI) == "ojo"
+
+
+def _t(es_txt, en_txt):
+    """Every string the human READS goes through here (same law as server.py)."""
+    return es_txt if ES else en_txt
 def _lair():
     """The god's home: the SAME truth as chaos.py. The mortal chose it when
     incarnating me; here it is only read."""
@@ -96,7 +107,8 @@ def _icns(destino):
                            stderr=subprocess.DEVNULL) == 0:
             return icns
     except Exception as e:
-        print("  ! icon sin forjar ({}) — el .app funciona igual".format(e))
+        print(_t("  ! icono sin forjar ({}) — el .app funciona igual",
+              "  ! icon not forged ({}) — the .app works all the same").format(e))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return None
@@ -113,10 +125,12 @@ def macos(quitar=False):
         viejo = os.path.join(apps, v + ".app")
         if viejo != app and os.path.isdir(viejo):
             shutil.rmtree(viejo, ignore_errors=True)
-            print("  > Version anterior retirada: {}.app".format(v))
+            print(_t("  > Versión anterior retirada: {}.app",
+              "  > Previous version withdrawn: {}.app").format(v))
     if quitar:
         shutil.rmtree(app, ignore_errors=True)
-        print("  > Aplicacion retirada: {}".format(app)); return
+        print(_t("  > Aplicación retirada: {}",
+                 "  > Application withdrawn: {}").format(app)); return
     macos_dir = os.path.join(app, "Contents", "MacOS")
     res = os.path.join(app, "Contents", "Resources")
     os.makedirs(macos_dir, exist_ok=True); os.makedirs(res, exist_ok=True)
@@ -169,7 +183,8 @@ def macos(quitar=False):
              "LaunchServices.framework/Support/lsregister")
     if os.path.exists(lsreg):
         subprocess.call([lsreg, "-f", app], stderr=subprocess.DEVNULL)
-    print("  > Application created: {}".format(app))
+    print(_t("  > Aplicación creada: {}",
+              "  > Application created: {}").format(app))
     print("    (find it in Launchpad or Spotlight as \"{}\")".format(NOMBRE))
 
 
@@ -188,7 +203,7 @@ def windows(quitar=False):
         for p in (lnk, ico):
             try: os.remove(p)
             except OSError: pass
-        print("  > Acceso directo retirado."); return
+        print(_t("  > Acceso directo retirado.", "  > Shortcut withdrawn.")); return
     try:
         from PIL import Image
         im = Image.new("RGBA", (256, 256), (15, 20, 32, 255))
@@ -206,8 +221,10 @@ def windows(quitar=False):
     ).format(lnk=lnk, py=pyw, app=LANZA, wd=AQUI,
              ico='$s.IconLocation="{}";'.format(ico) if ico else "")
     r = subprocess.call(["powershell", "-NoProfile", "-Command", ps])
-    print("  > Start Menu shortcut: {}".format(lnk) if r == 0
-          else "  ! PowerShell refused the shortcut")
+    print(_t("  > Acceso directo en el menú Inicio: {}",
+             "  > Start Menu shortcut: {}").format(lnk) if r == 0
+          else _t("  ! PowerShell rechazó el acceso directo",
+                  "  ! PowerShell refused the shortcut"))
 
 
 # ══ Linux ═════════════════════════════════════════════════════════════════
@@ -220,7 +237,7 @@ def linux(quitar=False):
         for p in (dsk, ico):
             try: os.remove(p)
             except OSError: pass
-        print("  > Lanzador retirado."); return
+        print(_t("  > Lanzador retirado.", "  > Launcher withdrawn.")); return
     os.makedirs(apps, exist_ok=True); os.makedirs(icos, exist_ok=True)
     try:
         shutil.copy(ICONO_PNG, ico)
@@ -234,7 +251,8 @@ def linux(quitar=False):
                 .format(NOMBRE, _py(), LANZA, ico or "utilities-system-monitor"))
     os.chmod(dsk, 0o755)
     subprocess.call(["update-desktop-database", apps], stderr=subprocess.DEVNULL)
-    print("  > Lanzador creado: {}".format(dsk))
+    print(_t("  > Lanzador creado: {}",
+              "  > Launcher created: {}").format(dsk))
 
 
 def main():

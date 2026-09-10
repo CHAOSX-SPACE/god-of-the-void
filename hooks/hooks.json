@@ -5,7 +5,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/ambush-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" ambush-hook.py"
         }
       ]
     }
@@ -16,7 +16,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/trail-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" trail-hook.py"
         }
       ]
     }
@@ -26,7 +26,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/vigil-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" vigil-hook.py"
         }
       ]
     }
@@ -36,7 +36,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/presence-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" presence-hook.py"
         }
       ]
     }
@@ -46,7 +46,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
         }
       ]
     }
@@ -56,7 +56,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/closing-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" closing-hook.py"
         }
       ]
     }
@@ -66,7 +66,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/body/seal-hook.py"
+          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" seal-hook.py"
         }
       ]
     }

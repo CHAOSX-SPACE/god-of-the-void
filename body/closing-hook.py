@@ -141,7 +141,7 @@ def sweep_the_living(event):
     # Tests run with a temporary CHAOS_HOME where this mark does not exist; a
     # real install has it, because `install.py` writes it. And if the Bearer
     # deletes it, the automatic sweep switches off: his house, his word.
-    if not os.path.exists(os.path.join(_home.root(), "vivos.barrer")):
+    if not _home.sweep_authorized():
         return 0
     try:
         import io as _io
