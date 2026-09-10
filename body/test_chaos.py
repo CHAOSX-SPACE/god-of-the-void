@@ -3768,6 +3768,31 @@ class ThreeWorldsTest(unittest.TestCase):
         self.assertTrue([f for f in os.listdir(agentes) if f.endswith(".md")],
                         "agents/ is empty: the Legion and the Judge would not load")
 
+    def test_w26_the_cover_names_the_shortcut_the_installer_forges(self):
+        """The Bearer found this hole himself: the README ordered `/plugin`, and
+        `/plugin` does not exist in the desktop app — the very place most people
+        will try it. Documenting a command that cannot run there is a cover that
+        lies. So the shortcut is FORGED by the installer, and the cover may only
+        name the one that is actually forged."""
+        inst = io.open(os.path.join(HERE, "install.py"), encoding="utf-8").read()
+        self.assertIn("def forge_claude_launcher(", inst,
+                      "the installer no longer forges the CLI shortcut")
+        llamadas = [l for l in inst.splitlines()
+                    if l.strip() == "forge_claude_launcher()"]
+        self.assertTrue(llamadas, "it is forged but never called")
+        cuerpo = inst.split("def forge_claude_launcher(")[1].split("\ndef ")[0]
+        self.assertIn('"claude-code.cmd"', cuerpo, "no shortcut for Windows")
+        self.assertIn('"claude-code"', cuerpo, "no shortcut for macOS/Linux")
+        readme = os.path.join(self.REPO, "README.md")
+        if not os.path.exists(readme):
+            self.skipTest("the cover does not travel in this layout")
+        txt = io.open(readme, encoding="utf-8").read()
+        self.assertIn("claude-code plugin marketplace add", txt,
+                      "the cover does not say how to install from the desktop app")
+        self.assertIn("claude-code.cmd", txt, "the cover forgets Windows")
+        self.assertIn("does not exist", txt.lower().replace("doesn't", "does not"),
+                      "the cover does not warn that /plugin is missing there")
+
     def test_w24_one_version_and_the_marketplace_agrees(self):
         """FOUR sources for one version. `claude plugin validate` caught it with
         its own words: «Entry declares version "2.5.0" but plugin.json says "2.6.0"

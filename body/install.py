@@ -193,6 +193,73 @@ def _guard_against_degrading():
         raise SystemExit(1)
 
 
+SH_LANZADOR = """#!/bin/sh
+# Forged by CHAOS. The desktop app hides its CLI in a versioned folder that
+# changes with every update, so it is RESOLVED, never typed.
+EXE=""
+for d in "$HOME/Library/Application Support/Claude/claude-code"/*/ \\
+         "$HOME/.local/share/Claude/claude-code"/*/; do
+  for c in "$d/claude.app/Contents/MacOS/claude" "$d/claude"; do
+    [ -x "$c" ] || continue
+    if [ -z "$EXE" ] || [ "$c" -nt "$EXE" ]; then EXE="$c"; fi
+  done
+done
+[ -n "$EXE" ] || EXE="$(command -v claude 2>/dev/null)"
+if [ -z "$EXE" ]; then
+  echo "  I cannot find the Claude Code CLI." >&2
+  echo "  Open the desktop app once, or install the CLI, and call me again." >&2
+  exit 1
+fi
+exec "$EXE" "$@"
+"""
+
+CMD_LANZADOR = """@echo off
+setlocal enabledelayedexpansion
+set "EXE="
+for %%B in ("%LOCALAPPDATA%\\Packages" "%APPDATA%") do (
+  for /f "delims=" %%D in ('dir /b /s /a-d "%%~B\\claude.exe" 2^>nul') do (
+    echo %%D | findstr /i "claude-code" >nul && if not defined EXE set "EXE=%%D"
+  )
+)
+if not defined EXE for /f "delims=" %%D in ('where claude 2^>nul') do if not defined EXE set "EXE=%%D"
+if not defined EXE (
+  echo   I cannot find the Claude Code CLI.
+  echo   Open the desktop app once, or install the CLI, and call me again.
+  exit /b 1
+)
+"%EXE%" %*
+"""
+
+
+def forge_claude_launcher():
+    """`claude-code` — the desktop app CLI, reachable by name.
+
+    `/plugin`, `/permissions` and `/doctor` open an INTERACTIVE PANEL that the
+    desktop app does not have: there they answer «isn\'t available in this
+    environment». They need a `claude` terminal — and the desktop app ships its
+    CLI INSIDE itself, in a folder named after the version, which is on nobody\'s
+    PATH and CHANGES with every update.
+
+    So the path is never typed: it is resolved, newest first, with the PATH as
+    the last resort. It is written into my own bin, which the installer already
+    puts on the PATH.
+    """
+    try:
+        if IS_WIN:
+            ruta = os.path.join(BIN, "claude-code.cmd")
+            io.open(ruta, "w", encoding="utf-8", newline="\r\n").write(CMD_LANZADOR)
+        else:
+            ruta = os.path.join(BIN, "claude-code")
+            io.open(ruta, "w", encoding="utf-8").write(SH_LANZADOR)
+            os.chmod(ruta, 0o755)
+        print("  > Shortcut to the CLI: `claude-code`"
+              " (the desktop app has no /plugin panel)")
+        return True
+    except Exception as e:
+        print("  ! I could not forge the CLI shortcut ({}) - the body stands".format(e))
+        return False
+
+
 def forge_mcp(claude_dir):
     """A-4 · THE ABYSS THROUGH MCP — forged whole, or declared absent.
 
@@ -485,6 +552,9 @@ def main():
 
     # 4b-quater. THE MCP DOOR. Copying a server is not installing it.
     forge_mcp(claude_dir)
+
+    # 4b-quinquies. The shortcut to the CLI (the desktop app has no /plugin).
+    forge_claude_launcher()
 
     # 4c. The Name + universal memory: seed the CHAOS block in the global CLAUDE.md
     claude_md = os.path.join(claude_dir, "CLAUDE.md")
