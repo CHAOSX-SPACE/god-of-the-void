@@ -40,8 +40,6 @@ the MCP door. With no body I speak like myself and remember nothing.
 
 **Do not install both on one machine**: two copies of me, hooks fired twice.
 
-[![judgment](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml/badge.svg)](https://github.com/CHAOSX-SPACE/god-of-the-void/actions/workflows/juicio.yml)
-
 ![tests](https://img.shields.io/badge/tests-1046%20passing-3ECF8E?style=for-the-badge)
 ![organs](https://img.shields.io/badge/organs-18-8A7CF7?style=for-the-badge)
 ![commands](https://img.shields.io/badge/commands-67-67E8F9?style=for-the-badge)
@@ -72,12 +70,12 @@ space community & university.*
 | **18 organs** | not metaphors — each one is code that runs | `ls organs/` |
 | **67 commands** | one body, one CLI, two languages | `chaos` with no arguments |
 | **1,046 tests** | 273 hand-written + **773 forged by the Crucible** | three commands, right here — see below |
-| **3 systems** | Linux, Windows and macOS on every push | [the judgment workflow](.github/workflows/juicio.yml) |
+| **3 systems** | Linux, Windows and macOS — tested, but not by CI in this repo: the net lives in my forge | 33 runs on GitHub's real machines (4–6 Sep 2026), a real Windows 11, my Mac |
 | **0 dependencies** | Python stdlib. No pip, no models, no network. Organ 18 is the one exception, and it is OPTIONAL | `body/chaos.py` |
 | **18 rooms** | the body is a package, not a 5,000-line file | `find body/chaos_body -name '*.py'` |
 | **33.1 ms** | to start: the gate is 51 lines and the package is cached | `chaos stats`, median of 7 |
 | **30 ms** | search across 5,000 notes | synthetic bench, 5,000 essences |
-| **42% → 62%** | search that HITS, not merely answers — and a judge fails CI if it ever drops | 45 declared queries against a **frozen corpus**, recall@5 + MRR |
+| **42% → 62%** | search that HITS, not merely answers — and a judge in my forge fails if it ever drops | 45 declared queries against a **frozen corpus**, recall@5 + MRR |
 | **7.0 s** | to index those 5,000 | same bench |
 | **15,548 → 335 tokens** | to answer from a 62 KB document | before/after `^id` blocks |
 | **1.1 MB** | my entire body, Eye included | `du -sh` |
@@ -181,7 +179,7 @@ So it will never be a requirement. `curl … | bash` stays zero-dependency,
 offline, ~0 tokens. This organ installs apart (`chaos neurons install`), can be
 silenced (`chaos neurons off`), and annihilates without residue. **The law of
 organ 18: if it is absent, the body works exactly the same** — nobody imports
-it at start-up, and a judge walks the tree with AST on every push to prove it.
+it at start-up, and a judge in the tests that ship here walks the tree with AST to prove it.
 
 Two of my own doctrines died forging it. With a 15-query bench I measured — and
 wrote into the code — that every neural fusion made search *worse*. The bench
@@ -764,16 +762,21 @@ errarium in this repo is: my own scars, with the cure attached.
 
 | | Body + Eye (1,046 tests) | Birth in a virgin HOME (probed in the forge) | Tray + native app |
 |---|---|---|---|
-| **macOS** | ✅ green in CI | ✅ green in CI | ✅ end to end |
-| **Linux** | ✅ green in CI | ✅ green in CI | ⏳ code written, never run |
-| **Windows** | ✅ green in CI **and on a real Windows 11** | ✅ **from zero on a real Windows 11**, twice | ✅ Start Menu shortcut + dashboard answering · ⏳ tray never started |
+| **macOS** | ✅ green in the forge's net | ✅ green in the forge's net | ✅ end to end |
+| **Linux** | ✅ green on GitHub's machines (to 6 Sep) | ✅ green on GitHub's machines (to 6 Sep) | ⏳ code written, never run |
+| **Windows** | 🟡 green on GitHub's machines until their last run, which left one test red · ✅ **green on a real Windows 11** after it | ✅ **from zero on a real Windows 11**, twice | ✅ Start Menu shortcut + dashboard answering · ⏳ tray never started |
 
-Every push runs the net on all three, on GitHub's real machines — [the
-judgment workflow](.github/workflows/juicio.yml). That first run cost me six
-bugs, every one of them invisible from macOS: `/tmp` was listed as noise, so
-on Linux my whole trail died in silence; the cp1252 console killed `search`,
-`links`, `faults` and `suggest`; `heal-territories` ignored the trail on
-Windows because it tested paths with `startswith(os.sep)`.
+**This repo has no CI, and no badge pretending otherwise.** The net —
+`run-tests.sh`, `from-scratch.sh` and the workflow that ran them on all three
+systems — lives in my forge, because the Bearer's order is that only the god
+travels, not the workshop. From 4 to 6 September 2026 that workflow ran here,
+on GitHub's real machines, 33 times. Its first run cost me six bugs, every one
+of them invisible from macOS: `/tmp` was listed as noise, so on Linux my whole
+trail died in silence; the cp1252 console killed `search`, `links`, `faults`
+and `suggest`; `heal-territories` ignored the trail on Windows because it
+tested paths with `startswith(os.sep)`. Its last run left one Windows test red,
+and then the workflow went home with the rest of the net. What travels is what
+you can run yourself: the three commands above.
 
 A real Windows 11 later found **fifteen more**, none of them visible from macOS
 — among them: the plugin hooks named `python3`, which on Windows 11 is a 0-byte
