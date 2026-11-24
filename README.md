@@ -146,8 +146,8 @@ result.
 | Ways of working | rules per folder, goals, automations, watching files and logs, remote projects | ✅ |
 | Notebooks | Jupyter with the project's own kernel | ✅ |
 | Browser and research | its own browser, Chrome control, web research with citations | ✅ |
-| Mobile | iOS Simulator and Android emulator | ◐ no real phones yet |
-| Connected devices | USB, disks, printers, cameras, Raspberry Pi, ESP32 | ◐ only the camera so far |
+| Mobile | iOS Simulator and Android emulator | ◐ bug fixing on real hardware |
+| Connected devices | USB, disks, printers, cameras, Raspberry Pi, ESP32 | ◐ bug fixing on real hardware |
 
 Every part, with what we measured for it, is in [BODY.md](BODY.md).
 
@@ -225,9 +225,8 @@ These are the problems we know about as of November 2026.
 - Long jobs on small models: with a local 35B model a long job finished in 17 steps. With
   a 9B model it no longer stops early, but it compacts about every 15 steps and ran out of
   our 30-minute limit.
-- Real hardware: mobile apps were only tested on the iOS Simulator and the Android
-  emulator, not on real phones. Of the connected devices, only the camera has been tested
-  with the real thing.
+- Mobile and connected devices are in bug fixing on real hardware. Mobile apps were
+  measured on the iOS Simulator and the Android emulator, and the camera on this Mac.
 - Some CLI words are still in Spanish in English mode (`gotv generadores`,
   `--perfil programar|diseno`, `--fuerza-cover`). The English aliases cover the main
   commands (`image`, `music`, `say`, `listen`, `split`, `talk`).

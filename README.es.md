@@ -149,8 +149,8 @@ quiere decir que esa parte, además, se probó con una tarea real en un modelo l
 | Formas de trabajar | reglas por carpeta, objetivos, automatizaciones, vigilar archivos y registros, proyectos remotos | ✅ |
 | Cuadernos | Jupyter con el kernel del propio proyecto | ✅ |
 | Navegador e investigación | navegador propio, control de Chrome, investigación web con citas | ✅ |
-| Móvil | simulador de iOS y emulador de Android | ◐ falta probar con teléfonos reales |
-| Equipos conectados | USB, discos, impresoras, cámaras, Raspberry Pi, ESP32 | ◐ por ahora sólo la cámara |
+| Móvil | simulador de iOS y emulador de Android | ◐ en corrección de errores con equipos reales |
+| Equipos conectados | USB, discos, impresoras, cámaras, Raspberry Pi, ESP32 | ◐ en corrección de errores con equipos reales |
 
 Cada parte, con lo que medimos en ella, está en [CUERPO.md](CUERPO.md).
 
@@ -230,9 +230,9 @@ Preferimos decirlos aquí antes de que alguien se los encuentre por sorpresa.
 - **Trabajos largos con modelos chicos.** Con un modelo local de 35B un trabajo largo
   terminó en 17 pasos. Con uno de 9B ya no se detiene antes de tiempo, pero compacta más o
   menos cada 15 pasos y se le acabaron nuestros 30 minutos de tope.
-- **Equipos de verdad.** Las apps móviles sólo se probaron en el simulador de iOS y en el
-  emulador de Android, no en teléfonos reales. De los equipos conectados, por ahora sólo
-  la cámara se probó con el aparato de verdad.
+- **Móvil y equipos conectados.** Están en corrección de errores con equipos reales. Las
+  apps móviles se midieron en el simulador de iOS y en el emulador de Android, y la cámara
+  en esta misma Mac.
 - **Rincones a medio traducir.** En modo inglés algunas palabras de la CLI siguen en
   español (`gotv generadores`, `--perfil programar|diseno`, `--fuerza-cover`). Los
   alias en inglés cubren las órdenes principales (`image`, `music`, `say`, `listen`,

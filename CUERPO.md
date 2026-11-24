@@ -11,8 +11,8 @@ Qwen3.6-35B-A3B, en 4 bits). Una tarea cuenta como hecha cuando un juez oculto r
 resultado, no cuando el modelo dice que terminó. Los números de abajo salen de esas
 corridas, en un M1 Max con 64 GB.
 
-✅ quiere decir hecho y medido con una tarea real. ◐ quiere decir hecho, pero con una parte
-que todavía no se probó con el equipo de verdad.
+✅ quiere decir hecho y medido con una tarea real. ◐ quiere decir hecho y ahora en
+corrección de errores con equipos reales.
 
 [English](BODY.md) · [Volver al README](README.es.md)
 
@@ -142,13 +142,12 @@ sale a internet para nada, y eso también lo probamos.
 
 ◐ Simulador de iOS y emulador de Android: construir, instalar, lanzar y atrapar una app que
 se cierra al abrir. Medido en 144 segundos en los dos. También crea dispositivos e instala
-el SDK de Android desde Rust. Con teléfonos reales no se ha probado, porque no tenemos uno
-en el banco.
+el SDK de Android desde Rust. Ahora está en corrección de errores con teléfonos reales.
 
 ## Equipos conectados
 
 ◐ USB, discos, impresoras, cámaras, Raspberry Pi y ESP32. La cámara está medida (un JPEG de
-364 KB en 5,1 segundos). Lo demás todavía hay que probarlo con el equipo de verdad.
+364 KB en 5,1 segundos). Lo demás está en corrección de errores con equipos reales.
 
 ## La ventana
 

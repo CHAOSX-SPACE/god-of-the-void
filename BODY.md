@@ -9,8 +9,8 @@ model, a 35B mixture-of-experts model (a Qwen3.6-35B-A3B variant, 4-bit). A task
 done when a hidden judge checks the result, not when the model says it finished. The
 numbers below come from those runs, on an M1 Max with 64 GB.
 
-✅ means built and measured on a real task. ◐ means built, but part of it hasn't been
-tried on real hardware yet.
+✅ means built and measured on a real task. ◐ means built and now in bug fixing on
+real hardware.
 
 [Español](CUERPO.md) · [Back to the README](README.md)
 
@@ -135,12 +135,12 @@ mode it doesn't go online at all, and we tested that too.
 
 ◐ iOS Simulator and Android emulator: build, install, launch and catch an app that crashes
 on open. Measured in 144 seconds on both. It also creates devices and installs the Android
-SDK from Rust. Real phones haven't been tested because we don't have one on the bench.
+SDK from Rust. It's now in bug fixing on real phones.
 
 ## Connected devices
 
 ◐ USB, disks, printers, cameras, Raspberry Pi and ESP32. The camera is measured (a 364 KB
-JPEG in 5.1 seconds). The rest still needs testing with the real hardware.
+JPEG in 5.1 seconds). The rest is in bug fixing on real hardware.
 
 ## The window
 
