@@ -4,19 +4,19 @@
 
 # GOD OF THE VOID
 
-## El estudio que piensa, habla, dibuja, filma y compone — en tu Mac
+## El estudio que piensa, habla, dibuja, filma y compone en tu Mac
 
-*Una app y un motor, creados por [**CHAOS-X**](https://chaosx.space/es/). Todo corre en tu equipo; la nube, sólo si la pides.*
+*Una app y un motor, creados por [**CHAOS-X**](https://chaosx.space/es/). Todo corre en tu equipo, y la nube entra sólo si tú la pides.*
 
-**Un agente de programación, una voz con la que hablas y motores de imagen,
-vídeo, música y sonido — escritos desde cero en Rust sobre MLX de Apple. Sin
-Python, sin servidores que alquilar, sin telemetría.**
+Trae un agente de programación, una voz con la que puedes hablar y motores de imagen,
+vídeo, música y sonido. Todo lo escribimos desde cero en Rust, sobre MLX de Apple
+(nada de Python, y tampoco hay servidores que alquilar ni telemetría).
 
 | Quieres | Toma esto | Tamaño |
 |---|---|---|
 | **La app** | `GOD OF THE VOID.app` en [**Releases**](https://github.com/CHAOSX-SPACE/god-of-the-void/releases) | 478 MB |
-| **Sólo el motor** — sin ventana, sólo la potencia | `god-of-the-void-engine-…-macos-arm64.tar.gz` en [**Releases**](https://github.com/CHAOSX-SPACE/god-of-the-void/releases) — [qué hace](#el-motor-sin-la-app) | 78 MB |
-| **Armarla tú** | `cargo run --release -p gotv-empaquetar` — [CONSTRUIR.md](CONSTRUIR.md) | — |
+| **Sólo el motor** (sin ventana) | `god-of-the-void-engine-…-macos-arm64.tar.gz` en [**Releases**](https://github.com/CHAOSX-SPACE/god-of-the-void/releases) · [qué hace](#el-motor-sin-la-app) | 78 MB |
+| **Armarla tú** | `cargo run --release -p gotv-empaquetar` (ver [CONSTRUIR.md](CONSTRUIR.md)) | |
 
 ![estado](https://img.shields.io/badge/estado-0.1%20temprana-F0A23F?style=for-the-badge)
 ![licencia](https://img.shields.io/badge/licencia-Apache--2.0-8A7CF7?style=for-the-badge)
@@ -33,34 +33,32 @@ Python, sin servidores que alquilar, sin telemetría.**
 
 https://github.com/user-attachments/assets/98cb8bbe-d991-4763-8779-476d0df5cefa
 
-*Cada zona de la ventana, narrada. [In English](README.md#see-it-in-two-minutes) · el [manual de uso](manual/README.md) completo (en inglés).*
+*El vídeo recorre la ventana zona por zona, con narración. [In English](README.md#see-it-in-two-minutes) · y el [manual de uso](manual/README.md) completo, que está en inglés.*
 
 ---
 
-> ### Otros estudios te alquilan un cerebro en el centro de datos de alguien más.
-> ### **Éste vive en tu Mac.**
->
-> Lee tu código, corre tus pruebas y arregla lo que se rompe. Le hablas y te
-> contesta en voz alta. Pídele una imagen, un vídeo, una canción o el sonido de
-> la lluvia, y lo hace aquí — con modelos que elegiste, bajo licencias que
-> leíste.
->
-> **Tu trabajo, tu máquina, tus modelos.**
+Otros estudios te alquilan un cerebro que vive en el centro de datos de alguien más.
+Este vive en tu Mac.
+
+Lee tu código, corre tus pruebas y arregla lo que se rompe. Le hablas y te contesta en
+voz alta. Le pides una imagen, un vídeo, una canción o el sonido de la lluvia y lo hace
+ahí mismo, con modelos que tú elegiste y bajo licencias que leíste (de eso hay una
+sección entera más abajo).
 
 ---
 
 > [!IMPORTANT]
-> **Ésta es la 0.1 — una versión temprana y honesta.** La usan a diario quienes
-> la forjan, y todavía tiene errores conocidos. Están
-> [abajo](#errores-conocidos-y-asperezas), no escondidos. Nada de esto se vende:
-> GOTV es código abierto, hecho para la comunidad, y gratis.
+> Esta es la 0.1, o sea, una versión temprana. La usamos a diario los que la hacemos y
+> todavía tiene errores conocidos. No los escondimos: están
+> [abajo](#errores-conocidos-y-asperezas). Y nada de esto se vende. GOTV es código
+> abierto, hecho para la comunidad, y es gratis.
 
 ---
 
 ## En números que puedes comprobar
 
-Medido en un Apple M1 Max con 64 GB. Cada número sale de los bancos y jueces del
-propio proyecto, no de la página de un fabricante.
+Todo esto se midió en un Apple M1 Max con 64 GB. Los números salen de los bancos y los
+jueces del propio proyecto (no los copiamos de la página de ningún fabricante).
 
 | | | cómo |
 |---|---|---|
@@ -72,12 +70,12 @@ propio proyecto, no de la página de un fabricante.
 | **25,6 s** | una imagen de 1024×1024 con FLUX.2 klein 4B (512×512 en 8,5–9,8 s) | `gotv imagen "…"` |
 | **6,7 s** | 30 s de música con ACE-Step 1.5 turbo (240 s en 46 s, ~10 GB planos) | `gotv musica "…"` |
 | **47,8 min** | 2 s de vídeo 720p, 50 pasos, con Wan 2.2 TI2V 5B (pico 28,7 GB) | `gotv video "…"` |
-| **1240 pruebas** | todas en verde, desde un clon nuevo de este repositorio — [cómo](#cada-afirmación-está-probada) | `cargo test --release --workspace` |
+| **1240 pruebas** | todas en verde, desde un clon nuevo de este repositorio ([cómo](#cada-afirmación-está-probada)) | `cargo test --release --workspace` |
 
-**No se afirma nada que no se haya medido.** Cada motor se comparó con su
-implementación oficial de referencia antes de entrar: los mismos tokens,
-latentes dentro del redondeo, y en varios casos más cerca del resultado exacto
-en float64 que la propia referencia.
+La regla es sencilla: si no lo medimos, no lo ponemos. Cada motor se comparó con su
+implementación oficial de referencia antes de entrar, y tenía que dar los mismos tokens
+y latentes dentro del redondeo. En varios casos, ojo, quedó más cerca del resultado
+exacto en float64 que la propia referencia.
 
 ---
 
@@ -85,34 +83,35 @@ en float64 que la propia referencia.
 
 ### La app
 
-- **Un agente de programación con herramientas de verdad** — leer, escribir,
-  editar, buscar, correr órdenes, servidores de lenguaje, diagnósticos, un mapa
-  de tu código, búsqueda por significado y consultas de paquetes que leen la
-  versión exacta que usa *tu* proyecto.
-- **Permisos que aprenden** — planear, preguntar, aceptar ediciones o saltar;
-  reglas de permitir y negar; algunas cosas se niegan incluso saltando. Cada
-  orden corre dentro de una **caja de macOS** (Seatbelt) que sólo escribe dentro
-  de tu proyecto.
-- **Rebobinar** — deshacer el último paso: las ediciones *y* lo que la terminal
-  borró.
-- **Alcance** — cliente y servidor MCP, ACP para editores, proyectos por SSH,
-  bases de datos (SQLite, Postgres, MySQL, DuckDB, CSV/Parquet) con sólo lectura
-  forzada por el motor, contenedores, su propio navegador y el control de las
-  apps de tu Mac — cada cosa sólo cuando la permites.
-- **Voz manos libres** — hablas, lo interrumpes, sigues hablando.
-- **El estudio Experto** — un estudio multipista con la IA al frente: clips,
-  automatización, mezclador, efectos, análisis; exporta WAV, FLAC, pistas y
+- **Un agente de programación con herramientas de verdad.** Lee, escribe, edita, busca
+  y corre órdenes. Tiene servidores de lenguaje, diagnósticos, un mapa de tu código,
+  búsqueda por significado y consultas de paquetes que miran la versión exacta que usa
+  *tu* proyecto (no la última que salió).
+- **Permisos que aprenden.** Hay modos para planear, preguntar, aceptar ediciones o
+  saltar, y reglas de permitir y negar. Algunas cosas se niegan incluso saltando. Cada
+  orden corre dentro de una caja de macOS (Seatbelt) que sólo puede escribir dentro de
+  tu proyecto.
+- **Rebobinar.** Deshaces el último paso, y eso incluye las ediciones *y* lo que la
+  terminal borró.
+- **Alcance.** Cliente y servidor MCP, ACP para editores, proyectos por SSH, bases de
+  datos (SQLite, Postgres, MySQL, DuckDB, CSV/Parquet) con sólo lectura forzada por el
+  motor, contenedores, su propio navegador y el control de las apps de tu Mac. Cada
+  cosa, eso sí, sólo cuando tú la permites.
+- **Voz manos libres.** Hablas, lo interrumpes y sigues hablando.
+- **El estudio Experto.** Es un estudio multipista con la IA al frente: clips,
+  automatización, mezclador, efectos y análisis. Exporta WAV, FLAC, pistas y
   `.dawproject` para Bitwig, Studio One o Cubase.
-- **Documentos con diseño** — Word y PDF con temas, gráficas en las apps que
-  construye, APIs REST en Hono, FastAPI o Axum con sus pruebas.
-- **Dos idiomas, en todas partes** — inglés y español en cada capa, vigilados
-  por un juez: un texto que quede en un solo idioma hace fallar las pruebas.
+- **Documentos con diseño.** Word y PDF con temas, gráficas en las apps que construye y
+  APIs REST en Hono, FastAPI o Axum, con sus pruebas.
+- **Dos idiomas en todas partes.** Inglés y español en cada capa, y un juez que los
+  vigila. Si un texto queda en un solo idioma, las pruebas fallan.
 
-### El motor — `gotv-mlx`
+### El motor, `gotv-mlx`
 
-El corazón de la app, y un proyecto propio: un **motor de inferencia multimodal
-escrito en Rust sobre MLX de Apple**, con cada arquitectura escrita a mano. Del
-workspace sólo usa `gotv-engine` y las ligaduras de MLX: nada de la app.
+Es el corazón de la app, pero también un proyecto por derecho propio: un motor de
+inferencia multimodal escrito en Rust sobre MLX de Apple, con cada arquitectura escrita
+a mano (sí, a mano, una por una). Del workspace sólo usa `gotv-engine` y las ligaduras
+de MLX. Nada de la app.
 
 | Sentido | Modelo que corre hoy | Dentro |
 |---|---|---|
@@ -124,17 +123,17 @@ workspace sólo usa `gotv-engine` y las ligaduras de MLX: nada de la app.
 | **Vídeo** | Wan 2.2 TI2V 5B | texto → vídeo e imagen → vídeo, H.264 por AVFoundation |
 | **Música** | ACE-Step 1.5 | instrumentales, canciones con letra, versiones y repintados de tu propio audio |
 | **Sonido** | MOSS-SoundEffect 2.0 | lluvia, puertas, explosiones |
-| **Pistas** | HTDemucs (4 / 6 / ft) + [nuestros afinados](https://huggingface.co/god-of-the-void) | voz, batería, bajo, guitarra, piano — y la batería partida en bombo, caja, platos y toms |
+| **Pistas** | HTDemucs (4 / 6 / ft) + [nuestros afinados](https://huggingface.co/god-of-the-void) | voz, batería, bajo, guitarra y piano, y además la batería partida en bombo, caja, platos y toms |
 | **Búsqueda** | Qwen3-Embedding 0.6B | búsqueda por significado en tu código |
 
 ---
 
 ## El motor sin la app
 
-No necesitas la app para usar el motor. Tres puertas, de la más fácil a la más
-honda:
+Para usar el motor no hace falta la app. Hay tres maneras de entrar, de la más fácil a
+la más honda.
 
-### 1 · Bájalo — una carpeta, un binario
+### 1 · Bájalo (una carpeta y un binario)
 
 ```sh
 curl -LO https://github.com/CHAOSX-SPACE/god-of-the-void/releases/download/v0.1.0/god-of-the-void-engine-0.1.0-macos-arm64.tar.gz
@@ -149,10 +148,10 @@ cd god-of-the-void-engine-0.1.0-macos-arm64
 ./gotv separar cancion.mp3 --seis
 ```
 
-`gotv` y `mlx.metallib` (sus kernels Metal) deben quedar en la misma carpeta.
-Las licencias de todo lo que lleva viajan con él.
+Ojo con una cosa: `gotv` y `mlx.metallib` (sus kernels Metal) tienen que quedar en la
+misma carpeta. Las licencias de todo lo que lleva viajan con él.
 
-### 2 · Sírvelo — cualquier herramienta que hable OpenAI u Ollama
+### 2 · Sírvelo a cualquier herramienta que hable OpenAI u Ollama
 
 ```sh
 ./gotv serve            # http://127.0.0.1:11435
@@ -164,12 +163,13 @@ curl http://127.0.0.1:11435/v1/chat/completions \
   -d '{"model":"gotv","messages":[{"role":"user","content":"Hola"}]}'
 ```
 
-Compatible con OpenAI (`/v1/models`, `/v1/chat/completions`, streaming,
-herramientas, imágenes) **y** con Ollama (`/api/tags`, `/api/chat`,
-`/api/generate`, `/api/show`, `/api/ps`). Sólo local por defecto; abrirlo a tu
-red (`--lan`) exige una llave, comparada en tiempo constante.
+Es compatible con OpenAI (`/v1/models`, `/v1/chat/completions`, streaming,
+herramientas, imágenes) y también con Ollama (`/api/tags`, `/api/chat`,
+`/api/generate`, `/api/show`, `/api/ps`). Por defecto sólo escucha en local. Si lo abres
+a tu red (`--lan`) te exige una llave, que se compara en tiempo constante (para que
+nadie la adivine midiendo cuánto tarda la respuesta).
 
-### 3 · Construye sobre él — el crate de Rust
+### 3 · Construye encima, con el crate de Rust
 
 ```toml
 [dependencies]
@@ -188,46 +188,47 @@ fn main() -> anyhow::Result<()> {
 ```
 
 > [!NOTE]
-> La biblioteca es **joven**: su API la moldea la app, muchos nombres están en
-> español y cambiará antes de la 1.0. Una API estable en inglés y su publicación
-> en crates.io están en el camino. Usa una etiqueta y espera adaptarte.
+> La biblioteca es joven. Su API la va moldeando la app, muchos nombres están en
+> español y va a cambiar antes de la 1.0. Tenemos en el camino una API estable en
+> inglés y la publicación en crates.io, pero todavía no. Mientras tanto, usa una
+> etiqueta y cuenta con tener que adaptarte.
 
 ---
 
 ## Errores conocidos y asperezas
 
-Dichos aquí, para que nadie los encuentre por sorpresa:
+Preferimos decirlos aquí antes de que alguien se los encuentre por sorpresa.
 
-- **Trabajos largos.** La cura para que no termine antes de tiempo en tareas
-  largas (compactación del contexto) está puesta, con sus pruebas en verde, pero
-  **todavía no se midió de punta a punta** con un modelo local.
-- **Todavía no:** varios agentes a la vez, bifurcar un chat, automatizaciones,
-  dispositivos móviles desde la app y partes de la ventana (vista de cambios,
-  menciones).
-- **Rincones a medio traducir:** en modo inglés algunas palabras de la CLI siguen
-  en español (`gotv generadores`, `--perfil programar|diseno`, `--fuerza-cover`).
-  Los alias en inglés cubren las órdenes principales (`image`, `music`, `say`,
-  `listen`, `split`, `talk`).
-- **Una prueba inestable:** el binario de pruebas de `gotv-mlx` se cayó una vez
-  en ~26 corridas (SIGTRAP) con la máquina muy cargada; al repetir, pasa. Causa
-  aún sin hallar.
-- **El vídeo es lento:** 2 segundos de 720p tardan ~48 minutos en un M1 Max.
-- **Sin notarizar por Apple** — a propósito: GOTV es gratis y no paga para que
-  lo dejen abrir. El primer arranque pide un clic ([cómo](#instalar-la-app)).
-- **Sólo Apple Silicon:** MLX corre en la GPU de Apple. Ni Intel, ni Linux, ni
+- **Trabajos largos.** La cura para que no termine antes de tiempo en tareas largas (la
+  compactación del contexto) ya está puesta y sus pruebas pasan, pero todavía no la
+  medimos de punta a punta con un modelo local.
+- **Todavía no hay** varios agentes a la vez, bifurcar un chat, automatizaciones,
+  dispositivos móviles desde la app ni algunas partes de la ventana (la vista de
+  cambios y las menciones).
+- **Rincones a medio traducir.** En modo inglés algunas palabras de la CLI siguen en
+  español (`gotv generadores`, `--perfil programar|diseno`, `--fuerza-cover`). Los
+  alias en inglés cubren las órdenes principales (`image`, `music`, `say`, `listen`,
+  `split`, `talk`).
+- **Una prueba inestable.** El binario de pruebas de `gotv-mlx` se cayó una vez en unas
+  26 corridas (SIGTRAP), con la máquina muy cargada. Al repetir, pasa. La causa todavía
+  no la encontramos.
+- **El vídeo es lento.** 2 segundos de 720p tardan unos 48 minutos en un M1 Max. Sí, 48.
+- **Sin notarizar por Apple**, y es a propósito. GOTV es gratis y no vamos a pagar para
+  que nos dejen abrirla. El primer arranque te pide un clic ([cómo](#instalar-la-app)).
+- **Sólo Apple Silicon.** MLX corre en la GPU de Apple, así que ni Intel, ni Linux, ni
   Windows.
 
 ¿Encontraste otro? [Abre un issue](https://github.com/CHAOSX-SPACE/god-of-the-void/issues)
-con tu Mac, tu macOS y lo que pasó.
+con tu Mac, tu versión de macOS y lo que pasó.
 
 ---
 
 ## Cada modelo conserva su licencia
 
-Ningún modelo viaja dentro de GOTV. La primera vez que algo necesita uno, GOTV
-muestra **su** licencia, y lo baja de **su** editor sólo después de que aceptes.
-Las licencias se comprueban en la página de cada editor — la ficha del modelo, y
-los términos de los pesos cuando viven en otro lado.
+GOTV no trae ningún modelo adentro. La primera vez que algo necesita uno, te muestra la
+licencia de ese modelo y lo baja de su propio editor, pero sólo después de que aceptes.
+Las licencias las comprobamos en la página de cada editor (en la ficha del modelo, y
+también en los términos de los pesos cuando viven en otro lado).
 
 | | Modelo | Editor | Licencia |
 |---|---|---|---|
@@ -238,44 +239,44 @@ los términos de los pesos cuando viven en otro lado.
 | Música | ACE-Step 1.5 · base · SFT · LM 4B | ACE-Step | MIT |
 | Sonido | MOSS-SoundEffect 2.0 | OpenMOSS | Apache-2.0 |
 | Búsqueda | Qwen3-Embedding 0.6B | Qwen | Apache-2.0 |
-| Pistas | HTDemucs · 6 pistas · ft | Alexandre Défossez | ⚠ **sólo investigación** — su autor declara que la licencia de los pesos no está clara |
-| Pistas | [afinados de HTDemucs](https://huggingface.co/god-of-the-void) | GOD OF THE VOID | ⚠ **sólo investigación** — heredada de HTDemucs; datos atribuidos (CC BY) |
+| Pistas | HTDemucs · 6 pistas · ft | Alexandre Défossez | ⚠ **sólo investigación**: su autor declara que la licencia de los pesos no está clara |
+| Pistas | [afinados de HTDemucs](https://huggingface.co/god-of-the-void) | GOD OF THE VOID | ⚠ **sólo investigación**, heredada de HTDemucs (datos atribuidos, CC BY) |
 
-Los modelos de lenguaje los eliges tú: cualquier modelo MLX de una familia
+Los modelos de lenguaje los eliges tú. Sirve cualquier modelo MLX de una familia
 soportada.
 
 ---
 
 ## Instalar la app
 
-**Baja** `GOD OF THE VOID.app` de
-[Releases](https://github.com/CHAOSX-SPACE/god-of-the-void/releases), descomprímela
-y muévela a **Aplicaciones**.
+Baja `GOD OF THE VOID.app` de
+[Releases](https://github.com/CHAOSX-SPACE/god-of-the-void/releases), descomprímela y
+muévela a **Aplicaciones**.
 
 > [!TIP]
-> **La primera vez, macOS se negará a abrirla** — GOTV no está notarizada. Ve a
-> **Ajustes del Sistema → Privacidad y seguridad**, busca el aviso de *GOD OF
-> THE VOID* y pulsa **Abrir igualmente**. Una sola vez. O ármala tú: una app que
-> armas nunca se bloquea.
+> La primera vez, macOS se va a negar a abrirla porque GOTV no está notarizada. Ve a
+> **Ajustes del Sistema → Privacidad y seguridad**, busca el aviso de *GOD OF THE VOID*
+> y pulsa **Abrir igualmente**. Es una sola vez. La otra opción es armarla tú (una app
+> que armas tú mismo nunca se bloquea).
 
-**Desde la terminal**, la CLI vive dentro de la app:
+Si prefieres la terminal, la CLI vive dentro de la app:
 
 ```sh
 echo "alias gotv='\"/Applications/GOD OF THE VOID.app/Contents/MacOS/gotv\"'" >> ~/.zshrc
 gotv "arregla la prueba que falla"     # en una terminal nueva, dentro de tu proyecto
 ```
 
-**Requisitos:** un Mac con Apple Silicon (M1 o más nuevo) y macOS 14 o más
-nuevo. La memoria decide qué modelos caben, y GOTV te dice cuáles.
+Necesitas un Mac con Apple Silicon (M1 o más nuevo) y macOS 14 o más nuevo. La memoria
+decide qué modelos caben, y GOTV te dice cuáles.
 
 ---
 
 ## Qué sale de tu Mac
 
-**Sin telemetría.** GOTV sólo se conecta cuando usas algo que lo necesita: bajar
-un modelo de Hugging Face, una búsqueda web con tus propias llaves, una consulta
-de paquetes, un modelo de nube que encendiste. Tus llaves van al Llavero de
-macOS, nunca a un archivo ni al chat.
+No hay telemetría. GOTV sólo se conecta cuando usas algo que lo necesita: bajar un
+modelo de Hugging Face, una búsqueda web con tus propias llaves, una consulta de
+paquetes o un modelo de nube que tú encendiste. Tus llaves van al Llavero de macOS,
+nunca a un archivo ni al chat.
 
 ---
 
@@ -285,13 +286,14 @@ macOS, nunca a un archivo ni al chat.
 cargo test --release --workspace
 ```
 
-**1240 pasan, 0 fallan** — medido en una copia nueva de este repositorio, no en
-la forja. Otras 152 necesitan los modelos reales bajados y están marcadas como
-ignoradas (`cargo test --release -- --ignored`). Y la versión publicada tiene
-que pasar su propio juez: ningún
-archivo de la app ni del motor puede llevar la carpeta personal de quien la
-armó, una llave con forma real ni su token de Hugging Face, o el empaquetador se
-niega a terminar. Las licencias de los modelos se releen en cada editor con
+1240 pasan y 0 fallan, medido en una copia nueva de este repositorio y no en la forja
+(o sea, no en la máquina donde se hizo). Otras 152 necesitan los modelos reales bajados,
+así que están marcadas como ignoradas (`cargo test --release -- --ignored`).
+
+Y la versión publicada tiene que pasar su propio juez. Ningún archivo de la app ni del
+motor puede llevar la carpeta personal de quien la armó, una llave con forma real ni su
+token de Hugging Face. Si aparece algo de eso, el empaquetador se niega a terminar. Las
+licencias de los modelos se vuelven a leer en cada editor con
 `gotv generadores verificar`.
 
 | Plataforma | |
@@ -325,8 +327,8 @@ políticas de caja de [Codex](https://github.com/openai/codex) (OpenAI) ·
 instrumentos de verdad, gratis y en español e inglés.**
 El curso, el laboratorio para practicar, el libro para profundizar, los datos
 reales del planeta y la comunidad para discutirlo, en un solo lugar. La verdad
-por encima del adorno, y Rust de punta a punta — las mismas reglas con que se
-construyó este estudio.
+por encima del adorno, y Rust de punta a punta, que son las mismas reglas con que
+se construyó este estudio.
 
 [**chaosx.space**](https://chaosx.space/es/) · [Academia](https://academy.chaosx.space/) · [Laboratorio virtual](https://academy.chaosx.space/lab/) · [Biblioteca](https://chaosx.space/es/library/) · [Atlas de los 100 años](https://nodes.chaosx.space/atlas) · [NODES-X](https://chaosx.space/es/nodes/) · [Datos en vivo](https://chaosx.space/es/data/) · [Comunidad](https://forum.chaosx.space/) · [El Despacho del Cosmos](https://chaosx.space/es/news/)
 
@@ -335,10 +337,10 @@ construyó este estudio.
 
 ---
 
-<i>Todo lo que entra al Vacío no retorna — salvo lo que hiciste en él.</i>
+<i>Todo lo que entra al Vacío no retorna, salvo lo que hiciste en él.</i>
 
-**Apache-2.0** — tómalo, bifúrcalo, mejóralo. Conserva el [NOTICE](NOTICE),
-dale a tu copia su propio nombre y di de dónde salió.
+**Apache-2.0**: tómalo, bifúrcalo y mejóralo. Eso sí, conserva el [NOTICE](NOTICE),
+ponle a tu copia su propio nombre y di de dónde salió.
 
 <sub>Hecho por CHAOS-X con la ayuda de modelos de IA: Claude Opus 5.5 y Claude Fable 5.2, de Anthropic.</sub>
 
