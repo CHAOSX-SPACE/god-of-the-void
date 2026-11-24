@@ -128,6 +128,34 @@ de MLX. Nada de la app.
 
 ---
 
+## Qué tiene dentro
+
+GOTV es bastante más grande que la lista de arriba. El repositorio tiene 158.698 líneas de
+Rust en 302 archivos, y casi todo el agente vive en `gotv-core`, con 117 módulos. Un ✅
+quiere decir que esa parte, además, se probó con una tarea real en un modelo local de 35B
+(y que un juez oculto revisó el resultado, no el modelo).
+
+| Parte | Qué cubre | |
+|---|---|---|
+| Base | ciclo de herramientas, ediciones tolerantes, salidas largas a archivo, compactación del contexto | ✅ |
+| Entender el código | servidores de lenguaje con descargas fijadas, mapa del repositorio, paquetes por lenguaje | ✅ |
+| Probar y depurar | 14 corredores de pruebas, una tarea no cierra sin sus pruebas en verde, depurador por DAP | ✅ |
+| Seguridad | caja de macOS, reglas de permisos, un juez para las órdenes dudosas, revisión de dependencias | ✅ |
+| Git y PR | lecturas por gix, PR con comentarios y CI, nunca fusiona | ✅ |
+| Datos | SQLite, Postgres, MySQL, DuckDB, CSV/Parquet, túneles SSH, sólo lectura impuesta por el motor | ✅ |
+| Conexiones | MCP por stdio, HTTP, SSE y WebSocket con OAuth, ACP para editores, hooks, plugins, control desde el teléfono | ✅ |
+| Contenedores | Docker y docker compose | ✅ |
+| Varios agentes | subagentes en sus propias ramas, un verificador que no puede editar | ✅ |
+| Formas de trabajar | reglas por carpeta, objetivos, automatizaciones, vigilar archivos y registros, proyectos remotos | ✅ |
+| Cuadernos | Jupyter con el kernel del propio proyecto | ✅ |
+| Navegador e investigación | navegador propio, control de Chrome, investigación web con citas | ✅ |
+| Móvil | simulador de iOS y emulador de Android | ◐ falta probar con teléfonos reales |
+| Equipos conectados | USB, discos, impresoras, cámaras, Raspberry Pi, ESP32 | ◐ por ahora sólo la cámara |
+
+Cada parte, con lo que medimos en ella, está en [CUERPO.md](CUERPO.md).
+
+---
+
 ## El motor sin la app
 
 Para usar el motor no hace falta la app. Hay tres maneras de entrar, de la más fácil a
@@ -199,12 +227,12 @@ fn main() -> anyhow::Result<()> {
 
 Preferimos decirlos aquí antes de que alguien se los encuentre por sorpresa.
 
-- **Trabajos largos.** La cura para que no termine antes de tiempo en tareas largas (la
-  compactación del contexto) ya está puesta y sus pruebas pasan, pero todavía no la
-  medimos de punta a punta con un modelo local.
-- **Todavía no hay** varios agentes a la vez, bifurcar un chat, automatizaciones,
-  dispositivos móviles desde la app ni algunas partes de la ventana (la vista de
-  cambios y las menciones).
+- **Trabajos largos con modelos chicos.** Con un modelo local de 35B un trabajo largo
+  terminó en 17 pasos. Con uno de 9B ya no se detiene antes de tiempo, pero compacta más o
+  menos cada 15 pasos y se le acabaron nuestros 30 minutos de tope.
+- **Equipos de verdad.** Las apps móviles sólo se probaron en el simulador de iOS y en el
+  emulador de Android, no en teléfonos reales. De los equipos conectados, por ahora sólo
+  la cámara se probó con el aparato de verdad.
 - **Rincones a medio traducir.** En modo inglés algunas palabras de la CLI siguen en
   español (`gotv generadores`, `--perfil programar|diseno`, `--fuerza-cover`). Los
   alias en inglés cubren las órdenes principales (`image`, `music`, `say`, `listen`,

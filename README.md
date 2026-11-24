@@ -125,6 +125,34 @@ the app.
 
 ---
 
+## What's inside
+
+GOTV is bigger than the list above. The repository holds 158,698 lines of Rust in 302
+files, and most of the agent lives in `gotv-core`, which has 117 modules. A ✅ means the
+part was also tried on a real task with a local 35B model, and a hidden judge checked the
+result.
+
+| Part | What it covers | |
+|---|---|---|
+| Base | tool loop, tolerant edits, long outputs to files, context compaction | ✅ |
+| Understanding code | language servers with pinned downloads, repository map, per-language packs | ✅ |
+| Testing and debugging | 14 test runners, tests must pass before a task closes, DAP debugger | ✅ |
+| Safety | macOS sandbox, permission rules, a judge for unclear commands, dependency checks | ✅ |
+| Git and PRs | reads through gix, PRs with comments and CI, never merges | ✅ |
+| Data | SQLite, Postgres, MySQL, DuckDB, CSV/Parquet, SSH tunnels, read-only enforced by the engine | ✅ |
+| Connections | MCP over stdio, HTTP, SSE and WebSocket with OAuth, ACP for editors, hooks, plugins, phone remote | ✅ |
+| Containers | Docker and docker compose | ✅ |
+| Several agents | subagents on their own branches, a verifier that can't edit | ✅ |
+| Ways of working | rules per folder, goals, automations, watching files and logs, remote projects | ✅ |
+| Notebooks | Jupyter with the project's own kernel | ✅ |
+| Browser and research | its own browser, Chrome control, web research with citations | ✅ |
+| Mobile | iOS Simulator and Android emulator | ◐ no real phones yet |
+| Connected devices | USB, disks, printers, cameras, Raspberry Pi, ESP32 | ◐ only the camera so far |
+
+Every part, with what we measured for it, is in [BODY.md](BODY.md).
+
+---
+
 ## The engine without the app
 
 You don't need the app to use the engine. There are three ways to use it, starting with
@@ -194,10 +222,12 @@ fn main() -> anyhow::Result<()> {
 
 These are the problems we know about as of November 2026.
 
-- Long jobs: context compaction, the fix that stops long tasks from ending early, is in
-  and its tests pass. We haven't measured it end to end with a local model yet.
-- Not there yet: several agents at once, forking a chat, automations and mobile devices
-  from the app. Parts of the window are missing too, such as the changes view and mentions.
+- Long jobs on small models: with a local 35B model a long job finished in 17 steps. With
+  a 9B model it no longer stops early, but it compacts about every 15 steps and ran out of
+  our 30-minute limit.
+- Real hardware: mobile apps were only tested on the iOS Simulator and the Android
+  emulator, not on real phones. Of the connected devices, only the camera has been tested
+  with the real thing.
 - Some CLI words are still in Spanish in English mode (`gotv generadores`,
   `--perfil programar|diseno`, `--fuerza-cover`). The English aliases cover the main
   commands (`image`, `music`, `say`, `listen`, `split`, `talk`).
