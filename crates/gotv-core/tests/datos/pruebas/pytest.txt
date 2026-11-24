@@ -1,0 +1,24 @@
+.FFs                                                                     [100%]
+=================================== FAILURES ===================================
+_________________________________ T.test_error _________________________________
+
+self = <tests.test_calc.T testMethod=test_error>
+
+    def test_error(self):
+>       raise ValueError("roto")
+E       ValueError: roto
+
+tests/test_calc.py:12: ValueError
+__________________________________ T.test_mal __________________________________
+
+self = <tests.test_calc.T testMethod=test_mal>
+
+    def test_mal(self):
+>       self.assertEqual(doble(3), 7)
+E       AssertionError: 6 != 7
+
+tests/test_calc.py:9: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::T::test_error - ValueError: roto
+FAILED tests/test_calc.py::T::test_mal - AssertionError: 6 != 7
+2 failed, 1 passed, 1 skipped in 0.02s

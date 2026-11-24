@@ -1,0 +1,43 @@
+id = "php"
+nombre = "PHP"
+guia = "lenguaje-php"
+
+[ficha]
+en = "PHP: `composer install`, `vendor/bin/phpunit` (or `composer test`); `php -l file.php` for syntax. ALWAYS prepared queries (PDO with parameters), `htmlspecialchars` when rendering, `declare(strict_types=1)`."
+es = "PHP: `composer install`, `vendor/bin/phpunit` (o `composer test`); `php -l archivo.php` para la sintaxis. Consultas SIEMPRE preparadas (PDO con parámetros), `htmlspecialchars` al pintar, `declare(strict_types=1)`."
+
+[ley9]
+en = "PHP: `Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC; Lower()')->transliterate($s)` (intl extension); `strtolower` only folds ASCII."
+es = "PHP: `Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC; Lower()')->transliterate($s)` (extensión intl); `strtolower` sólo pliega ASCII."
+
+[detectar]
+marcadores = [["composer.json"]]
+extensiones = ["php"]
+palabras = [" php", "laravel", "composer"]
+
+[[gestores]]
+nombre = "composer"
+guia = "lenguaje-php"
+por_omision = true
+[gestores.tareas]
+instalar = "composer install --no-interaction"
+compilar = "composer dump-autoload"
+revisar = "vendor/bin/phpstan analyse"
+formatear = "vendor/bin/php-cs-fixer fix"
+probar = "vendor/bin/phpunit"
+una_prueba = "vendor/bin/phpunit --filter {nombre}"
+
+[[corredores]]
+nombre = "pest"
+guia = "lenguaje-php"
+si_hay = ["vendor/bin/pest"]
+una_prueba = "vendor/bin/pest --filter {nombre}"
+
+[no_interactivo]
+variables = { COMPOSER_NO_INTERACTION = "1" }
+
+[vivos]
+patrones = ["php artisan serve", "php -S", "symfony serve", "symfony server:start"]
+
+[errores]
+archivo_linea = ['in (?P<archivo>\S+\.php) on line (?P<linea>\d+)', '(?P<archivo>[\w./-]+\.php):(?P<linea>\d+)']

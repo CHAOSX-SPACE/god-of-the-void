@@ -1,0 +1,49 @@
+GOD OF THE VOID (GOTV)
+Copyright 2026 CHAOS-X — https://chaosx.space
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Original source: https://github.com/CHAOSX-SPACE/god-of-the-void
+
+Names and marks
+---------------
+"GOD OF THE VOID", "GOTV", "CHAOS-X" and their logos are names and marks of
+CHAOS-X. Section 6 of the Apache License does not grant permission to use them,
+except as required to describe the origin of the work. A fork is welcome: give
+it its own name and say where it comes from.
+
+Third-party code and data included in this repository
+-------------------------------------------------------
+terceros/agent-desktop
+  agent-desktop by Vercel Labs — Apache License 2.0.
+  Copyright Vercel, Inc. and contributors. Changes listed in its NOTICE.md.
+
+terceros/agent-browser
+  agent-browser by Vercel Labs — Apache License 2.0.
+  Copyright 2025 Vercel Inc. Changes listed in its NOTICE.md.
+
+terceros/codex-seatbelt
+  Seatbelt sandbox policies from Codex by OpenAI — Apache License 2.0.
+  Copyright 2025 OpenAI. Unchanged; based in turn on Chromium's sandbox policy.
+
+terceros/mlx-sys
+  mlx-sys from mlx-rs (https://github.com/oxiglade/mlx-rs) — MIT OR Apache-2.0,
+  with mlx-c by Apple (MIT, Copyright 2023 ml-explore). Patched to build
+  MLX v0.32.4; the change is described in PARCHE-GOTV.md.
+  At build time it downloads MLX (MIT, Apple) and its dependencies; the
+  packaged app carries their licenses in Contents/Resources/licencias.
+
+crates/gotv-sonido/recursos/silero-vad-v6.safetensors
+  Silero VAD v6 weights by the Silero Team — MIT License
+  (see LICENCIA-silero-vad.txt next to the file).
+
+crates/gotv-mlx/recursos/voz-gotv.safetensors
+  The speaker reference of GOTV's own voice: a synthetic voice designed from a
+  text description with Qwen3-TTS VoiceDesign (Apache License 2.0). It is not
+  the voice of any real person.
+
+Models
+------
+No large model weights are included. Every model (language, speech, image,
+video, music, sound) is downloaded by the user from its own publisher, after
+reading and accepting its own license inside the app
+(Settings → Generators). Those licenses bind the user, not this repository.

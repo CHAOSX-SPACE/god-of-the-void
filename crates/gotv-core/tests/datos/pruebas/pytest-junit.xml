@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="1" tests="4" time="0.023" timestamp="2026-11-15T08:38:06.673398-05:00" hostname="MacBookPro.lan"><testcase classname="tests.test_calc.T" name="test_bien" time="0.000" /><testcase classname="tests.test_calc.T" name="test_error" time="0.000"><failure message="ValueError: roto">self = &lt;tests.test_calc.T testMethod=test_error&gt;
+
+    def test_error(self):
+&gt;       raise ValueError("roto")
+E       ValueError: roto
+
+tests/test_calc.py:12: ValueError</failure></testcase><testcase classname="tests.test_calc.T" name="test_mal" time="0.000"><failure message="AssertionError: 6 != 7">self = &lt;tests.test_calc.T testMethod=test_mal&gt;
+
+    def test_mal(self):
+&gt;       self.assertEqual(doble(3), 7)
+E       AssertionError: 6 != 7
+
+tests/test_calc.py:9: AssertionError</failure></testcase><testcase classname="tests.test_calc.T" name="test_omitida" time="0.000"><skipped type="pytest.skip" message="luego">/RAIZ/tests/test_calc.py:14: luego</skipped></testcase></testsuite></testsuites>

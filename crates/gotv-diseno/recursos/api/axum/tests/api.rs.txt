@@ -1,0 +1,65 @@
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
+use axum::Router;
+use http_body_util::BodyExt;
+use serde_json::{json, Value};
+use tower::ServiceExt;
+use __CRATE__::{app, Config};
+
+fn nueva() -> Router {
+    app(&Config::leer(|_| None).unwrap())
+}
+
+fn dato(texto: &str) -> Value {
+    serde_json::from_str(texto).unwrap()
+}
+
+fn valido() -> Value {
+    dato(r##"__VALIDO__"##)
+}
+
+async fn pedir(app: &Router, metodo: &str, ruta: &str, cuerpo: Option<Value>) -> (StatusCode, Value) {
+    let pedido = Request::builder().method(metodo).uri(ruta).header("content-type", "application/json").body(cuerpo.map(|c| Body::from(c.to_string())).unwrap_or_else(Body::empty)).unwrap();
+    let r = app.clone().oneshot(pedido).await.unwrap();
+    let estado = r.status();
+    let bytes = r.into_body().collect().await.unwrap().to_bytes();
+    (estado, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+#[tokio::test]
+async fn crea_lista_lee_cambia_y_borra() {
+    let app = nueva();
+    assert_eq!(pedir(&app, "GET", "/salud", None).await.0, StatusCode::OK);
+    let (estado, creado) = pedir(&app, "POST", "/__RUTA__", Some(valido())).await;
+    assert_eq!((estado, &creado["id"]), (StatusCode::CREATED, &json!(1)));
+    assert_eq!(pedir(&app, "GET", "/__RUTA__", None).await.1.as_array().map(Vec::len), Some(1));
+    assert_eq!(pedir(&app, "GET", "/__RUTA__/1", None).await, (StatusCode::OK, creado));
+    let (estado, cambiado) = pedir(&app, "PUT", "/__RUTA__/1", Some(dato(r##"__CAMBIADO__"##))).await;
+    assert_eq!(estado, StatusCode::OK);
+    assert_eq!(pedir(&app, "GET", "/__RUTA__/1", None).await.1, cambiado);
+__ASERTO_CAMBIO__    assert_eq!(pedir(&app, "DELETE", "/__RUTA__/1", None).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(pedir(&app, "GET", "/__RUTA__/1", None).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(pedir(&app, "DELETE", "/__RUTA__/1", None).await.0, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn rechaza_lo_invalido_y_dice_que_campo() {
+    let app = nueva();
+    let (estado, r) = pedir(&app, "POST", "/__RUTA__", Some(dato(r##"__ROTO__"##))).await;
+    assert_eq!(estado, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(r["errores"].as_object().map(|o| o.keys().cloned().collect::<Vec<_>>()), Some(vec!["__CAMPO_ROTO__".to_string()]));
+    assert_eq!(pedir(&app, "POST", "/__RUTA__", Some(json!("x"))).await.0, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(pedir(&app, "PUT", "/__RUTA__/1", Some(valido())).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(pedir(&app, "GET", "/__RUTA__", None).await.1, json!([]));
+}
+
+#[test]
+fn la_configuracion_se_valida_al_arrancar() {
+    let env = |k: &str| match k {
+        "PUERTO" => Some("3000".to_string()),
+        "ORIGENES" => Some("https://a.com, https://b.com".to_string()),
+        _ => None,
+    };
+    assert_eq!(Config::leer(env), Ok(Config { puerto: 3000, origenes: vec!["https://a.com".into(), "https://b.com".into()] }));
+    assert!(Config::leer(|k| (k == "PUERTO").then(|| "abc".to_string())).is_err());
+}

@@ -1,0 +1,6 @@
+{"ImportPath":"juguete/calc [juguete/calc.test]","Action":"build-output","Output":"# juguete/calc [juguete/calc.test]\n"}
+{"ImportPath":"juguete/calc [juguete/calc.test]","Action":"build-output","Output":"calc/calc.go:3:32: invalid operation: x * \"2\" (mismatched types int and untyped string)\n"}
+{"ImportPath":"juguete/calc [juguete/calc.test]","Action":"build-fail"}
+{"Time":"2026-11-15T08:41:42.925274-05:00","Action":"start","Package":"juguete/calc"}
+{"Time":"2026-11-15T08:41:42.925494-05:00","Action":"output","Package":"juguete/calc","Output":"FAIL\tjuguete/calc [build failed]\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:41:42.925506-05:00","Action":"fail","Package":"juguete/calc","Elapsed":0,"FailedBuild":"juguete/calc [juguete/calc.test]"}

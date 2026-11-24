@@ -1,0 +1,42 @@
+[package]
+name = "gotv-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+gotv-desktop = { path = "../gotv-desktop" }
+gotv-core = { path = "../gotv-core" }
+gotv-diseno = { path = "../gotv-diseno" }
+gotv-mlx = { path = "../gotv-mlx" }
+gotv-sonido = { path = "../gotv-sonido" }
+gotv-voz = { path = "../gotv-voz" }
+gotv-engine = { path = "../gotv-engine" }
+# custom-protocol = modo PRODUCCIÓN de tauri (lo pone `tauri build`; aquí se arma sin tauri-cli).
+# Sin él tauri se creía en desarrollo y grababa la carpeta del proyecto en el binario (2026-11-23).
+tauri = { version = "2", features = ["custom-protocol"] }
+tauri-plugin-dialog = "2"
+toml = "0.8"
+tokio.workspace = true
+# atrapar el pánico de un turno sin perder el bucle del worker (FutureExt::catch_unwind)
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+serde.workspace = true
+serde_json.workspace = true
+async-trait.workspace = true
+anyhow.workspace = true
+
+# el icono vivo del Dock (NSApplication.setApplicationIconImage): las mismas versiones que ya trae Tauri
+[target.'cfg(target_os = "macos")'.dependencies]
+base64 = "0.22"
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSData"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSImage", "NSResponder"] }
+
+[dev-dependencies]
+# el reloj en pausa: probar el stop forzado sin esperar sus 8 s reales
+tokio = { workspace = true, features = ["test-util"] }

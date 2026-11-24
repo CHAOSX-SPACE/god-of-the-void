@@ -1,0 +1,46 @@
+
+ RUN  v5.1.0 /p/vitest
+
+ ❯ pagos.test.ts (3 tests | 2 failed) 6ms
+   × parcial 3ms
+   × excede 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  pagos.test.ts > parcial
+AssertionError: expected 1400 to be 600 // Object.is equality
+
+- Expected
++ Received
+
+- 600
++ 1400
+
+ ❯ pagos.test.ts:4:50
+      2| import { pagar } from "./pagos";
+      3| test("bien", () => { expect(pagar(10, 0)).toBe(10); });
+      4| test("parcial", () => { expect(pagar(1000, 400)).toBe(600); });
+       |                                                  ^
+      5| test("excede", () => { expect(pagar(1, 5)).toBe(0); });
+      6|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  pagos.test.ts > excede
+Error: monto inválido
+ ❯ pagar pagos.ts:2:28
+      1| export function pagar(deuda: number, monto: number): number {
+      2|   if (monto > deuda) throw new Error("monto inválido");
+       |                            ^
+      3|   return deuda + monto;
+      4| }
+ ❯ pagos.test.ts:5:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  07:31:39
+   Duration  164ms (transform 51%, import 22%, tests 19%, worker 8%)
+

@@ -1,0 +1,27 @@
+# GOD OF THE VOID · Dios del Vacío — workspace Rust
+[workspace]
+resolver = "2"
+members = ["crates/gotv-engine", "crates/gotv-core", "crates/gotv-datos", "crates/gotv-duckdb", "crates/gotv-sintaxis", "crates/gotv-cli", "crates/gotv-tui", "crates/gotv-gui", "crates/gotv-desktop", "crates/gotv-diseno", "crates/gotv-mlx", "crates/gotv-sonido", "crates/gotv-voz", "crates/gotv-empaquetar"]
+# agent-desktop (Apache-2.0) es su propio workspace anidado: ver terceros/agent-desktop/NOTICE.md
+exclude = ["terceros/agent-desktop", "terceros/agent-browser/cli"]
+
+# Forjado por CHAOS-X (chaosx.space). Apache-2.0: ver LICENSE y NOTICE en la raíz.
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["CHAOS-X <https://chaosx.space>"]
+repository = "https://github.com/CHAOSX-SPACE/god-of-the-void"
+homepage = "https://chaosx.space"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+async-trait = "0.1"
+
+[patch.crates-io]
+# MLX v0.32.4 (quantized_matmul más exacta, medido): ver terceros/mlx-sys/PARCHE-GOTV.md
+mlx-sys = { path = "terceros/mlx-sys" }

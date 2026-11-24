@@ -1,0 +1,20 @@
+Run options: --seed 21089
+
+# Running:
+
+.EF
+
+Finished in 0.000333s, 9009.0089 runs/s, 6006.0059 assertions/s.
+
+  1) Error:
+TestPagos#test_excede:
+ArgumentError: monto inválido
+    /p/rb/lib/pagos.rb:2:in `pagar'
+    test/test_pagos.rb:11:in `test_excede'
+
+  2) Failure:
+TestPagos#test_parcial [test/test_pagos.rb:8]:
+Expected: 600
+  Actual: 1400
+
+3 runs, 2 assertions, 1 failures, 1 errors, 0 skips

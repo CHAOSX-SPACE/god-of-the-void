@@ -1,0 +1,25 @@
+use __CRATE__::{app, Config};
+
+#[tokio::main]
+async fn main() {
+    let config = match Config::leer(|k| std::env::var(k).ok()) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(2);
+        }
+    };
+    // ⟦sólo esta máquina; para abrirlo a la red escucha en 0.0.0.0 a sabiendas¦this machine only; to open it to the network listen on 0.0.0.0 knowingly⟧
+    let escucha = match tokio::net::TcpListener::bind(("127.0.0.1", config.puerto)).await {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("⟦no pude escuchar en el puerto¦could not listen on port⟧ {}: {e}", config.puerto);
+            std::process::exit(1);
+        }
+    };
+    println!("http://localhost:{}", config.puerto);
+    if let Err(e) = axum::serve(escucha, app(&config)).await {
+        eprintln!("{e}");
+        std::process::exit(1);
+    }
+}

@@ -1,0 +1,40 @@
+id = "cpp"
+nombre = "C++"
+
+[ficha]
+en = "C++: CMake (`cmake -B build && cmake --build build && ctest --test-dir build`); `clang-format`. RAII and smart pointers, no loose `new`/`delete`; const-correctness; standard library containers."
+es = "C++: CMake (`cmake -B build && cmake --build build && ctest --test-dir build`); `clang-format`. RAII y punteros inteligentes, nada de `new`/`delete` sueltos; `const` correcto; contenedores de la biblioteca estándar."
+
+[ley9]
+en = "C/C++: `tolower`/`strcasecmp` only know ASCII: use utf8proc (`utf8proc_map` with `UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK | UTF8PROC_CASEFOLD`) or ICU."
+es = "C/C++: `tolower`/`strcasecmp` sólo conocen ASCII: usa utf8proc (`utf8proc_map` con `UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK | UTF8PROC_CASEFOLD`) o ICU."
+
+[detectar]
+marcadores = [["CMakeLists.txt"]]
+extensiones = ["cpp", "cc", "hpp"]
+palabras = [" c++", " cpp ", " cmake"]
+
+[[gestores]]
+nombre = "cmake"
+si_hay_alguno = ["CMakeLists.txt"]
+[gestores.tareas]
+instalar = "cmake -B build"
+compilar = "cmake --build build"
+revisar = "cmake --build build"
+formatear = "clang-format -i"
+probar = "ctest --test-dir build --output-on-failure"
+una_prueba = "ctest --test-dir build --output-on-failure -R {nombre}"
+
+[[gestores]]
+nombre = "make"
+por_omision = true
+[gestores.tareas]
+instalar = "make"
+compilar = "make"
+revisar = "make"
+formatear = "clang-format -i"
+probar = "make test"
+una_prueba = "make test"
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.(?:cpp|cc|cxx|hpp|hh|h)):(?P<linea>\d+):\d+:']

@@ -1,0 +1,37 @@
+id = "rust"
+nombre = "Rust"
+guia = "lenguaje-rust"
+
+[ficha]
+en = "Rust (Cargo): `cargo fmt` · `cargo clippy --all-targets` · `cargo test`. Errors with `Result` and `?`, never `unwrap()` in production code; do not clone to silence the borrow checker without understanding why."
+es = "Rust (Cargo): `cargo fmt` · `cargo clippy --all-targets` · `cargo test`. Errores con `Result` y `?`, nunca `unwrap()` en código de producción; no clones para callar al verificador de préstamos sin entender por qué."
+
+[ley9]
+en = "Rust: the standard library does NOT normalise: crate `unicode-normalization` (`s.nfd().filter(|c| !is_combining_mark(*c))`) then `.to_lowercase()`."
+es = "Rust: la biblioteca estándar NO normaliza: crate `unicode-normalization` (`s.nfd().filter(|c| !is_combining_mark(*c))`) y `.to_lowercase()`."
+
+[detectar]
+marcadores = [["Cargo.toml"]]
+extensiones = ["rs"]
+palabras = [" rust", " cargo", "tokio", "axum"]
+
+[[gestores]]
+nombre = "cargo"
+guia = "lenguaje-rust"
+por_omision = true
+[gestores.tareas]
+instalar = "cargo fetch"
+compilar = "cargo build"
+revisar = "cargo clippy --all-targets"
+formatear = "cargo fmt"
+probar = "cargo test"
+una_prueba = "cargo test {nombre}"
+
+[no_interactivo]
+variables = { CARGO_TERM_COLOR = "never" }
+
+[vivos]
+patrones = ["cargo watch", "cargo tauri dev", "cargo leptos watch", "trunk serve"]
+
+[errores]
+archivo_linea = ['-->\s+(?P<archivo>[^\s:]+\.rs):(?P<linea>\d+)']

@@ -1,0 +1,25 @@
+id = "zig"
+nombre = "Zig"
+
+[ficha]
+es = "Zig: `zig fmt .` · `zig build` · `zig build test` (un archivo: `zig test archivo.zig --test-filter \"nombre\"`). Cada error se trata (`try`, `catch`) y cada recurso se libera con `defer`/`errdefer`; el asignador se pasa explícito, nunca uno global escondido."
+en = "Zig: `zig fmt .` · `zig build` · `zig build test` (one file: `zig test file.zig --test-filter \"name\"`). Every error is handled (`try`, `catch`) and every resource is freed with `defer`/`errdefer`; the allocator is passed explicitly, never a hidden global one."
+
+[detectar]
+marcadores = [["build.zig"]]
+extensiones = ["zig"]
+palabras = [" zig "]
+
+[[gestores]]
+nombre = "zig build"
+por_omision = true
+[gestores.tareas]
+instalar = "zig build --fetch"
+compilar = "zig build"
+revisar = "zig build"
+formatear = "zig fmt ."
+probar = "zig build test"
+una_prueba = "zig test {archivo} --test-filter {nombre}"
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.zig):(?P<linea>\d+):\d+:']

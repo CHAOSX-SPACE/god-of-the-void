@@ -1,0 +1,24 @@
+   Compiling pagos v0.1.0 (/p/rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running unittests src/lib.rs (target/debug/deps/pagos-ad1a465ce3933ca1)
+
+running 1 test
+test tests::interna ... FAILED
+
+failures:
+
+---- tests::interna stdout ----
+
+thread 'tests::interna' (5648416) panicked at src/lib.rs:13:9:
+assertion `left == right` failed
+  left: 10
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::interna
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`

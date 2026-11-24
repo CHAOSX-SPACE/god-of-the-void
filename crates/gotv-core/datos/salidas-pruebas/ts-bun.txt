@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+pagos.test.ts:
+1 | import { test, expect } from "bun:test";
+2 | import { pagar } from "./pagos";
+3 | test("bien", () => { expect(pagar(10, 0)).toBe(10); });
+4 | test("parcial", () => { expect(pagar(1000, 400)).toBe(600); });
+                                                     ^
+error: expect(received).toBe(expected)
+
+Expected: 600
+Received: 1400
+
+      at <anonymous> (/p/bun/pagos.test.ts:4:50)
+(fail) parcial [6.41ms]
+1 | export function pagar(deuda: number, monto: number): number {
+2 |   if (monto > deuda) throw new Error("monto inválido");
+                                                         ^
+error: monto inválido
+      at pagar (/p/bun/pagos.ts:2:54)
+      at <anonymous> (/p/bun/pagos.test.ts:5:31)
+(fail) excede [0.84ms]
+
+ 1 pass
+ 2 fail
+ 2 expect() calls
+Ran 3 tests across 1 file. [30.00ms]

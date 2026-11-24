@@ -1,0 +1,13 @@
+[package]
+name = "gotv-sonido"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "M2/M3: altavoz y micrófono de GOD OF THE VOID (AudioQueue de macOS, sin dependencias)"
+
+[dependencies]
+anyhow.workspace = true
+gotv-engine = { path = "../gotv-engine" }
+serde_json.workspace = true

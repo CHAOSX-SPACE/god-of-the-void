@@ -1,0 +1,32 @@
+id = "kotlin"
+nombre = "Kotlin"
+
+[ficha]
+en = "Kotlin: `./gradlew test` (and `ktlintFormat` if present). Real nullability: avoid `!!`; `data class` for data; coroutines with their scope, not `GlobalScope`."
+es = "Kotlin: `./gradlew test` (y `ktlintFormat` si está). Nulabilidad real: evita `!!`; `data class` para datos; corrutinas con su ámbito, no `GlobalScope`."
+
+[ley9]
+en = 'Kotlin: `Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").lowercase()`.'
+es = 'Kotlin: `Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").lowercase()`.'
+
+[detectar]
+marcadores = [["build.gradle.kts"], ["settings.gradle.kts"]]
+extensiones = ["kt"]
+palabras = ["kotlin"]
+
+[[gestores]]
+nombre = "gradle"
+por_omision = true
+[gestores.tareas]
+instalar = "./gradlew dependencies"
+compilar = "./gradlew build -x test"
+revisar = "./gradlew check -x test"
+formatear = "./gradlew ktlintFormat"
+probar = "./gradlew test"
+una_prueba = "./gradlew test --tests {nombre}"
+
+[vivos]
+patrones = ["./gradlew bootRun", "./gradlew run"]
+
+[errores]
+archivo_linea = ['\((?P<archivo>[\w$]+\.kt):(?P<linea>\d+)\)', 'file://(?P<archivo>[^:\s]+\.kts?):(?P<linea>\d+):\d+']

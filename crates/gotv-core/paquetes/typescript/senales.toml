@@ -1,0 +1,17 @@
+id = "typescript"
+nombre = "TypeScript"
+guia = "lenguaje-node"
+
+[ficha]
+en = "TypeScript: package.json scripts rule (`npm run lint`, `npm test`, `npx tsc --noEmit`). Strict mode: no `any` or `as` to hide errors; validate outside data (fetch, forms) before typing it."
+es = "TypeScript: los scripts de package.json mandan (`npm run lint`, `npm test`, `npx tsc --noEmit`). Modo estricto: nada de `any` ni `as` para tapar errores; valida los datos que llegan de fuera (fetch, formularios) antes de tiparlos."
+
+[detectar]
+marcadores = [["package.json", "tsconfig.json"]]
+extensiones = ["ts", "tsx"]
+palabras = ["typescript", " ts ", " tsx", " react", " vite", " next"]
+# los gestores, corredores, variables y servidores son los de Node (el paquete de JavaScript)
+hereda = "javascript"
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./@-]+\.(?:ts|tsx|mts|cts))[(:](?P<linea>\d+)[,:]\d+']

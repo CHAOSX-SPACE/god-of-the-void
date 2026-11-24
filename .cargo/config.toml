@@ -1,0 +1,12 @@
+# G4 (2026-11-10, medido en la Air M1 con macOS 26.6.2): sin un mínimo, MLX compila sus kernels
+# Metal para el macOS de la máquina que compila (27 → Metal 4.1) y en una Mac más vieja el núcleo
+# nativo moría con «language version 4.1 is not supported on this OS». 14.0 es el mínimo de MLX.
+# Va para TODO el proyecto: cargo rastrea esta variable y, si una compilación no la trae, rehace MLX
+# para 27 y pisa el metallib (medido). El puente de agent-desktop conserva su 10.15 (ver su NOTICE).
+[env]
+MACOSX_DEPLOYMENT_TARGET = "14.0"
+AGENT_DESKTOP_MACOS_MIN = "10.15"
+# Los kernels de MLX en una carpeta PROPIA del proyecto: por defecto van a ~/.mlx/lib/<hash>, que
+# comparten todas las compilaciones (medido: una de macOS 27 pisó la de 14 sin avisar).
+MLX_RS_METAL_PATH = { value = "target/mlx-metal", relative = true }
+

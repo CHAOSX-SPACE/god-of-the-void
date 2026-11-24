@@ -1,0 +1,25 @@
+.EF
+======================================================================
+ERROR: test_excede (tests.test_pagos.TestPagar.test_excede)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/p/py/tests/test_pagos.py", line 9, in test_excede
+    self.assertEqual(pagar(1, 5), 0)
+                     ~~~~~^^^^^^
+  File "/p/py/pkg/pagos.py", line 3, in pagar
+    raise ValueError("monto inválido")
+ValueError: monto inválido
+
+======================================================================
+FAIL: test_parcial (tests.test_pagos.TestPagar.test_parcial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/p/py/tests/test_pagos.py", line 7, in test_parcial
+    self.assertEqual(pagar(1000, 400), 600)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1400 != 600
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (failures=1, errors=1)

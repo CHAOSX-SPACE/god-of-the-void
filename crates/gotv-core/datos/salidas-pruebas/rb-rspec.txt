@@ -1,0 +1,29 @@
+.FF
+
+Failures:
+
+  1) pagar parcial
+     Failure/Error: expect(pagar(1000, 400)).to eq(600)
+
+       expected: 600
+            got: 1400
+
+       (compared using ==)
+     # ./spec/pagos_spec.rb:7:in `block (2 levels) in <top (required)>'
+
+  2) pagar excede
+     Failure/Error: raise ArgumentError, "monto inv??lido" if monto > deuda
+
+     ArgumentError:
+       monto inv?lido
+     # ./lib/pagos.rb:2:in `pagar'
+     # ./spec/pagos_spec.rb:10:in `block (2 levels) in <top (required)>'
+
+Finished in 0.00384 seconds (files took 0.0486 seconds to load)
+3 examples, 2 failures
+
+Failed examples:
+
+rspec ./spec/pagos_spec.rb:6 # pagar parcial
+rspec ./spec/pagos_spec.rb:9 # pagar excede
+

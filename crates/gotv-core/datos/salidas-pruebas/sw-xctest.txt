@@ -1,0 +1,47 @@
+Building for debugging...
+[Planning deferred tasks]
+[27 / 50]
+[28 / 51] Pagos
+[32 / 55] Pagos
+[40 / 55] Pagos
+[45 / 56] PagosTests-product
+[54 / 124]
+[60 / 124]
+[65 / 124]
+[67 / 124]
+[73 / 124]
+[76 / 124]
+[79 / 124]
+[84 / 124]
+[87 / 124]
+[89 / 124]
+[90 / 124]
+[101 / 124]
+[104 / 124]
+[106 / 124]
+[109 / 124]
+[110 / 124]
+[115 / 124] PagosTests-product
+[118 / 124] PagosTests-product
+[120 / 124] PagosTests-product
+Build complete! (9,41 s)
+Test Suite 'All tests' started at 2026-11-13 07:32:45.820.
+Test Suite 'PagosTests.xctest' started at 2026-11-13 07:32:45.822.
+Test Suite 'PagosTests' started at 2026-11-13 07:32:45.822.
+Test Case '-[PagosTests.PagosTests testBien]' started.
+Test Case '-[PagosTests.PagosTests testBien]' passed (0.001 seconds).
+Test Case '-[PagosTests.PagosTests testParcial]' started.
+/p/sw/Tests/PagosTests/PagosTests.swift:5: error: -[PagosTests.PagosTests testParcial] : XCTAssertEqual failed: ("1400") is not equal to ("600")
+Test Case '-[PagosTests.PagosTests testParcial]' failed (0.168 seconds).
+Test Suite 'PagosTests' failed at 2026-11-13 07:32:45.991.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.169 (0.169) seconds
+Test Suite 'PagosTests.xctest' failed at 2026-11-13 07:32:45.991.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.169 (0.170) seconds
+Test Suite 'All tests' failed at 2026-11-13 07:32:45.991.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.169 (0.171) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+Note: Some test targets reported failures:
+  - PagosTests (XCTest)

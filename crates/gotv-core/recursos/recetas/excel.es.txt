@@ -1,0 +1,20 @@
+Microsoft Excel (probado 2026-11-11).
+Cada bloque se manda como ["applescript", "<el bloque>"], con comillas normales (sin barras \).
+
+LIBRO NUEVO, VALORES Y FÓRMULAS:
+tell application "Microsoft Excel"
+activate
+make new workbook
+set value of range "A1" of active sheet to "Total"
+set value of range "B3" of active sheet to 42
+set formula of range "B4" of active sheet to "=B3*2"
+end tell
+
+LEER — siempre con `get … ` DIRECTO en una línea (con `set x to value of range …` Excel devuelve «missing value»); un rango da una lista de filas:
+tell application "Microsoft Excel" to get value of range "A1:C10" of active sheet
+tell application "Microsoft Excel" to get value of used range of active sheet
+tell application "Microsoft Excel" to get name of every worksheet of active workbook
+
+GUARDAR (.xlsx; .pdf = la hoja activa; dentro del proyecto): ["guardar", "Microsoft Excel", "libro.xlsx"]
+ABRIR: ["abrir", "Microsoft Excel", "/ruta/ABSOLUTA/datos.xlsx"]
+CERRAR sin guardar: tell application "Microsoft Excel" to close active workbook saving no

@@ -1,0 +1,22 @@
+Microsoft Word (probado 2026-11-11). Word arranca SIN documento: créalo, no busques ventanas.
+Cada bloque se manda como ["applescript", "<el bloque>"], con comillas normales (sin barras \).
+
+NUEVO CON TEXTO (\n dentro de las comillas = salto de línea):
+tell application "Microsoft Word"
+activate
+make new document
+set content of text object of active document to "Título\n\nPrimer párrafo.\n\nSegundo párrafo."
+end tell
+
+AÑADIR AL FINAL:
+tell application "Microsoft Word" to insert text "\nOtro párrafo." at end of text object of active document
+
+LEER EL TEXTO:
+tell application "Microsoft Word" to get content of text object of active document
+
+GUARDAR (.docx o .pdf; dentro del proyecto, «carta.pdf» vale) — NUNCA con `save as` propio (Word vive en una caja de arena):
+["guardar", "Microsoft Word", "carta.docx"]
+["guardar", "Microsoft Word", "carta.pdf"]
+
+ABRIR un .docx: ["abrir", "Microsoft Word", "/ruta/ABSOLUTA/doc.docx"]
+CERRAR sin guardar: tell application "Microsoft Word" to close active document saving no

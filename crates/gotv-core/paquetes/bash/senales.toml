@@ -1,0 +1,13 @@
+id = "bash"
+nombre = "Bash"
+
+[ficha]
+en = 'Bash: `set -euo pipefail` at the top; `shellcheck script.sh` if present; quote variables ("$x"); `[[ ]]` instead of `[ ]`; never `rm -rf $VAR` without checking it is not empty.'
+es = 'Bash: `set -euo pipefail` arriba; `shellcheck script.sh` si está; variables entre comillas ("$x"); `[[ ]]` en vez de `[ ]`; nada de `rm -rf $VAR` sin comprobar que no está vacía.'
+
+[detectar]
+extensiones = ["sh"]
+palabras = [" bash", " script de shell", " shell script"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.sh): line (?P<linea>\d+):']

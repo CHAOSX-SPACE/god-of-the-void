@@ -1,0 +1,53 @@
+Building for debugging...
+[Pre-planning 1 / 66]
+[Planning deferred tasks]
+[27 / 50]
+[28 / 51] Calc
+[30 / 55]
+[32 / 55] Calc
+[40 / 55] Calc
+[42 / 55] Calc
+[45 / 56] CalcTests-product
+[54 / 124]
+[60 / 124]
+[65 / 124]
+[67 / 124]
+[73 / 124]
+[76 / 124]
+[79 / 124]
+[84 / 124]
+[86 / 124]
+[89 / 124]
+[90 / 124]
+[99 / 124]
+[101 / 124]
+[102 / 124]
+[104 / 124]
+[106 / 124]
+[109 / 124]
+[110 / 124]
+[113 / 124] CalcTests-product
+[118 / 124] CalcTests-product
+[120 / 124] CalcTests-product
+[123 / 124] CalcTests-product
+Build complete! (11,02 s)
+Test Suite 'All tests' started at 2026-11-15 08:37:48.944.
+Test Suite 'CalcTests.xctest' started at 2026-11-15 08:37:48.946.
+Test Suite 'CalcTests' started at 2026-11-15 08:37:48.946.
+Test Case '-[CalcTests.CalcTests testBien]' started.
+Test Case '-[CalcTests.CalcTests testBien]' passed (0.002 seconds).
+Test Case '-[CalcTests.CalcTests testMal]' started.
+Tests/CalcTests/CalcTests.swift:7: error: -[CalcTests.CalcTests testMal] : XCTAssertEqual failed: ("6") is not equal to ("7") - tres
+Test Case '-[CalcTests.CalcTests testMal]' failed (0.171 seconds).
+Test Suite 'CalcTests' failed at 2026-11-15 08:37:49.120.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.173 (0.174) seconds
+Test Suite 'CalcTests.xctest' failed at 2026-11-15 08:37:49.120.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.173 (0.174) seconds
+Test Suite 'All tests' failed at 2026-11-15 08:37:49.120.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 0.173 (0.176) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+Note: Some test targets reported failures:
+  - CalcTests (XCTest)

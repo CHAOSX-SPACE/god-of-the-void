@@ -1,0 +1,31 @@
+[package]
+name = "gotv-datos"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+# F1 · Bases de datos (plan del cuerpo). Crate aparte: los controladores no alargan la compilación
+# de gotv-core. No depende de gotv-core: recibe todo por parámetros.
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# la MISMA versión que gotv-core (dos versiones no pueden enlazar SQLite a la vez); `hooks` da el
+# autorizador y el tope de tiempo, `backup` la copia en caliente
+rusqlite = { version = "0.32", features = ["bundled", "hooks", "backup", "column_decltype"] }
+# `visitor`: F5 ML9, el puente de datos recorre las consultas (tablas, alias y columnas)
+sqlparser = { version = "=0.64.0", features = ["visitor"] }
+gotv-engine = { path = "../gotv-engine" }
+# F1 paso 4 · PostgreSQL: protocolo nativo en Rust; TLS con rustls y el proveedor `ring` (el mismo que
+# ya trae el árbol por reqwest) y las raíces de Mozilla (Supabase, Neon, RDS con certificado público)
+tokio.workspace = true
+tokio-postgres = "0.7"
+tokio-postgres-rustls = "0.13"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+# F1 paso 5 · MySQL y MariaDB: cliente nativo en Rust, mismo rustls con ring, sin OpenSSL
+mysql_async = { version = "0.37", default-features = false, features = ["minimal-rust", "rustls-tls", "ring", "tls12"] }
+# F1 paso 10 · respaldo de Postgres por COPY en flujo (Stream)
+futures-util = { version = "0.3", default-features = false }

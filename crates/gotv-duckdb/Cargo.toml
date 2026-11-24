@@ -1,0 +1,22 @@
+[package]
+name = "gotv-duckdb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+# F1 paso 9 · DuckDB en un proceso APARTE (ver src/main.rs): el único binario que enlaza su C++.
+# La app (gotv, gotv-gui) lo lanza sólo cuando hace falta y le habla por líneas JSON.
+[[bin]]
+name = "gotv-duckdb"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+gotv-datos = { path = "../gotv-datos" }
+gotv-engine = { path = "../gotv-engine" }
+libc = "0.2"
+# C++ enlazado por su crate (L1 regla 3), con Parquet; CSV viene de serie
+duckdb = { version = "=1.20000.2", features = ["bundled", "parquet"] }

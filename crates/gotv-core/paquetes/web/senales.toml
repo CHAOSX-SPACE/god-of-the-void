@@ -1,0 +1,12 @@
+id = "web"
+nombre = "HTML/CSS"
+
+[ficha]
+en = "HTML/CSS: correctness is MEASURED in the own browser (`browser`: open → set viewport 390 844 → a11y; then 1440 900), not by eye. Use the project's variables, not loose colours; lay out with grid/flex, `max-width`, `%` and `clamp()`, never fixed px widths; no `!important` to win specificity; every animation with `prefers-reduced-motion`; semantic HTML (`button`, not a clickable `div`)."
+es = "HTML/CSS: lo correcto se MIDE en el navegador propio (`browser`: open → set viewport 390 844 → a11y; luego 1440 900), no a ojo. Usa las variables del proyecto, no colores sueltos; maqueta con grid/flex, `max-width`, `%` y `clamp()`, nunca anchos fijos en px; nada de `!important` para ganar especificidad; toda animación con `prefers-reduced-motion`; HTML semántico (`button`, no un `div` con clic)."
+
+[detectar]
+extensiones = ["html", "htm", "css", "scss"]
+
+[vivos]
+patrones = ["python3 -m http.server", "python -m http.server", "npx serve", "live-server"]

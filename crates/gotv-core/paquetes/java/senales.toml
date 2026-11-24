@@ -1,0 +1,54 @@
+id = "java"
+nombre = "Java"
+
+[ficha]
+en = "Java: with Maven `mvn -q test` (or `./mvnw`), with Gradle `./gradlew test`. `Optional` instead of returning null; try-with-resources for what closes; do not catch `Exception` to ignore it."
+es = "Java: con Maven `mvn -q test` (o `./mvnw`), con Gradle `./gradlew test`. `Optional` en vez de devolver null; try-with-resources para lo que se cierra; no atrapes `Exception` para ignorarla."
+
+[ley9]
+en = 'Java: `Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT)`.'
+es = 'Java: `Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT)`.'
+
+[detectar]
+marcadores = [["pom.xml"], ["build.gradle"]]
+extensiones = ["java"]
+palabras = [" java ", " maven", " spring"]
+
+[[gestores]]
+nombre = "maven (mvnw)"
+si_hay_alguno = ["mvnw"]
+[gestores.tareas]
+instalar = "./mvnw -q dependency:resolve"
+compilar = "./mvnw -q compile"
+revisar = "./mvnw -q verify -DskipTests"
+formatear = "./mvnw -q spotless:apply"
+probar = "./mvnw -q test"
+una_prueba = "./mvnw -q test -Dtest={nombre}"
+
+[[gestores]]
+nombre = "maven"
+si_hay_alguno = ["pom.xml"]
+[gestores.tareas]
+instalar = "mvn -q dependency:resolve"
+compilar = "mvn -q compile"
+revisar = "mvn -q verify -DskipTests"
+formatear = "mvn -q spotless:apply"
+probar = "mvn -q test"
+una_prueba = "mvn -q test -Dtest={nombre}"
+
+[[gestores]]
+nombre = "gradle"
+por_omision = true
+[gestores.tareas]
+instalar = "./gradlew dependencies"
+compilar = "./gradlew build -x test"
+revisar = "./gradlew check -x test"
+formatear = "./gradlew spotlessApply"
+probar = "./gradlew test"
+una_prueba = "./gradlew test --tests {nombre}"
+
+[vivos]
+patrones = ["./gradlew bootRun", "mvn spring-boot:run", "./mvnw spring-boot:run"]
+
+[errores]
+archivo_linea = ['\((?P<archivo>[\w$]+\.java):(?P<linea>\d+)\)', '(?P<archivo>[\w./-]+\.java):\[(?P<linea>\d+),\d+\]']

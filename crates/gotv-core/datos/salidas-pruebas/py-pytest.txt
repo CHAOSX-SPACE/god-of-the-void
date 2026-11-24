@@ -1,0 +1,34 @@
+.FF                                                                      [100%]
+=================================== FAILURES ===================================
+____________________________ TestPagar.test_excede _____________________________
+
+self = <tests.test_pagos.TestPagar testMethod=test_excede>
+
+    def test_excede(self):
+>       self.assertEqual(pagar(1, 5), 0)
+                         ^^^^^^^^^^^
+
+tests/test_pagos.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+deuda = 1, monto = 5
+
+    def pagar(deuda, monto):
+        if monto > deuda:
+>           raise ValueError("monto inválido")
+E           ValueError: monto inválido
+
+pkg/pagos.py:3: ValueError
+____________________________ TestPagar.test_parcial ____________________________
+
+self = <tests.test_pagos.TestPagar testMethod=test_parcial>
+
+    def test_parcial(self):
+>       self.assertEqual(pagar(1000, 400), 600)
+E       AssertionError: 1400 != 600
+
+tests/test_pagos.py:7: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_pagos.py::TestPagar::test_excede - ValueError: monto inválido
+FAILED tests/test_pagos.py::TestPagar::test_parcial - AssertionError: 1400 !=...
+2 failed, 1 passed in 0.02s

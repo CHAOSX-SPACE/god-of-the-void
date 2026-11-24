@@ -1,0 +1,34 @@
+id = "go"
+nombre = "Go"
+guia = "lenguaje-go"
+
+[ficha]
+en = 'Go: `gofmt -w .` · `go vet ./...` · `go test ./...`. Every `err` is checked (`if err != nil`) and wrapped with context (`fmt.Errorf("…: %w", err)`); goroutines with their `context` and no leaks.'
+es = 'Go: `gofmt -w .` · `go vet ./...` · `go test ./...`. Cada `err` se revisa (`if err != nil`) y se envuelve con contexto (`fmt.Errorf("…: %w", err)`); goroutines con su `context` y sin fugas.'
+
+[ley9]
+en = "Go: `transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)` from `golang.org/x/text` and `strings.ToLower`; `strings.EqualFold` does NOT drop accents."
+es = "Go: `transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)` de `golang.org/x/text` y `strings.ToLower`; `strings.EqualFold` NO quita tildes."
+
+[detectar]
+marcadores = [["go.mod"]]
+extensiones = ["go"]
+palabras = [" golang", " go mod", " en go ", " in go "]
+
+[[gestores]]
+nombre = "go"
+guia = "lenguaje-go"
+por_omision = true
+[gestores.tareas]
+instalar = "go mod download"
+compilar = "go build ./..."
+revisar = "go vet ./..."
+formatear = "gofmt -w ."
+probar = "go test ./..."
+una_prueba = "go test ./... -run {nombre}"
+
+[vivos]
+patrones = ["air", "go run . serve"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.go):(?P<linea>\d+)']

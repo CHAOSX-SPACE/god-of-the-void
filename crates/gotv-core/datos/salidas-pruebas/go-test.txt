@@ -1,0 +1,25 @@
+--- FAIL: TestTabla (0.00s)
+    --- FAIL: TestTabla/parcial (0.00s)
+        pagos_test.go:23: got 1400, want 600
+    --- FAIL: TestTabla/total (0.00s)
+        pagos_test.go:23: got 1000, want 0
+--- FAIL: TestExcede (0.00s)
+panic: monto inválido [recovered, repanicked]
+
+goroutine 38 [running]:
+testing.tRunner.func1.2({0x1028d79f0, 0x1028ac3c0})
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2123 +0x1a0
+testing.tRunner.func1()
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2126 +0x2c8
+panic({0x1028d79f0?, 0x1028ac3c0?})
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/runtime/panic.go:859 +0x120
+pagos.Pagar(...)
+	/p/go/pagos.go:5
+pagos.TestExcede(0x5a814735cb48?)
+	/p/go/pagos_test.go:30 +0x30
+testing.tRunner(0x5a814735cb48, 0x1028f75d8)
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2193 +0xc4
+created by testing.(*T).Run in goroutine 1
+	/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8
+FAIL	pagos	0.144s
+FAIL

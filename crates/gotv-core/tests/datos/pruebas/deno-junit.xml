@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="deno test" tests="3" failures="1" errors="0" time="0.019">
+    <testsuite name="./calc_test.ts" tests="3" disabled="1" errors="0" failures="1">
+        <testcase name="bien" classname="./calc_test.ts" time="0.000" line="3" col="6">
+        </testcase>
+        <testcase name="mal" classname="./calc_test.ts" time="0.016" line="4" col="6">
+            <failure message="Uncaught AssertionError: Values are not equal.
+
+
+    [Diff] Actual / Expected
+
+
+-   6
++   7
+">AssertionError: Values are not equal.
+
+
+    [Diff] Actual / Expected
+
+
+-   6
++   7
+
+  throw new AssertionError(message);
+        ^
+    at assertEquals (https://jsr.io/@std/assert/1.0.19/equals.ts:67:9)
+    at file:///RAIZ/calc_test.ts:5:3</failure>
+        </testcase>
+        <testcase name="omitida" classname="./calc_test.ts" time="0.000" line="7" col="6">
+            <skipped/>
+        </testcase>
+    </testsuite>
+</testsuites>

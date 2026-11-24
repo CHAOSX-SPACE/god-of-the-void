@@ -1,0 +1,21 @@
+Microsoft PowerPoint (probado 2026-11-11).
+Cada bloque se manda como ["applescript", "<el bloque>"], con comillas normales (sin barras \).
+
+PRESENTACIÓN CON DIAPOSITIVAS:
+tell application "Microsoft PowerPoint"
+activate
+make new presentation
+set s to make new slide at end of active presentation with properties {layout:slide layout title slide}
+set content of text range of text frame of shape 1 of s to "Título"
+set content of text range of text frame of shape 2 of s to "Subtítulo"
+set s2 to make new slide at end of active presentation with properties {layout:slide layout text slide}
+set content of text range of text frame of shape 1 of s2 to "Puntos"
+set content of text range of text frame of shape 2 of s2 to "Uno\nDos\nTres"
+end tell
+
+CONTAR: tell application "Microsoft PowerPoint" to count slides of active presentation
+
+GUARDAR (.pptx o .pdf; dentro del proyecto) — con una ruta propia PowerPoint NO guarda y NO avisa:
+["guardar", "Microsoft PowerPoint", "presentacion.pptx"]
+ABRIR: ["abrir", "Microsoft PowerPoint", "/ruta/ABSOLUTA/p.pptx"]
+CERRAR sin guardar: tell application "Microsoft PowerPoint" to close active presentation saving no

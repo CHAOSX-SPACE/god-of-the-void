@@ -1,0 +1,20 @@
+Microsoft Excel (tested 2026-11-11).
+Each block is sent as ["applescript", "<the block>"], with plain quotes (no backslashes \).
+
+NEW WORKBOOK, VALUES AND FORMULAS:
+tell application "Microsoft Excel"
+activate
+make new workbook
+set value of range "A1" of active sheet to "Total"
+set value of range "B3" of active sheet to 42
+set formula of range "B4" of active sheet to "=B3*2"
+end tell
+
+READ — always with `get … ` DIRECTLY on one line (with `set x to value of range …` Excel returns «missing value»); a range gives a list of rows:
+tell application "Microsoft Excel" to get value of range "A1:C10" of active sheet
+tell application "Microsoft Excel" to get value of used range of active sheet
+tell application "Microsoft Excel" to get name of every worksheet of active workbook
+
+SAVE (.xlsx; .pdf = the active sheet; inside the project): ["guardar", "Microsoft Excel", "book.xlsx"]
+OPEN: ["abrir", "Microsoft Excel", "/ABSOLUTE/path/data.xlsx"]
+CLOSE without saving: tell application "Microsoft Excel" to close active workbook saving no

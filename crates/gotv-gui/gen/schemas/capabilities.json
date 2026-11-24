@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"La ventana principal: sólo eventos y los comandos propios de GOTV","local":true,"windows":["main","tareas"],"permissions":["core:event:default","core:app:default","core:window:default","core:webview:default","dialog:default"]}}

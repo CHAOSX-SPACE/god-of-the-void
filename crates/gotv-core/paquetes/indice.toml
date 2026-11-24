@@ -1,0 +1,7 @@
+# F11 · el ORDEN de los paquetes (sus datos viven en `<id>/senales.toml`).
+# `marcadores`: por archivos de proyecto (primero); `extensiones`: por extensiones de la raíz y `src/`
+# (después); `orden`: los que se reconocen en lo que PIDE la orden. Como mucho 4 fichas por proyecto y
+# 3 por orden: el contexto de un modelo pequeño es oro.
+marcadores = ["rust", "typescript", "javascript", "python", "go", "java", "kotlin", "php", "ruby", "swift", "cpp", "dart", "elixir", "zig", "lua"]
+extensiones = ["csharp", "python", "typescript", "javascript", "go", "rust", "php", "ruby", "swift", "kotlin", "java", "cpp", "c", "dart", "elixir", "zig", "lua", "sql", "bash", "web"]
+orden = ["python", "rust", "typescript", "javascript", "go", "java", "kotlin", "csharp", "cpp", "php", "ruby", "swift", "dart", "elixir", "zig", "lua", "sql", "bash"]

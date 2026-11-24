@@ -1,0 +1,38 @@
+[package]
+name = "gotv-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "gotv"
+path = "src/main.rs"
+
+[dependencies]
+libc = "0.2"
+gotv-desktop = { path = "../gotv-desktop" }
+gotv-mlx = { path = "../gotv-mlx" }
+gotv-sonido = { path = "../gotv-sonido" }
+gotv-voz = { path = "../gotv-voz" }
+gotv-engine = { path = "../gotv-engine" }
+gotv-core = { path = "../gotv-core" }
+gotv-diseno = { path = "../gotv-diseno" }
+tokio.workspace = true
+async-trait.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+# banco · obra: el juez mira la base SQLite del proyecto del modelo (la misma versión que gotv-core)
+rusqlite = { version = "0.32", features = ["bundled"] }
+# el banco (examples/banco): leer cifras y licencias en lo que escribe el modelo
+regex = "1"
+# banco de oficina: mirar el XML de los .xlsx y .pptx que dejó el modelo
+zip = { version = "9.5", default-features = false, features = ["deflate"] }
+# banco --fichas: habla con `gotv serve` (OpenAI-compatible, local)
+reqwest = { workspace = true }
+# banco F13: el servidor MCP remoto con OAuth de mentira (examples/mcp_oauth_falso.rs); la misma versión que
+# ya compila gotv-core, así que no suma nada
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio", "query"] }

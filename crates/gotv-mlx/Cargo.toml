@@ -1,0 +1,45 @@
+[package]
+name = "gotv-mlx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "G4: motor in-process de GOD OF THE VOID sobre MLX (sin Python)"
+
+[dependencies]
+gotv-engine = { path = "../gotv-engine" }
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+mlx-rs = "0.34"
+# sólo para leer el «working set» recomendado de la GPU (mlx-rs no lo expone); la misma versión que usa mlx-rs
+mlx-sys = "0.7"
+tokenizers = { version = "0.22", default-features = false, features = ["fancy-regex"] }
+minijinja = { version = "2", features = ["json", "loop_controls"] }
+minijinja-contrib = { version = "2", features = ["pycompat"] }
+# M8: las imágenes que llegan como data: URL (JPEG de `sips`, PNG, WebP)
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+# M5: la guía SVG de la ilustración isométrica se rasteriza en Rust (Apache-2.0 O MIT)
+resvg = "0.50"
+base64 = "0.22"
+flate2 = "1"
+# M7d: leer el audio fuente de un cover/repaint (WAV, FLAC, OGG/Vorbis, MP3, AAC/ALAC en M4A) en Rust
+# puro (MPL-2.0), sin ffmpeg ni libsndfile
+symphonia = { version = "0.5.4", features = ["mp3", "aac", "isomp4", "alac"] }
+# F2 de la memoria rápida: comprimir y leer la caché por trozos en paralelo (Rust puro)
+rayon = "1"
+# EXP-7: los datos del afinado del separador (Slakh2100 en .tar.gz) se leen en Rust puro (MIT O Apache-2.0)
+tar = "0.4"
+# EXP-7: liberar en APFS lo ya leído del archivo mientras se extrae (F_PUNCHHOLE), para que quepa en el disco
+libc = "0.2"
+# M6: el MP4 del video por AVFoundation (H.264 por hardware, sin ffmpeg): las versiones de objc2 que ya trae Tauri
+objc2 = "0.6"
+block2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSURL", "NSDictionary", "NSValue", "NSError", "NSObject", "NSArray"] }
+objc2-av-foundation = { version = "0.3", default-features = false, features = ["std", "AVAssetWriter", "AVAssetWriterInput", "AVMediaFormat", "AVVideoSettings", "AVBase", "block2", "objc2-core-media", "objc2-core-video", "AVAsset", "AVAssetTrack", "AVAssetReader", "AVAssetReaderOutput"] }
+objc2-core-media = { version = "0.3", default-features = false, features = ["std", "CMTime", "CMSampleBuffer", "objc2-core-video"] }
+objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVPixelBuffer", "CVPixelBufferPool", "CVImageBuffer", "CVBuffer", "CVReturn"] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFDictionary", "CFString", "CFNumber"] }

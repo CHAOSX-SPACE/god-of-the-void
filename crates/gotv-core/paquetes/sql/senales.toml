@@ -1,0 +1,14 @@
+id = "sql"
+nombre = "SQL"
+
+[ficha]
+en = "SQL: schema changes as migrations (never by hand in production); parameterised queries, never concatenating user text; an index for each column you filter or join on."
+es = "SQL: cambios de esquema como migraciones (nunca a mano en producción); consultas con parámetros, jamás concatenando texto del usuario; índice para cada columna por la que filtras o unes."
+
+[ley9]
+en = "SQL: PostgreSQL with the `unaccent` extension (`lower(unaccent(col)) LIKE lower(unaccent($1))`); MySQL with an `_ai_ci` collation (e.g. `utf8mb4_0900_ai_ci`); SQLite cannot: do it in code."
+es = "SQL: PostgreSQL con la extensión `unaccent` (`lower(unaccent(col)) LIKE lower(unaccent($1))`); MySQL con una intercalación `_ai_ci` (p. ej. `utf8mb4_0900_ai_ci`); SQLite no sabe: hazlo en el código."
+
+[detectar]
+extensiones = ["sql"]
+palabras = [" sql ", "postgres", "mysql", "sqlite"]

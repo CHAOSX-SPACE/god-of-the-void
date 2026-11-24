@@ -1,0 +1,14 @@
+[package]
+name = "gotv-empaquetar"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Arma «GOD OF THE VOID.app» (macOS) desde el código: cargo run -p gotv-empaquetar"
+
+# Sin dependencias: sólo la biblioteca estándar y las herramientas que trae macOS
+# (cargo, sips, iconutil, codesign, security).
+[[bin]]
+name = "gotv-empaquetar"
+path = "src/main.rs"

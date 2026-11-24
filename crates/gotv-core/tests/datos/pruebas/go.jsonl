@@ -1,0 +1,18 @@
+{"Time":"2026-11-15T08:37:26.066008-05:00","Action":"start","Package":"juguete/calc"}
+{"Time":"2026-11-15T08:37:26.213608-05:00","Action":"run","Package":"juguete/calc","Test":"TestBien"}
+{"Time":"2026-11-15T08:37:26.213692-05:00","Action":"output","Package":"juguete/calc","Test":"TestBien","Output":"=== RUN   TestBien\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213726-05:00","Action":"output","Package":"juguete/calc","Test":"TestBien","Output":"--- PASS: TestBien (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213735-05:00","Action":"pass","Package":"juguete/calc","Test":"TestBien","Elapsed":0}
+{"Time":"2026-11-15T08:37:26.213744-05:00","Action":"run","Package":"juguete/calc","Test":"TestMal"}
+{"Time":"2026-11-15T08:37:26.213749-05:00","Action":"output","Package":"juguete/calc","Test":"TestMal","Output":"=== RUN   TestMal\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213759-05:00","Action":"output","Package":"juguete/calc","Test":"TestMal","Output":"    calc_test.go:13: Doble(3) = 6, quiero 7\n","OutputType":"error"}
+{"Time":"2026-11-15T08:37:26.213773-05:00","Action":"output","Package":"juguete/calc","Test":"TestMal","Output":"--- FAIL: TestMal (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213779-05:00","Action":"fail","Package":"juguete/calc","Test":"TestMal","Elapsed":0}
+{"Time":"2026-11-15T08:37:26.213786-05:00","Action":"run","Package":"juguete/calc","Test":"TestOmitida"}
+{"Time":"2026-11-15T08:37:26.213791-05:00","Action":"output","Package":"juguete/calc","Test":"TestOmitida","Output":"=== RUN   TestOmitida\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213796-05:00","Action":"output","Package":"juguete/calc","Test":"TestOmitida","Output":"    calc_test.go:17: luego\n"}
+{"Time":"2026-11-15T08:37:26.213802-05:00","Action":"output","Package":"juguete/calc","Test":"TestOmitida","Output":"--- SKIP: TestOmitida (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.213807-05:00","Action":"skip","Package":"juguete/calc","Test":"TestOmitida","Elapsed":0}
+{"Time":"2026-11-15T08:37:26.213812-05:00","Action":"output","Package":"juguete/calc","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.214424-05:00","Action":"output","Package":"juguete/calc","Output":"FAIL\tjuguete/calc\t0.147s\n","OutputType":"frame"}
+{"Time":"2026-11-15T08:37:26.214453-05:00","Action":"fail","Package":"juguete/calc","Elapsed":0.148}

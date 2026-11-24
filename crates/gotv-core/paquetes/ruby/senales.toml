@@ -1,0 +1,37 @@
+id = "ruby"
+nombre = "Ruby"
+
+[ficha]
+en = "Ruby: `bundle install` · `bundle exec rspec` or `bundle exec rake test` (plain minitest: `ruby -Itest test/x_test.rb`) · `ruby -c file.rb` for syntax · `rubocop -a` if present. Rescue `StandardError`, never `Exception`; explicit `nil`, no chained `&.` to hide missing data."
+es = "Ruby: `bundle install` · `bundle exec rspec` o `bundle exec rake test` (minitest suelto: `ruby -Itest test/x_test.rb`) · `ruby -c archivo.rb` para la sintaxis · `rubocop -a` si está. Rescata `StandardError`, nunca `Exception`; `nil` explícito, sin `&.` encadenados para tapar datos que faltan."
+
+[ley9]
+en = '''Ruby: `s.unicode_normalize(:nfd).gsub(/\p{Mn}/, '').downcase`.'''
+es = '''Ruby: `s.unicode_normalize(:nfd).gsub(/\p{Mn}/, '').downcase`.'''
+
+[detectar]
+marcadores = [["Gemfile"]]
+extensiones = ["rb"]
+palabras = [" ruby", " rails", " rspec", "minitest"]
+
+[[gestores]]
+nombre = "bundler"
+por_omision = true
+[gestores.tareas]
+instalar = "bundle install"
+compilar = "ruby -c"
+revisar = "bundle exec rubocop"
+formatear = "bundle exec rubocop -a"
+probar = "bundle exec rake test"
+una_prueba = "bundle exec rake test TESTOPTS=--name={nombre}"
+
+[[corredores]]
+nombre = "rspec"
+si_hay = [".rspec"]
+una_prueba = "bundle exec rspec -e {nombre}"
+
+[vivos]
+patrones = ["rails s", "rails server", "bin/rails s", "bin/rails server", "bin/dev", "foreman start"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.rb):(?P<linea>\d+)']

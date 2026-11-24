@@ -1,0 +1,32 @@
+id = "elixir"
+nombre = "Elixir"
+
+[ficha]
+es = "Elixir (mix): `mix deps.get` · `mix format` · `mix compile --warnings-as-errors` · `mix test` (una: `mix test ruta_test.exs:LÍNEA`). Datos inmutables: reasigna, no «modifiques»; casa patrones (`{:ok, x}` / `{:error, motivo}`) en vez de excepciones; procesos con supervisor, nunca sueltos."
+en = "Elixir (mix): `mix deps.get` · `mix format` · `mix compile --warnings-as-errors` · `mix test` (one: `mix test path_test.exs:LINE`). Immutable data: rebind, do not «modify»; pattern-match (`{:ok, x}` / `{:error, reason}`) instead of exceptions; supervised processes, never loose ones."
+
+[ley9]
+es = "Elixir: `s |> String.normalize(:nfd) |> String.replace(~r/\\p{Mn}/u, \"\") |> String.downcase()`."
+en = "Elixir: `s |> String.normalize(:nfd) |> String.replace(~r/\\p{Mn}/u, \"\") |> String.downcase()`."
+
+[detectar]
+marcadores = [["mix.exs"]]
+extensiones = ["ex", "exs"]
+palabras = [" elixir", " phoenix", " mix "]
+
+[[gestores]]
+nombre = "mix"
+por_omision = true
+[gestores.tareas]
+instalar = "mix deps.get"
+compilar = "mix compile"
+revisar = "mix compile --warnings-as-errors"
+formatear = "mix format"
+probar = "mix test"
+una_prueba = "mix test {archivo}:{linea}"
+
+[vivos]
+patrones = ["mix phx.server", "iex -S mix"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.exs?):(?P<linea>\d+)']

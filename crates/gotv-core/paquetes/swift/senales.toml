@@ -1,0 +1,43 @@
+id = "swift"
+nombre = "Swift"
+guia = "lenguaje-swift"
+
+[ficha]
+en = "Swift: `swift build` · `swift test` (or xcodebuild for an app). Optionals with `guard let`/`if let`, never forced `!`; `async/await` and actors for concurrency."
+es = "Swift: `swift build` · `swift test` (o xcodebuild si es app). Opcionales con `guard let`/`if let`, nunca `!` forzado; `async/await` y actores para la concurrencia."
+
+[ley9]
+en = "Swift: `s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)`."
+es = "Swift: `s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)`."
+
+[detectar]
+marcadores = [["Package.swift"]]
+extensiones = ["swift"]
+palabras = [" swift", "swiftui"]
+
+[[gestores]]
+nombre = "SwiftPM"
+guia = "lenguaje-swift"
+si_hay_alguno = ["Package.swift"]
+[gestores.tareas]
+instalar = "swift package resolve"
+compilar = "swift build"
+revisar = "swift build"
+formatear = "swift format -i -r ."
+probar = "swift test"
+una_prueba = "swift test --filter {nombre}"
+
+[[gestores]]
+nombre = "Xcode"
+guia = "lenguaje-swift"
+por_omision = true
+[gestores.tareas]
+instalar = "xcodebuild -resolvePackageDependencies"
+compilar = "xcodebuild -list"
+revisar = "xcodebuild -list"
+formatear = "swift format -i -r ."
+probar = "xcodebuild test -scheme <esquema de xcodebuild -list>"
+una_prueba = "xcodebuild test -scheme <esquema> -only-testing:<destino>/<clase>/{nombre}"
+
+[errores]
+archivo_linea = ['(?P<archivo>/[^:\s]+\.swift):(?P<linea>\d+):']

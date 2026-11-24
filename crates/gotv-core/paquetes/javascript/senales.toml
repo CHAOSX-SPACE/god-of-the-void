@@ -1,0 +1,117 @@
+id = "javascript"
+nombre = "JavaScript"
+guia = "lenguaje-node"
+
+[ficha]
+en = "JavaScript: package.json scripts rule (`npm run lint`, `npm test`). Always `===`; `async/await` with `try/catch` where something can fail; do not mix ES modules and CommonJS."
+es = "JavaScript: los scripts de package.json mandan (`npm run lint`, `npm test`). `===` siempre; `async/await` con `try/catch` donde algo puede fallar; no mezcles módulos ES y CommonJS."
+
+[detectar]
+marcadores = [["package.json"]]
+extensiones = ["js", "mjs"]
+cede_a = ["typescript"]
+palabras = ["javascript", " node", " npm ", " express"]
+
+# el gestor sale del archivo de bloqueo o de `packageManager` (con su VERSIÓN: yarn 1 y yarn 2+ no
+# comparten banderas); `{correr}` corre un script de package.json y `{ejecutar}` un binario del proyecto
+[[gestores]]
+nombre = "pnpm"
+guia = "lenguaje-node"
+si_hay_alguno = ["pnpm-lock.yaml"]
+package_manager = ["pnpm@"]
+correr = "pnpm run"
+ejecutar = "pnpm exec"
+[gestores.tareas]
+instalar = "pnpm install"
+compilar = "pnpm run build"
+revisar = "pnpm run lint"
+formatear = "pnpm exec prettier --write ."
+probar = "pnpm test"
+
+[[gestores]]
+nombre = "bun"
+guia = "lenguaje-node"
+si_hay_alguno = ["bun.lockb", "bun.lock"]
+package_manager = ["bun@"]
+correr = "bun run"
+ejecutar = "bunx"
+[gestores.tareas]
+instalar = "bun install"
+compilar = "bun run build"
+revisar = "bun run lint"
+formatear = "bunx prettier --write ."
+# `bun test` es el corredor PROPIO de bun, no el script `test` de package.json
+probar = "bun run test"
+
+[[gestores]]
+nombre = "yarn (2 o más)"
+guia = "lenguaje-node"
+si_hay_alguno = [".yarnrc.yml"]
+package_manager = ["yarn@2", "yarn@3", "yarn@4", "yarn@5"]
+correr = "yarn run"
+ejecutar = "yarn"
+[gestores.tareas]
+instalar = "yarn install"
+compilar = "yarn run build"
+revisar = "yarn run lint"
+formatear = "yarn prettier --write ."
+probar = "yarn test"
+
+[[gestores]]
+nombre = "yarn 1"
+guia = "lenguaje-node"
+si_hay_alguno = ["yarn.lock"]
+package_manager = ["yarn@1"]
+no_hay = [".yarnrc.yml"]
+correr = "yarn run"
+ejecutar = "yarn"
+[gestores.tareas]
+instalar = "yarn install --non-interactive"
+compilar = "yarn run build"
+revisar = "yarn run lint"
+formatear = "yarn prettier --write ."
+probar = "yarn test"
+
+[[gestores]]
+nombre = "npm"
+guia = "lenguaje-node"
+por_omision = true
+correr = "npm run"
+ejecutar = "npx"
+[gestores.tareas]
+instalar = "npm install"
+compilar = "npm run build"
+revisar = "npm run lint"
+formatear = "npx prettier --write ."
+probar = "npm test"
+
+# una sola prueba: depende del CORREDOR (dependencia de package.json), no del gestor
+[[corredores]]
+nombre = "vitest"
+guia = "lenguaje-node"
+si_depende = ["vitest"]
+una_prueba = "{ejecutar} vitest run -t {nombre}"
+[[corredores]]
+nombre = "jest"
+guia = "lenguaje-node"
+si_depende = ["jest"]
+una_prueba = "{ejecutar} jest -t {nombre}"
+[[corredores]]
+nombre = "mocha"
+guia = "lenguaje-node"
+si_depende = ["mocha"]
+una_prueba = "{ejecutar} mocha -g {nombre}"
+[[corredores]]
+nombre = "node:test"
+guia = "lenguaje-node"
+una_prueba = "node --test --test-name-pattern={nombre}"
+
+[no_interactivo]
+variables = { npm_config_yes = "true", NO_UPDATE_NOTIFIER = "1", NEXT_TELEMETRY_DISABLED = "1", ADBLOCK = "1", DISABLE_OPENCOLLECTIVE = "1" }
+
+[vivos]
+excepto = ["vite build", "vite optimize"]
+patrones = ["vite", "next dev", "nuxt dev", "astro dev", "webpack serve", "npm run dev", "npm start", "pnpm dev", "pnpm run dev", "pnpm start", "yarn dev", "yarn start", "bun dev", "bun run dev", "nodemon", "tsc --watch", "tsc -w"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./@-]+\.(?:js|jsx|mjs|cjs)):(?P<linea>\d+):\d+']

@@ -1,0 +1,15 @@
+[package]
+name = "gotv-voz"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "M3: la charla por voz de GOD OF THE VOID (oído + locutor + transcripción), compartida por la terminal y la app"
+
+[dependencies]
+gotv-core = { path = "../gotv-core" }
+gotv-mlx = { path = "../gotv-mlx" }
+gotv-sonido = { path = "../gotv-sonido" }
+anyhow.workspace = true
+tokio.workspace = true

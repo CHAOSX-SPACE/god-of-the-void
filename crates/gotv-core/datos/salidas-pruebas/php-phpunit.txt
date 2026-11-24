@@ -1,0 +1,27 @@
+PHPUnit 11.5.58 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.8
+
+.FE                                                                 3 / 3 (100%)
+
+Time: 00:00, Memory: 25.52 MB
+
+There was 1 error:
+
+1) PagosTest::testExcede
+InvalidArgumentException: monto inválido
+
+/p/php/src/Pagos.php:4
+/p/php/tests/PagosTest.php:7
+
+--
+
+There was 1 failure:
+
+1) PagosTest::testParcial
+Failed asserting that 1400 is identical to 600.
+
+/p/php/tests/PagosTest.php:6
+
+ERRORS!
+Tests: 3, Assertions: 2, Errors: 1, Failures: 1.

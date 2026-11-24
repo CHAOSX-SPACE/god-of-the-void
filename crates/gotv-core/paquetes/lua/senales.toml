@@ -1,0 +1,25 @@
+id = "lua"
+nombre = "Lua"
+
+[ficha]
+es = "Lua: `luarocks make --only-deps` · `stylua .` · `luacheck .` · `busted` (una: `busted --filter \"nombre\"`). `local` siempre (sin globales por accidente); las tablas empiezan en 1; `nil` corta una tabla con huecos (`#t` deja de ser fiable)."
+en = "Lua: `luarocks make --only-deps` · `stylua .` · `luacheck .` · `busted` (one: `busted --filter \"name\"`). Always `local` (no accidental globals); tables start at 1; `nil` breaks a table with holes (`#t` stops being reliable)."
+
+[detectar]
+marcadores = [[".luarc.json"], [".busted"]]
+extensiones = ["lua"]
+palabras = [" lua ", " love2d", "neovim"]
+
+[[gestores]]
+nombre = "luarocks"
+por_omision = true
+[gestores.tareas]
+instalar = "luarocks make --only-deps"
+compilar = "luac -p"
+revisar = "luacheck ."
+formatear = "stylua ."
+probar = "busted"
+una_prueba = "busted --filter {nombre}"
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.lua):(?P<linea>\d+):']

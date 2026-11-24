@@ -1,0 +1,39 @@
+id = "c"
+nombre = "C"
+
+[ficha]
+en = "C: build with warnings (`-Wall -Wextra`) and the project's system (make/CMake); `clang-format` if .clang-format exists. Every `malloc` with its `free` and its check; explicit buffer sizes (`snprintf`, never `gets`/unbounded `strcpy`)."
+es = "C: compila con avisos (`-Wall -Wextra`) y el sistema del proyecto (make/CMake); `clang-format` si hay .clang-format. Cada `malloc` con su `free` y su comprobación; tamaños de búfer explícitos (`snprintf`, nunca `gets`/`strcpy` sin límite)."
+
+[ley9]
+en = "C/C++: `tolower`/`strcasecmp` only know ASCII: use utf8proc (`utf8proc_map` with `UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK | UTF8PROC_CASEFOLD`) or ICU."
+es = "C/C++: `tolower`/`strcasecmp` sólo conocen ASCII: usa utf8proc (`utf8proc_map` con `UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK | UTF8PROC_CASEFOLD`) o ICU."
+
+[detectar]
+extensiones = ["c", "h"]
+salvo_extensiones = ["cpp", "cc", "hpp"]
+
+[[gestores]]
+nombre = "cmake"
+si_hay_alguno = ["CMakeLists.txt"]
+[gestores.tareas]
+instalar = "cmake -B build"
+compilar = "cmake --build build"
+revisar = "cmake --build build"
+formatear = "clang-format -i"
+probar = "ctest --test-dir build --output-on-failure"
+una_prueba = "ctest --test-dir build --output-on-failure -R {nombre}"
+
+[[gestores]]
+nombre = "make"
+por_omision = true
+[gestores.tareas]
+instalar = "make"
+compilar = "make"
+revisar = "make"
+formatear = "clang-format -i"
+probar = "make test"
+una_prueba = "make test"
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.[ch]):(?P<linea>\d+):\d+:']

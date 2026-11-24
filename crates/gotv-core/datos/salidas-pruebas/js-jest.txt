@@ -1,0 +1,37 @@
+FAIL ./pagos.test.js
+  ● pagar › parcial
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 600
+    Received: 1400
+
+      2 | describe("pagar", () => {
+      3 |   test("bien", () => { expect(pagar(10, 0)).toBe(10); });
+    > 4 |   test("parcial", () => { expect(pagar(1000, 400)).toBe(600); });
+        |                                                    ^
+      5 |   test("excede", () => { expect(pagar(1, 5)).toBe(0); });
+      6 | });
+      7 |
+
+      at Object.toBe (pagos.test.js:4:52)
+
+  ● pagar › excede
+
+    monto inválido
+
+      1 | function pagar(deuda, monto) {
+    > 2 |   if (monto > deuda) throw new Error("monto inválido");
+        |                            ^
+      3 |   return deuda + monto;
+      4 | }
+      5 | module.exports = { pagar };
+
+      at pagar (pagos.js:2:28)
+      at Object.pagar (pagos.test.js:5:33)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 1 passed, 3 total
+Snapshots:   0 total
+Time:        0.215 s
+Ran all test suites.

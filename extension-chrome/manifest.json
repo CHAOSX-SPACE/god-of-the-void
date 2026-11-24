@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "GOD OF THE VOID",
+  "version": "0.1.0",
+  "description": "GOD OF THE VOID controla SÓLO las pestañas del grupo «GOTV». Puente local por mensajería nativa; nada pasa por la nube.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn8srn5bYbrG5pbcdCMJer94VwGwqU4mXgYCpliUYVSe5GbAbzynYV1JX3ogWSrquXQcYmH3Mc4d35TYOpZ+AS3Rk3I4cJ114DmLwvywH8We6fxy/D0zEQl+pvCJd/HBMdDOYNKnbecP06o1ZEdiOglVr1Yn/bI+4+9XcNN1BIO2gABQw874dCLlHWmD3XLaq/mEqf7iqJPvxXuXUaT0q5PQ2bQdvqZK31mZw3QtmyUgli0kdoG2Tlvj1K8u6oyr8gwkxCFvHanO6FVQdK9XWNUj0z8BILQ6nxWc8Q2cmCa8lN2Qqo7VNrG1YgJpYMc39DjWeSSn0EOH0Z2JR/+rCEQIDAQAB",
+  "minimum_chrome_version": "116",
+  "permissions": ["debugger", "tabGroups", "tabs", "nativeMessaging"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "GOD OF THE VOID — sólo el grupo «GOTV»" }
+}

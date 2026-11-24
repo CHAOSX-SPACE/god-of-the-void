@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tareas — GOD OF THE VOID</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="tasks-only">
+<!-- la ventana DESPEGADA de tareas: escucha los mismos eventos que la principal -->
+<div class="tasks-head"><div class="void"></div><h4 data-i="tasks">Tareas en segundo plano</h4></div>
+<div class="task-list" id="taskList"></div>
+<script>if (!window.__TAURI__) document.write('<script src="mock.js"><\/script>');</script>
+<script src="i18n.js"></script>
+<script src="tasks-view.js"></script>
+<script>
+const T = window.__TAURI__;
+let tasks = [], procs = [];
+const render = () => drawTasks(document.getElementById("taskList"), tasks, procs);
+T.event.listen("gotv", ({ payload: m }) => {
+  if (m.kind === "tasks") { tasks = m.tasks; render(); }
+  if (m.kind === "procs") { procs = procStamp(m.procs); render(); }
+});
+setInterval(() => { if (tasks.some((t) => t.state === "running") || procs.some((p) => p.alive)) render(); }, 1000);
+T.core.invoke("info").then((i) => {
+  LANG = i.lang || "es";
+  const sys = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  document.documentElement.dataset.theme = i.theme === "system" ? sys : i.theme || "dark";
+  applyI18n(); tasks = i.tasks || []; procs = procStamp(i.procs); render();
+});
+</script>
+</body>
+</html>

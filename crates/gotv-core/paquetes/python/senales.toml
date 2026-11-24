@@ -1,0 +1,99 @@
+id = "python"
+nombre = "Python"
+guia = "lenguaje-python"
+
+[ficha]
+en = "Python: project environment, never the system Python. If the user says HOW (a `.venv` with pip, a given file such as main.py), that wins. If not, new project HERE: `uv init --bare` (only pyproject.toml; a name creates a subfolder) → `uv add package` → code and tests in this folder → `uv run pytest`. `ruff format` · `ruff check`. No mutable default arguments (`def f(x=[])`); specific exceptions, no bare `except:`."
+es = "Python: entorno del proyecto, nunca el Python del sistema. Si el usuario dice CÓMO (un `.venv` con pip, un archivo concreto como main.py), eso manda. Si no, proyecto nuevo AQUÍ: `uv init --bare` (sólo pyproject.toml; con nombre crea una subcarpeta) → `uv add paquete` → código y pruebas en esta carpeta → `uv run pytest`. `ruff format` · `ruff check`. Sin argumentos mutables por defecto (`def f(x=[])`); excepciones concretas, no `except:` desnudo."
+
+[detectar]
+marcadores = [["pyproject.toml"], ["requirements.txt"], ["setup.py"], ["Pipfile"]]
+extensiones = ["py"]
+palabras = [" python", " uv ", "pytest", "django", "fastapi", "flask", " pip "]
+
+[[gestores]]
+nombre = "uv"
+guia = "lenguaje-python"
+si_hay_alguno = ["uv.lock"]
+ejecutar = "uv run"
+[gestores.tareas]
+instalar = "uv sync"
+compilar = "uv run python -m compileall -q ."
+revisar = "uv run ruff check"
+formatear = "uv run ruff format"
+probar = "uv run pytest"
+una_prueba = "uv run pytest -k {nombre}"
+
+[[gestores]]
+nombre = "poetry"
+guia = "lenguaje-python"
+si_hay_alguno = ["poetry.lock"]
+ejecutar = "poetry run"
+[gestores.tareas]
+instalar = "poetry install"
+compilar = "poetry run python -m compileall -q ."
+revisar = "poetry run ruff check"
+formatear = "poetry run ruff format"
+probar = "poetry run pytest"
+una_prueba = "poetry run pytest -k {nombre}"
+
+[[gestores]]
+nombre = "pipenv"
+guia = "lenguaje-python"
+si_hay_alguno = ["Pipfile.lock", "Pipfile"]
+ejecutar = "pipenv run"
+[gestores.tareas]
+instalar = "pipenv install --dev"
+compilar = "pipenv run python -m compileall -q ."
+revisar = "pipenv run ruff check"
+formatear = "pipenv run ruff format"
+probar = "pipenv run pytest"
+una_prueba = "pipenv run pytest -k {nombre}"
+
+[[gestores]]
+nombre = ".venv"
+guia = "lenguaje-python"
+si_hay_alguno = [".venv"]
+ejecutar = ".venv/bin/python -m"
+[gestores.tareas]
+instalar = ".venv/bin/python -m pip install -r requirements.txt"
+compilar = ".venv/bin/python -m compileall -q ."
+revisar = ".venv/bin/python -m ruff check"
+formatear = ".venv/bin/python -m ruff format"
+probar = ".venv/bin/python -m pytest"
+una_prueba = ".venv/bin/python -m pytest -k {nombre}"
+
+[[gestores]]
+nombre = "requirements.txt sin entorno"
+guia = "lenguaje-python"
+si_hay_alguno = ["requirements.txt"]
+ejecutar = ".venv/bin/python -m"
+[gestores.tareas]
+instalar = "uv venv && uv pip install -r requirements.txt"
+compilar = ".venv/bin/python -m compileall -q ."
+revisar = ".venv/bin/python -m ruff check"
+formatear = ".venv/bin/python -m ruff format"
+probar = ".venv/bin/python -m pytest"
+una_prueba = ".venv/bin/python -m pytest -k {nombre}"
+
+[[gestores]]
+nombre = "uv (nuevo)"
+guia = "lenguaje-python"
+por_omision = true
+ejecutar = "uv run"
+[gestores.tareas]
+instalar = "uv sync"
+compilar = "uv run python -m compileall -q ."
+revisar = "uv run ruff check"
+formatear = "uv run ruff format"
+probar = "uv run pytest"
+una_prueba = "uv run pytest -k {nombre}"
+
+[no_interactivo]
+variables = { PYTHONUNBUFFERED = "1", PIP_NO_INPUT = "1", PIP_DISABLE_PIP_VERSION_CHECK = "1" }
+
+[vivos]
+patrones = ["flask run", "uvicorn", "gunicorn", "hypercorn", "fastapi dev", "fastapi run", "python manage.py runserver", "python3 manage.py runserver", "uv run manage.py runserver", "streamlit run", "jupyter"]
+
+[errores]
+archivo_linea = ['File "(?P<archivo>[^"]+)", line (?P<linea>\d+)']

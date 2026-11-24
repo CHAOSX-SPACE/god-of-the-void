@@ -1,0 +1,23 @@
+[package]
+name = "gotv-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "gotv-tui"
+path = "src/main.rs"
+
+[dependencies]
+gotv-desktop = { path = "../gotv-desktop" }
+gotv-engine = { path = "../gotv-engine" }
+gotv-core = { path = "../gotv-core" }
+# el núcleo Rust (sin Python): el único motor local
+gotv-mlx = { path = "../gotv-mlx" }
+tokio.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+ratatui = "0.29.0"
+crossterm = "0.28.1"

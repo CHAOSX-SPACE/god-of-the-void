@@ -1,0 +1,46 @@
+✔ bien (0.916083ms)
+✖ parcial (0.817166ms)
+✖ excede (0.053208ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 102.476542
+
+✖ failing tests:
+
+test at pagos.test.js:5:1
+✖ parcial (0.817166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1400 !== 600
+  
+      at TestContext.<anonymous> (/p/js/pagos.test.js:5:32)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1400,
+    expected: 600,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at pagos.test.js:6:1
+✖ excede (0.053208ms)
+  Error: monto inválido
+      at pagar (/p/js/pagos.js:2:28)
+      at TestContext.<anonymous> (/p/js/pagos.test.js:6:43)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

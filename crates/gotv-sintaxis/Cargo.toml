@@ -1,0 +1,25 @@
+[package]
+name = "gotv-sintaxis"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+# F5 ML7 · el plan B nativo (nivel 1 de L1): tree-sitter con las gramáticas compiladas dentro. Errores de
+# sintaxis al instante y esquema de símbolos aunque no haya servidor de lenguaje. El C de cada gramática lo
+# compila su crate (L1 regla 3, como SQLite). La MISMA versión de tree-sitter que el revisor de gotv-core
+# (sólo un paquete puede enlazar la biblioteca nativa).
+[dependencies]
+tree-sitter = "0.25"
+tree-sitter-rust = "=0.24.2"
+tree-sitter-python = "0.25"
+tree-sitter-typescript = "=0.23.2"
+tree-sitter-javascript = "=0.25.0"
+tree-sitter-go = "=0.25.0"
+tree-sitter-php = "=0.25.1"
+tree-sitter-swift = "=0.7.4"
+tree-sitter-c = "=0.24.2"
+tree-sitter-html = "0.23"
+tree-sitter-css = "0.23"
+tree-sitter-json = "=0.24.8"

@@ -1,0 +1,44 @@
+# F20.1 · los paquetes MÁS usados de cada registro, para reconocer un nombre a una o dos letras de uno de
+# ellos («reqeusts» → «requests»): la puerta PREGUNTA «¿quisiste decir…?», no bloquea. La lista envejece:
+# lleva fecha y se renueva con cada versión de GOTV.
+fecha = "2026-11-15"
+
+npm = [
+  "react", "react-dom", "next", "vue", "svelte", "preact", "angular", "@angular/core", "solid-js", "astro",
+  "lodash", "underscore", "axios", "express", "koa", "fastify", "hono", "nest", "@nestjs/core", "body-parser",
+  "cors", "dotenv", "chalk", "commander", "yargs", "inquirer", "debug", "ms", "uuid", "nanoid",
+  "moment", "dayjs", "date-fns", "luxon", "zod", "yup", "joi", "ajv", "class-validator", "typescript",
+  "ts-node", "tsx", "esbuild", "vite", "webpack", "rollup", "parcel", "babel", "@babel/core", "eslint",
+  "prettier", "jest", "vitest", "mocha", "chai", "sinon", "cypress", "playwright", "puppeteer", "supertest",
+  "nodemon", "concurrently", "cross-env", "rimraf", "glob", "minimatch", "fs-extra", "graceful-fs", "semver", "classnames",
+  "clsx", "tailwindcss", "postcss", "autoprefixer", "sass", "styled-components", "@emotion/react", "redux", "@reduxjs/toolkit", "zustand",
+  "mobx", "jotai", "react-router", "react-router-dom", "react-query", "@tanstack/react-query", "swr", "graphql", "apollo-server", "@apollo/client",
+  "prisma", "@prisma/client", "mongoose", "sequelize", "typeorm", "knex", "pg", "mysql2", "sqlite3", "redis",
+  "ioredis", "socket.io", "ws", "jsonwebtoken", "bcrypt", "bcryptjs", "passport", "helmet", "morgan", "winston",
+  "pino", "multer", "sharp", "jimp", "cheerio", "node-fetch", "got", "superagent", "request", "rxjs",
+  "three", "d3", "chart.js", "electron", "@tauri-apps/api", "openai", "@anthropic-ai/sdk", "stripe", "firebase", "aws-sdk",
+]
+
+pypi = [
+  "requests", "urllib3", "httpx", "aiohttp", "numpy", "pandas", "scipy", "matplotlib", "seaborn", "plotly",
+  "scikit-learn", "sklearn", "tensorflow", "keras", "torch", "torchvision", "transformers", "datasets", "tokenizers", "huggingface-hub",
+  "openai", "anthropic", "langchain", "pydantic", "fastapi", "flask", "django", "starlette", "uvicorn", "gunicorn",
+  "sqlalchemy", "alembic", "psycopg2", "psycopg2-binary", "psycopg", "pymysql", "redis", "celery", "boto3", "botocore",
+  "pyyaml", "toml", "tomli", "python-dotenv", "click", "typer", "rich", "tqdm", "colorama", "jinja2",
+  "pillow", "opencv-python", "beautifulsoup4", "lxml", "selenium", "playwright", "scrapy", "pytest", "pytest-cov", "coverage",
+  "black", "ruff", "flake8", "mypy", "pylint", "isort", "setuptools", "wheel", "pip", "virtualenv",
+  "six", "attrs", "dataclasses-json", "marshmallow", "cryptography", "pyjwt", "bcrypt", "paramiko", "pexpect", "psutil",
+  "python-dateutil", "pytz", "arrow", "pendulum", "orjson", "ujson", "simplejson", "protobuf", "grpcio", "websockets",
+  "pyarrow", "polars", "duckdb", "sympy", "networkx", "nltk", "spacy", "gensim", "xgboost", "lightgbm",
+]
+
+crates = [
+  "serde", "serde_json", "serde_derive", "tokio", "async-trait", "futures", "rand", "regex", "lazy_static", "once_cell",
+  "anyhow", "thiserror", "clap", "log", "env_logger", "tracing", "tracing-subscriber", "chrono", "time", "uuid",
+  "reqwest", "hyper", "axum", "actix-web", "warp", "rocket", "tower", "tower-http", "http", "url",
+  "sqlx", "diesel", "rusqlite", "sea-orm", "redis", "mongodb", "bytes", "itertools", "rayon", "crossbeam",
+  "parking_lot", "dashmap", "indexmap", "hashbrown", "smallvec", "arrayvec", "bitflags", "base64", "hex", "sha2",
+  "md5", "ring", "rustls", "openssl", "native-tls", "toml", "serde_yaml", "csv", "walkdir", "glob",
+  "tempfile", "dirs", "directories", "libc", "nix", "num", "num-traits", "byteorder", "memchr", "nom",
+  "syn", "quote", "proc-macro2", "tauri", "egui", "winit", "wgpu", "image", "zip", "flate2",
+]

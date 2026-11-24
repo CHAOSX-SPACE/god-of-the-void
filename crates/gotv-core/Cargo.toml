@@ -1,0 +1,108 @@
+[package]
+name = "gotv-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+# O2 · documentos como ARCHIVOS (método de Claude Code, ESTUDIO-DOCUMENTOS.md): leer, crear, editar Excel
+calamine = "0.38"
+# F15.1 · los informes JUnit y TRX de los corredores de pruebas (la misma versión que trae calamine)
+quick-xml = "0.42"
+# F17 · lecturas de git dentro del proceso (git en Rust puro; medido más rápido que el binario: NOTAS F17)
+# F9 · `merge`: las ramas de los subagentes en proceso (fusión de texto a tres vías, sin `git apply`)
+gix = { version = "0.90", default-features = false, features = ["sha1", "status", "blame", "revision", "parallel", "max-performance", "merge"] }
+rust_xlsxwriter = { version = "0.102", features = ["zlib"] }
+umya-spreadsheet = "3.1"
+# O2 · Word y PowerPoint como paquetes OOXML (zip); la misma versión que trae calamine
+zip = { version = "9.5", default-features = false, features = ["deflate"] }
+# O2 · PDF (MIT): leer texto, unir, extraer páginas
+pdf-extract = "0.12"
+lopdf = "0.42"
+gotv-diseno = { path = "../gotv-diseno" }
+gotv-engine = { path = "../gotv-engine" }
+# F1 · bases de datos (SQLite en proceso; clasificador de SQL)
+gotv-datos = { path = "../gotv-datos" }
+# F5 ML7 · sintaxis nativa (tree-sitter, 12 gramáticas): errores al instante y esquema sin servidor
+gotv-sintaxis = { path = "../gotv-sintaxis" }
+# P9: web_fetch necesita TLS (el workspace lo trae sin features); rustls = puro Rust
+reqwest = { workspace = true, features = ["rustls-tls", "stream"] }
+# F13.3 · MCP por WebSocket (rustls con el proveedor ring del árbol; sin OpenSSL)
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+# F19 · la API del motor de contenedores (Docker, Colima, OrbStack, Podman) por su socket, desde Rust
+bollard = "0.21"
+# F22 · equipos conectados, TODO en Rust y en proceso (pedido del Portador, 2026-11-17: ningún programa
+# intermedio): USB (nusb), puertos serie (serialport), ESP32 (espflash como biblioteca, sin su terminal),
+# formatear FAT (fatfs), imágenes .xz (lzma-rs); los discos por IOKit y DiskArbitration, las impresoras por
+# libcups y las cámaras por AVFoundation, llamados desde Rust (core-foundation y objc, ya en el árbol).
+# nokhwa NO: arrastraba metal 0.18, cocoa 0.20, core-graphics 0.19 y core-foundation 0.7 duplicados
+nusb = "0.2"
+serialport = { version = "4", default-features = false }
+espflash = { version = "4.7", default-features = false, features = ["serialport"] }
+fatfs = { version = "0.3", default-features = false, features = ["std", "alloc"] }
+objc = "0.2"
+core-foundation = "0.10"
+core-foundation-sys = "0.8"
+lzma-rs = "0.3"
+# F3 · vigilar archivos (FSEvents en macOS) respetando .gitignore (target/, node_modules/)
+notify = "8.2"
+ignore = "0.4"
+# F10.5 · el QR del emparejado del teléfono (Rust puro; sin `image` ni `svg`: el SVG lo dibuja GOTV)
+qrcode = { version = "0.14", default-features = false }
+# F2.3 · tareas programadas: expresiones cron con zona horaria (cambio de hora incluido)
+cron = "0.17"
+chrono = "0.4"
+chrono-tz = "0.10"
+iana-time-zone = "0.1"
+# F2.1 · notificaciones del sistema (UserNotifications de macOS) con enlaces objc2: Rust puro, sin compilar
+# Objective-C (las mismas versiones que ya trae Tauri al árbol)
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSBundle", "NSError"] }
+objc2-user-notifications = { version = "0.3", default-features = false, features = ["std", "UNUserNotificationCenter", "UNNotificationContent", "UNNotificationRequest", "UNNotificationTrigger", "block2"] }
+block2 = "0.6"
+tokio.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+async-trait.workspace = true
+toml = "0.8"
+# F11: los patrones `archivo:línea` de cada paquete de lenguaje
+regex = "1"
+glob = "0.3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+libc = "0.2"
+sha2 = "0.10"
+# F18.I: el catálogo de Android publica SHA-1 de cada archivo y de cada licencia (ya en el árbol por gix)
+sha1 = "0.10"
+metal = "0.33.0"
+similar = "3.2.1"
+# A3: las llaves de los proveedores, en el Llavero de macOS (nunca en texto plano)
+security-framework = "3"
+# A4: GOTV como servicio (API OpenAI + Ollama)
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio", "query"] }
+futures-util = { version = "0.3", default-features = false }
+bytes = "1"
+# C2: credencial del proxy de la caja (Proxy-Authorization: Basic)
+base64 = "0.22"
+# comprobar que una imagen se puede leer antes de mandarla al modelo (la misma versión que ya compila
+# gotv-mlx: no suma peso). Medido 2026-11-16: una imagen rota de un servidor MCP tumbaba el turno entero
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+# F5 (motor de lenguaje nativo): revisor de Python sin servidores externos (sintaxis, nombres, imports)
+tree-sitter = "0.25"
+tree-sitter-python = "0.25"
+# DM6.3: sintaxis de CSS y HTML (el navegador descarta lo inválido en silencio)
+tree-sitter-css = "0.23"
+tree-sitter-html = "0.23"
+# F18 · móvil: gRPC a mano sobre el HTTP/2 de hyper (idb por socket Unix, emulador de Android por TCP local)
+# sin tonic ni build.rs; hyper, hyper-util y http-body-util ya estaban en el árbol: sólo se suma `h2`
+hyper = { version = "1", features = ["client", "server", "http2"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+# F18 · el Info.plist (binario o XML) de una app de iOS (ya estaba en el árbol)
+plist = "1.10"
+# F4 · el protocolo de Jupyter: ZeroMQ escrito en Rust (zmq.rs, MIT), sin libzmq; sólo TCP y tokio
+zeromq = { version = "0.7", default-features = false, features = ["tokio-runtime", "tcp-transport"] }

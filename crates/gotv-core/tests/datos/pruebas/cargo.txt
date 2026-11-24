@@ -1,0 +1,56 @@
+   Compiling juguete v0.1.0 (/RAIZ)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.67s
+     Running unittests src/lib.rs (target/debug/deps/juguete-ebf761285c26e01c)
+
+running 3 tests
+test tests::lenta ... ignored
+test tests::suma_bien ... ok
+test tests::suma_mal ... FAILED
+
+failures:
+
+---- tests::suma_mal stdout ----
+
+thread 'tests::suma_mal' (13032880) panicked at src/lib.rs:9:9:
+assertion `left == right` failed: dos y dos
+  left: 4
+ right: 5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::suma_mal
+
+test result: FAILED. 1 passed; 1 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+     Running tests/integra.rs (target/debug/deps/integra-227e7771fef16a78)
+
+running 2 tests
+test integra ... ok
+test integra_rota ... FAILED
+
+failures:
+
+---- integra_rota stdout ----
+
+thread 'integra_rota' (13032883) panicked at tests/integra.rs:4:21:
+se rompio aqui
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    integra_rota
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test integra`
+   Doc-tests juguete
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 2 targets failed:
+    `--lib`
+    `--test integra`

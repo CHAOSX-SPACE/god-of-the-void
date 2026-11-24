@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOD OF THE VOID</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="experto.css">
+<link rel="stylesheet" href="ventana.css">
+</head>
+<body>
+<!-- F8.0 · TRES zonas y ninguna más (la estructura la decide Rust: crates/gotv-gui/src/ventana.rs) -->
+<!-- ── Proyectos y sus chats ──────────────────────────────────────────── -->
+<aside class="side" data-zona="proyectos">
+  <div class="brand" id="brand" title="GOD OF THE VOID"></div>
+  <!-- como Claude Desktop: arriba se elige el modo. «Chat» = charlas sin proyecto; «Code» = proyectos -->
+  <div class="modo-tabs" role="tablist" id="modoTabs">
+    <button type="button" role="tab" class="modo-tab" id="modoChat" data-modo="chat" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l.9-4.6A8 8 0 1 1 21 12Z"/></svg><span data-i="modoChat">Chat</span></button>
+    <button type="button" role="tab" class="modo-tab" id="modoCode" data-modo="code" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg><span data-i="modoCode">Code</span></button>
+  </div>
+  <nav class="side-nav">
+    <!-- el buscador va ENCIMA de crear (pedido del Portador) -->
+    <button class="side-item" id="sideBuscar" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span data-i="chBuscar">Buscar</span><kbd>⌘K</kbd></button>
+    <button class="side-item solo-code" id="newProj" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i="newProject">Nuevo proyecto</span></button>
+    <button class="side-item solo-chat" id="newCharla" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i="chNueva">Charla nueva</span></button>
+    <button class="side-item" id="sideAuto" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg><span data-i="chAutomat">Automatizaciones</span></button>
+    <button class="side-item solo-code" id="sidePapelera" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg><span data-i="oPapelera">Papelera de chats</span></button>
+  </nav>
+  <div class="modo-lista solo-code">
+    <button class="side-sec" id="secProj" type="button" aria-expanded="true" aria-controls="projects"><span data-i="projects">Proyectos</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="projects" id="projects"></div>
+  </div>
+  <div class="modo-lista solo-chat">
+    <div class="side-sec fija"><span data-i="chCharlas">Charlas</span></div>
+    <div class="sueltas" id="sueltas"></div>
+  </div>
+  <div class="side-foot">
+    <div class="engine"><span class="dot" id="engDot"></span><span id="engTxt" class="mono">…</span></div>
+    <button class="side-item" id="openSettings" type="button"><span class="ic">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </span><span data-i="settings">Configuración</span></button>
+  </div>
+</aside>
+
+<!-- ── Chat ───────────────────────────────────────────────────────────── -->
+<main class="chat" data-zona="chat">
+  <header class="top">
+    <!-- F5: el modelo es del PROYECTO: se ve y se cambia al lado de su nombre (la ruta va en el title) -->
+    <div class="title"><h2 id="projName">…</h2>
+      <div class="modelo-sel" id="modeloSel" hidden>
+        <button class="modelo-act" id="modeloBtn" type="button" aria-haspopup="menu" aria-expanded="false" data-it="tModelo" title="modelo de este proyecto"><span id="modeloNom">…</span><svg class="flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="modelo-menu" id="modeloMenu" role="menu" hidden></div>
+      </div>
+    </div>
+    <button class="mac-check rapido" id="rapidoBtn" type="button" role="switch" aria-checked="false" data-it="tRapido" hidden><span class="ring"></span><span data-i="rapido">Reabrir rápido</span><span class="peso mono" id="rapidoPeso"></span></button>
+    <select class="pill tope" id="rapidoTope" data-it="tTope" title="tope de la memoria rápida de este proyecto" hidden>
+      <option value="3">3 GB</option><option value="6">6 GB</option><option value="12">12 GB</option><option value="24">24 GB</option>
+    </select>
+    <select class="pill" id="mode" title="permisos" data-it="tPerms" disabled>
+      <option value="" hidden selected>…</option><option value="plan">plan</option><option value="default">default</option>
+      <option value="acceptEdits">acceptEdits</option><option value="bypass">bypass</option>
+    </select>
+    <div class="ctx" id="ctx" title="" role="button" tabindex="0" aria-haspopup="menu"><div class="bar"><div class="fill" id="ctxFill"></div></div><div class="lbl mono" id="ctxLbl">—</div></div>
+    <button class="icon-btn" id="tasksBtn" title="tareas" data-it="tTasks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+    </button>
+  </header>
+
+  <section id="log"></section>
+
+  <button class="bajar" id="bajar" type="button" hidden data-it="tBajar" title="ir al final"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button>
+  <div class="composer">
+    <div class="slash" id="slash"></div>
+    <div class="pro-panel" id="proPanel" role="region" hidden></div>
+    <div class="rb-aviso" id="rbAviso" hidden><span data-i="rbAviso">↺ Rebobinando a este mensaje: al enviar se borra lo que viene después</span><button type="button" id="rbDeshacer" data-i="rbDeshacer">Deshacer</button></div>
+    <div class="box" id="box">
+      <div class="box-cuerpo">
+      <div class="chips" id="chips"></div>
+      <textarea id="in" rows="1" disabled></textarea>
+      <div class="row">
+        <button class="icon-btn" id="attachBtn" title="adjuntar" data-it="tAttach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+        </button>
+        <!-- D7 · perfil: sólo el elegido a la vista; al pulsar se despliegan todos (M4: imagen; M6: video;
+             M7: música: no caben en fila) -->
+        <div class="perfil-sel" id="perfilSel">
+          <button type="button" class="perfil-act" id="perfilAct" aria-haspopup="menu" aria-expanded="false"><span class="ic" id="perfilIc"></span><span id="perfilNom">Auto</span><svg class="flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 15 6-6 6 6"/></svg></button>
+          <div class="perfil-menu" id="perfiles" role="menu" aria-label="Perfil" hidden>
+            <button type="button" role="menuitemradio" data-p="auto" aria-checked="true"><span data-i="pAuto">Auto</span></button>
+            <button type="button" role="menuitemradio" data-p="programar" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg><span data-i="pCode">Programar</span></button>
+            <button type="button" role="menuitemradio" data-p="diseno" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2a10 10 0 0 0 0 20c1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a6 6 0 0 0 6-6c0-4.4-4.5-8.2-10-8.2z"/></svg><span data-i="pDesign">Diseño web</span></button>
+            <button type="button" role="menuitemradio" data-p="imagen" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span data-i="pImage">Imagen</span></button>
+            <button type="button" role="menuitemradio" data-p="video" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/></svg><span data-i="pVideo">Video</span></button>
+            <button type="button" role="menuitemradio" data-p="musica" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span data-i="pMusic">Música</span></button>
+          </div>
+        </div>
+        <!-- Ola PRO · el switch del modo profesional (sólo en los perfiles que lo tienen) y su panel -->
+        <button class="mac-check pro-check" id="proBtn" type="button" role="switch" aria-checked="false" data-it="proTip" hidden><span class="ring"></span><span data-i="proModo">Pro</span></button>
+        <button class="icon-btn" id="micBtn" title="voz" data-it="tVoice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4M8 22h8"/></svg>
+        </button>
+        <button class="mac-check" id="macBtn" type="button" role="switch" aria-checked="false"><span class="ring"></span><span data-i="macCtl">Control Mac</span></button>
+        <span class="hint" id="hint"></span>
+      </div>
+      </div>
+      <!-- columna derecha: 🎧 manos libres (redondo, centrado, como en los chats móviles) y enviar debajo -->
+      <div class="lado">
+        <button class="manos-btn" id="manosBtn" type="button" title="manos libres" data-it="tHands" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="o1" x="3" y="10" width="2.2" height="4" rx="1.1"/><rect class="o2" x="7.4" y="7.5" width="2.2" height="9" rx="1.1"/><rect class="o3" x="11.4" y="4" width="2.2" height="16" rx="1.1"/><rect class="o4" x="15.4" y="7.5" width="2.2" height="9" rx="1.1"/><rect class="o5" x="19.8" y="10" width="2.2" height="4" rx="1.1"/></svg>
+        </button>
+        <button class="send" id="send" disabled>↵</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Panel de trabajo: Tareas · Cambios · Vista · Archivo · Terminal (una pestaña a la vista; panel.js) ── -->
+<aside class="panel" id="tasksPanel" data-zona="trabajo">
+  <div class="panel-head">
+    <div class="panel-tabs" id="panelTabs" role="tablist"></div>
+    <button class="icon-btn" id="popTasks" title="despegar" data-it="tPop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
+    </button>
+    <button class="icon-btn" id="closeTasks" title="cerrar" data-it="tClose">✕</button>
+  </div>
+  <div class="panel-body" id="panelBody">
+    <div class="panel-pane" data-pane="tareas"><div class="task-list" id="taskList"></div></div>
+  </div>
+</aside>
+
+<!-- ── Modales ────────────────────────────────────────────────────────── -->
+<div class="modal" id="askModal"><div class="card perm" role="alertdialog" aria-labelledby="askTitle" aria-describedby="askCuerpo">
+  <!-- diseño (2026-11-18): tarjeta neutra; el riesgo es una etiqueta pequeña, no un color de fondo -->
+  <div class="perm-cab">
+    <div class="perm-tit">
+      <h3 id="askTitle"></h3>
+      <div class="perm-ojo" data-i="permOjo">GOD OF THE VOID pide permiso</div>
+    </div>
+    <span class="perm-riesgo" id="askRiesgo"></span>
+  </div>
+  <div class="perm-marca" id="askMarca" hidden></div>
+  <div class="perm-cuerpo" id="askCuerpo"></div>
+  <p class="perm-nota" id="askNota" hidden></p>
+  <p class="perm-ayuda" id="askAyuda"></p>
+  <div class="perm-pie">
+    <button class="btn perm-ter" data-a="always"><span data-i="always">Siempre</span><kbd>A</kbd></button>
+    <button class="btn perm-ter" data-a="never"><span data-i="never">Nunca</span><kbd>X</kbd></button>
+    <span class="perm-hueco"></span>
+    <button class="btn" data-a="no"><span data-i="no">No</span><kbd>N</kbd></button>
+    <button class="btn primary" data-a="yes"><span data-i="allow">Permitir</span><kbd>S</kbd></button>
+  </div>
+</div></div>
+
+<div class="modal" id="chooseModal"><div class="card">
+  <h3 id="chTitle"></h3>
+  <div class="choose-opts" id="chOpts"></div>
+  <div class="choose-free"><input id="chFree" data-ip="chFreePh" placeholder="Otra respuesta…"><button class="btn" id="chSend" data-i="chSend">Responder</button></div>
+  <div class="actions"><button class="btn" id="chSkip" data-i="chSkip">Decide tú</button></div>
+</div></div>
+
+<div class="modal" id="secretoModal"><div class="card">
+  <h3 id="seTitle"></h3>
+  <div class="choose-free"><input id="seValor" type="password" autocomplete="off" spellcheck="false" data-ip="sePh" placeholder="Clave…"><button class="btn" id="seSend" data-i="seSend">Guardar en el Llavero</button></div>
+  <div class="actions"><button class="btn" id="seSkip" data-i="cancel">Cancelar</button></div>
+</div></div>
+
+<div class="modal" id="confirmModal"><div class="card">
+  <button class="close" data-close title="cerrar (Esc)" data-it="tCloseEsc">✕</button>
+  <h3 id="cfTitle"></h3>
+  <p id="cfBody" class="cf-body"></p>
+  <div class="actions"><button class="btn" id="cfNo" data-i="cancel">Cancelar</button><button class="btn danger" id="cfYes"></button></div>
+</div></div>
+
+<div class="modal" id="trustModal"><div class="card">
+  <button class="close" data-close title="cerrar (Esc)" data-it="tCloseEsc">✕</button>
+  <div class="void big" style="margin-bottom:12px"></div>
+  <h3 data-i="trustTitle">¿Confías en esta carpeta?</h3>
+  <pre id="trustPath"></pre>
+  <p data-i="trustBody">GOD OF THE VOID podrá leer y, según el modo de permisos, editar archivos y ejecutar comandos dentro de esta carpeta. macOS puede pedirte además su propio permiso de acceso.</p>
+  <div class="actions"><button class="btn" id="trustNo" data-i="cancel">Cancelar</button><button class="btn primary" id="trustYes" data-i="trustOk">Confiar y abrir</button></div>
+</div></div>
+
+<!-- F4/F6: la memoria rápida se está construyendo (leer la conversación con el modelo) -->
+<div class="modal" id="rapidoModal" role="dialog" aria-modal="true" aria-labelledby="rmTitulo"><div class="card rm">
+  <h3 id="rmTitulo" data-i="rmTitulo">Preparando la memoria rápida</h3>
+  <p class="note" data-i="rmTexto">GOD OF THE VOID lee esta conversación una vez con este modelo; después el proyecto abrirá al instante.</p>
+  <div class="rm-barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="rmBarra"><div class="rm-fill" id="rmFill"></div></div>
+  <div class="rm-lbl mono" id="rmLbl">…</div>
+  <div class="actions"><button class="btn" id="rmCancelar" data-i="cancel">Cancelar</button></div>
+</div></div>
+
+<div class="modal" id="newModal"><div class="card">
+  <button class="close" data-close title="cerrar (Esc)" data-it="tCloseEsc">✕</button>
+  <h3 data-i="newProject">Nuevo proyecto</h3>
+  <label class="f"><span data-i="projFolder">Carpeta del proyecto</span>
+    <div class="row"><input type="text" id="newPath" class="mono" style="flex:1" placeholder="/Users/…/mi-proyecto" data-ip="projPathPh"><button class="btn" id="newPick" data-i="choose">Elegir…</button></div>
+  </label>
+  <label class="f"><span data-i="projName">Nombre en la app (opcional)</span><input type="text" id="newName"></label>
+  <label class="f"><span data-i="newModel">Modelo de este proyecto</span><select id="newModel"></select></label>
+  <div class="note" data-i="newNote">GOD OF THE VOID trabaja en esa carpeta tal cual, con tus archivos: no crea otra dentro. El nombre sólo se ve en la app.</div>
+  <div class="actions"><button class="btn" id="newCancel" data-i="cancel">Cancelar</button><button class="btn primary" id="newCreate" data-i="create">Crear y abrir</button></div>
+</div></div>
+
+<div class="modal" id="settingsModal"><div class="card settings">
+  <button class="close" data-close title="cerrar (Esc)" data-it="tCloseEsc">✕</button>
+  <!-- F8.0 + diseño: los grupos y sus páginas los pone panel.js desde Rust (`GRUPOS`) -->
+  <div class="set-lado">
+    <div class="set-titulo" data-i="settings">Configuración</div>
+    <input id="setBuscar" class="set-buscar" type="search" data-ip="setBuscarPh" placeholder="Buscar ajustes" autocomplete="off" spellcheck="false">
+    <nav id="setNav"></nav>
+  </div>
+  <div class="pane" id="setPane"></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>if (!window.__TAURI__) document.write('<script src="mock.js"><\/script><script src="mock-experto.js"><\/script><script src="mock-ventana.js"><\/script>');</script>
+<script src="i18n.js"></script>
+<script src="i18n-ventana.js"></script>
+<script src="tasks-view.js"></script>
+<script src="md.js"></script>
+<script src="logo-chaosx.js"></script>
+<script src="app.js"></script>
+<!-- F8 · el armazón (panel.js) primero; después cada pieza se registra en él -->
+<script src="panel.js"></script>
+<script src="chats.js"></script>
+<script src="cambios.js"></script>
+<script src="vista.js"></script>
+<script src="menciones.js"></script>
+<script src="buscar.js"></script>
+<script src="ajustes-f8.js"></script>
+<script src="plan-vista.js"></script>
+<script src="dispositivos.js"></script>
+<script src="cuaderno-vista.js"></script>
+<script src="experto.js"></script>
+<script src="experto-arreglo.js"></script>
+<script src="experto-dock.js"></script>
+<script src="experto-lado.js"></script>
+<!-- F16 · piezas de escritorio (se registran solas en el panel y en Configuración) -->
+<script src="escritorio.js"></script>
+</body>
+</html>

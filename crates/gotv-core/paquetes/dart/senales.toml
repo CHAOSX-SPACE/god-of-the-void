@@ -1,0 +1,43 @@
+id = "dart"
+nombre = "Dart/Flutter"
+
+[ficha]
+es = "Dart/Flutter: `flutter pub get` (o `dart pub get`) · `dart format .` · `flutter analyze` · `flutter test` (sin Flutter: `dart test`). Null safety real: nada de `!` para callar al analizador; `const` en los widgets que no cambian; el estado fuera de `build()`, que se llama muchas veces."
+en = "Dart/Flutter: `flutter pub get` (or `dart pub get`) · `dart format .` · `flutter analyze` · `flutter test` (without Flutter: `dart test`). Real null safety: no `!` to silence the analyzer; `const` on widgets that do not change; state outside `build()`, which runs many times."
+
+[ley9]
+es = "Dart: no normaliza solo: paquete `diacritic` (`removeDiacritics(s).toLowerCase()`)."
+en = "Dart: no built-in normalisation: `diacritic` package (`removeDiacritics(s).toLowerCase()`)."
+
+[detectar]
+marcadores = [["pubspec.yaml"]]
+extensiones = ["dart"]
+palabras = [" dart", "flutter"]
+
+[[gestores]]
+nombre = "flutter"
+si_contiene = { "pubspec.yaml" = "flutter:" }
+[gestores.tareas]
+instalar = "flutter pub get"
+compilar = "flutter build"
+revisar = "flutter analyze"
+formatear = "dart format ."
+probar = "flutter test"
+una_prueba = "flutter test --plain-name {nombre}"
+
+[[gestores]]
+nombre = "dart"
+por_omision = true
+[gestores.tareas]
+instalar = "dart pub get"
+compilar = "dart compile exe bin/main.dart"
+revisar = "dart analyze"
+formatear = "dart format ."
+probar = "dart test"
+una_prueba = "dart test --plain-name {nombre}"
+
+[vivos]
+patrones = ["flutter run"]
+
+[errores]
+archivo_linea = ['(?P<archivo>[\w./-]+\.dart):(?P<linea>\d+):\d+']

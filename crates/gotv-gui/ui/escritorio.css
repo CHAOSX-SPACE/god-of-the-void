@@ -1,0 +1,55 @@
+/* F16 · piezas de escritorio (cola, revisión, archivo, terminal, ajustes). Usa las variables de app.css. */
+
+/* F16.1 · cola */
+.msg-u.en-cola .msg-user { opacity: 0.72; border-style: dashed; }
+.cola-tag { font-size: 11.5px; color: var(--muted); margin-top: 4px; display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+.cola-x { border: none; background: transparent; color: var(--faint); cursor: pointer; font-size: 11px; padding: 0 2px; }
+.cola-x:hover { color: var(--bad); }
+
+/* F16.5 · tarjeta de revisión */
+.rev-card { border: 1px solid var(--line-2); background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin: 10px 0; display: flex; flex-direction: column; gap: 10px; }
+.rev-tit { font-weight: 600; font-size: 13.5px; }
+.rev-vacio { color: var(--ok); font-size: 13px; }
+.rev-h { border-left: 3px solid var(--warn); padding: 6px 0 6px 10px; display: flex; flex-direction: column; gap: 5px; }
+.rev-h.sev-alta { border-left-color: var(--bad); }
+.rev-h.sev-baja { border-left-color: var(--info); }
+.rev-cab { display: flex; gap: 8px; align-items: center; }
+.rev-sev { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }
+.rev-loc { font-size: 12px; color: var(--accent); }
+.rev-res { font-size: 13px; }
+.rev-cod { margin: 0; font-size: 12px; background: var(--surface-2); border-radius: 6px; padding: 6px 8px; overflow-x: auto; white-space: pre; }
+.rev-falla { font-size: 12.5px; color: var(--muted); }
+.rev-arreglar { align-self: flex-start; }
+.rev-desc { font-size: 12px; color: var(--warn); }
+
+/* F16.7 · archivo */
+.arc-barra, .ter-barra { display: flex; gap: 6px; align-items: center; padding: 6px 0; flex-wrap: wrap; }
+.arc-ruta { flex: 1; min-width: 160px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px; color: var(--text); padding: 5px 8px; font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.arc-estado { font-size: 12px; color: var(--muted); }
+.arc-estado.mal { color: var(--bad); }
+.arc-area { width: 100%; min-height: 320px; flex: 1; resize: vertical; box-sizing: border-box; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 4; }
+
+/* F16.7 · terminal */
+.ter-nota { font-size: 11.5px; color: var(--faint); }
+.ter-pantalla { --ter-bg: #101014; --ter-fg: #e6e6ea; background: var(--ter-bg); color: var(--ter-fg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; height: 380px; overflow: hidden; font: 13px/17px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; outline: none; }
+.ter-pantalla:focus { border-color: var(--accent); }
+.ter-linea { height: 17px; }
+.ter-cursor { background: var(--ter-fg); color: var(--ter-bg); }
+.ter-pantalla:not(:focus) .ter-cursor { background: transparent; outline: 1px solid var(--ter-fg); }
+.ter-cursor.dentro { background: transparent; outline: 1px solid var(--accent); }
+.ter-fin { color: var(--muted); font-style: italic; }
+
+/* F16.2 · F16.3 · F16.4 · ajustes */
+.esc-tit { font-size: 14px; margin: 6px 0; }
+.esc-nota { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; }
+.var-lista, .var-nueva { display: flex; flex-direction: column; gap: 6px; }
+.var-nueva { flex-direction: row; flex-wrap: wrap; margin-top: 8px; }
+.var-fila { display: flex; gap: 10px; align-items: center; }
+.var-fila code { min-width: 140px; }
+.var-nombre, .var-valor, .rem-campo { background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px; color: var(--text); padding: 5px 8px; font-size: 12.5px; }
+.var-nombre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; width: 150px; }
+.var-valor { flex: 1; min-width: 160px; }
+.var-caja { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.rem-campo { display: block; width: 100%; box-sizing: border-box; margin-bottom: 6px; }
+.ag-fila { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ag-det { font-size: 12px; color: var(--muted); margin-top: 2px; }

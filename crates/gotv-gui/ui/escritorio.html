@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOTV · piezas de escritorio (F16)</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="escritorio.css">
+<style>
+  body { background: var(--bg); color: var(--text); font: 14px system-ui, sans-serif; margin: 0; padding: 16px; }
+  .rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .caja { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; min-width: 0; }
+  .caja > h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; }
+  #log { max-height: none; }
+  @media (max-width: 900px) { .rejilla { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<!-- Página de DEMOSTRACIÓN de las piezas de F16 (las monta como lo hará la pestaña de F8). La app real usa index.html. -->
+<div class="rejilla">
+  <div class="caja"><h2>Archivo</h2><div id="pArchivo"></div></div>
+  <div class="caja"><h2>Terminal</h2><div id="pTerminal"></div></div>
+  <div class="caja"><h2>Revisión (/revisar)</h2><button class="btn sm" id="bRevisar">/revisar</button><section id="log"></section></div>
+  <div class="caja"><div id="pVariables"></div></div>
+  <div class="caja"><div id="pRemoto"></div></div>
+  <div class="caja"><div id="pAgentes"></div></div>
+</div>
+<script>if (!window.__TAURI__) document.write('<script src="mock.js"><\/script><script src="mock-escritorio.js"><\/script>');</script>
+<script src="i18n.js"></script>
+<script src="escritorio-i18n.js"></script>
+<script src="escritorio-revision.js"></script>
+<script src="escritorio-archivo.js"></script>
+<script src="escritorio-terminal.js"></script>
+<script src="escritorio-ajustes.js"></script>
+<script>
+  if (location.search.includes("en")) LANG = "en";
+  applyI18n();
+  gotvArchivo.montar(document.getElementById("pArchivo"));
+  gotvArchivo.abrir("src/main.rs");
+  gotvTerminal.montar(document.getElementById("pTerminal"));
+  gotvEscritorioAjustes.variables(document.getElementById("pVariables"));
+  gotvEscritorioAjustes.remoto(document.getElementById("pRemoto"));
+  gotvEscritorioAjustes.agentes(document.getElementById("pAgentes"));
+  document.getElementById("bRevisar").onclick = () => window.__TAURI__.core.invoke("send", { task: "/revisar" });
+</script>
+</body>
+</html>

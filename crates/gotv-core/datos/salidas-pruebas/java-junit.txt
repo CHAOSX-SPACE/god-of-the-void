@@ -1,0 +1,52 @@
+WARNING: Final field allParameters in class org.junit.platform.console.options.MainCommand has been mutated reflectively by class org.junit.platform.console.shadow.picocli.CommandLine$Model$FieldBinding in unnamed module @6956de9 (file:/c/junit.jar)
+WARNING: Use --enable-final-field-mutation=ALL-UNNAMED to avoid a warning
+WARNING: Mutating final fields will be blocked in a future release unless final field mutation is enabled
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+[36m╷[0m
+[36m├─[0m [36mJUnit Platform Suite[0m [32m✔[0m
+[36m├─[0m [36mJUnit Jupiter[0m [32m✔[0m
+[36m│  └─[0m [36mPagosTest[0m [32m✔[0m
+[36m│     ├─[0m [31mexcede()[0m [31m✘[0m [31mmonto inválido[0m
+[36m│     ├─[0m [31mparcial()[0m [31m✘[0m [31mexpected: <600> but was: <1400>[0m
+[36m│     └─[0m [34mbien()[0m [32m✔[0m
+[36m└─[0m [36mJUnit Vintage[0m [32m✔[0m
+
+Failures (2):
+  JUnit Jupiter:PagosTest:excede()
+    MethodSource [className = 'pagos.PagosTest', methodName = 'excede', methodParameterTypes = '']
+    => java.lang.IllegalArgumentException: monto inválido
+       pagos.Pagos.pagar(Pagos.java:6)
+       pagos.PagosTest.excede(PagosTest.java:14)
+       java.base/java.lang.reflect.Method.invoke(Method.java:565)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+  JUnit Jupiter:PagosTest:parcial()
+    MethodSource [className = 'pagos.PagosTest', methodName = 'parcial', methodParameterTypes = '']
+    => org.opentest4j.AssertionFailedError: expected: <600> but was: <1400>
+       org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+       org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+       org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+       org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:150)
+       org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:145)
+       org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:531)
+       pagos.PagosTest.parcial(PagosTest.java:11)
+       java.base/java.lang.reflect.Method.invoke(Method.java:565)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+
+Test run finished after 50 ms
+[         4 containers found      ]
+[         0 containers skipped    ]
+[         4 containers started    ]
+[         0 containers aborted    ]
+[         4 containers successful ]
+[         0 containers failed     ]
+[         3 tests found           ]
+[         0 tests skipped         ]
+[         3 tests started         ]
+[         0 tests aborted         ]
+[         1 tests successful      ]
+[         2 tests failed          ]
+

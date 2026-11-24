@@ -1,0 +1,26 @@
+test_bien (tests.test_calc.T.test_bien) ... ok
+test_error (tests.test_calc.T.test_error) ... ERROR
+test_mal (tests.test_calc.T.test_mal) ... FAIL
+test_omitida (tests.test_calc.T.test_omitida) ... skipped 'luego'
+
+======================================================================
+ERROR: test_error (tests.test_calc.T.test_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/RAIZ/tests/test_calc.py", line 12, in test_error
+    raise ValueError("roto")
+ValueError: roto
+
+======================================================================
+FAIL: test_mal (tests.test_calc.T.test_mal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/RAIZ/tests/test_calc.py", line 9, in test_mal
+    self.assertEqual(doble(3), 7)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 6 != 7
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+FAILED (failures=1, errors=1, skipped=1)
